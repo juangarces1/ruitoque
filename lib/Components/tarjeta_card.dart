@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
 
 import 'package:ruitoque/Models/tarjeta.dart';
+import 'package:ruitoque/Screens/Estadisticas/golf_score_screen.dart';
 import 'package:ruitoque/constans.dart';
 
 class TarjetaRonda extends StatefulWidget {
@@ -348,11 +353,9 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
               CircleAvatar(
                 backgroundColor: Colors.white,
                 child: IconButton(
-                  icon: const Icon(Icons.thumb_up),
+                  icon: const Icon(Icons.save),
                   color: Colors.green,
-                  onPressed: () {
-                    // Acción para 'Me gusta'
-                  },
+                  onPressed: () => writeJsonToFile(),
                 ),
               ),
               // Botón 'Comentar' con fondo circular
@@ -361,9 +364,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
                 child: IconButton(
                   icon: const Icon(Icons.comment),
                   color: Colors.blue,
-                  onPressed: () {
-                    // Acción para 'Comentar'
-                  },
+                  onPressed: () => getTarjeta(),
                 ),
               ),
               // Botón 'Estadísticas' con fondo circular
@@ -372,9 +373,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
                 child: IconButton(
                   icon: const Icon(Icons.bar_chart),
                   color: Colors.purple,
-                  onPressed: () {
-                    // Acción para 'Estadísticas'
-                  },
+                  onPressed: () => goEstadisticas(),
                 ),
     ),
   ],
@@ -384,4 +383,51 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
       ),
     );
   }
+  
+  goEstadisticas() {
+    Navigator.push(
+    context, 
+    MaterialPageRoute(
+      builder: (context) =>  GolfScoreScreen(tarjeta: widget.tarjeta,)
+    )
+   );
+  }
+
+  Future<File> writeJsonToFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/mitarjeta.json');
+
+    Map<String, dynamic> objeto = widget.tarjeta.toJson();
+    String jsonString = jsonEncode(objeto);
+
+    return file.writeAsString(jsonString);
+}
+
+  Future<Map<String, dynamic>> readJsonFromFile() async {
+  try {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/mitarjeta.json');
+
+    // Verifica si el archivo existe antes de intentar leerlo
+    if (await file.exists()) {
+      String jsonString = await file.readAsString();
+      // Decodifica el string JSON a un objeto Map
+      Map<String, dynamic> jsonObject = jsonDecode(jsonString);
+      return jsonObject;
+    } else {
+      print('Archivo no encontrado');
+      return {};
+    }
+  } catch (e) {
+    print('Error al leer el archivo: $e');
+    return {};
+  }
+}
+
+getTarjeta() {
+    var tar = readJsonFromFile();
+
+  
+
+}
 }

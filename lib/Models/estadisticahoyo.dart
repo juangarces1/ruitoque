@@ -1,4 +1,5 @@
 import 'package:ruitoque/Models/hoyo.dart';
+import 'package:ruitoque/Models/shot.dart';
 
 class EstadisticaHoyo {
    int id;
@@ -12,6 +13,7 @@ class EstadisticaHoyo {
    bool falloFairwayIzquierda;
    bool falloFairwayDerecha;
    int? neto;
+   List<Shot>? shots;
 
 
   EstadisticaHoyo({
@@ -26,6 +28,7 @@ class EstadisticaHoyo {
     required this.falloFairwayIzquierda,
     required this.falloFairwayDerecha,
     this.neto,
+    this.shots,
     
   });
 
@@ -56,11 +59,10 @@ class EstadisticaHoyo {
 
 
 
-  // Opcional: Si necesitas un método para convertir un mapa JSON en una instancia de EstadisticaHoyo
   factory EstadisticaHoyo.fromJson(Map<String, dynamic> json) {
     return EstadisticaHoyo(
       id: json['id'],
-      hoyo: Hoyo.fromJson(json['hoyo']), // Asegúrate de tener un método 'fromJson' en la clase Hoyo.
+      hoyo: Hoyo.fromJson(json['hoyo']), // Utiliza Hoyo.fromJson si hoyo es un objeto complejo
       hoyoId: json['hoyoId'],
       golpes: json['golpes'],
       putts: json['putts'],
@@ -69,20 +71,27 @@ class EstadisticaHoyo {
       acertoFairway: json['acertoFairway'],
       falloFairwayIzquierda: json['falloFairwayIzquierda'],
       falloFairwayDerecha: json['falloFairwayDerecha'],
-    
+      neto: json['neto'],
+      shots: json['shots'] != null
+          ? List<Shot>.from(json['shots'].map((x) => Shot.fromJson(x)))
+          : null,
     );
   }
 
-   Map<String, dynamic> toJson() => {
-        'id': id,
-        'hoyo': hoyo.toJson(), // Asegúrate de que la clase 'Hoyo' tenga un método 'toJson'.
-        'hoyoId': hoyoId,
-        'golpes': golpes,
-        'putts': putts,
-        'bunkerShots': bunkerShots,
-        'penaltyShots': penaltyShots,
-        'acertoFairway': acertoFairway,
-        'falloFairwayIzquierda': falloFairwayIzquierda,
-        'falloFairwayDerecha': falloFairwayDerecha,
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'hoyo': hoyo.toJson(), // Asegúrate de que la clase Hoyo tenga un método toJson
+      'hoyoId': hoyoId,
+      'golpes': golpes,
+      'putts': putts,
+      'bunkerShots': bunkerShots,
+      'penaltyShots': penaltyShots,
+      'acertoFairway': acertoFairway,
+      'falloFairwayIzquierda': falloFairwayIzquierda,
+      'falloFairwayDerecha': falloFairwayDerecha,
+      'neto': neto,
+      'shots': shots?.map((x) => x.toJson()).toList(),
+    };
+  }
 }

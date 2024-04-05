@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ruitoque/Screens/Temporales/my_home_pag.dart';
+import 'package:ruitoque/constans.dart';
 import 'package:ruitoque/sizeconfig.dart';
 
 
@@ -12,7 +13,7 @@ class LoginScreen extends StatelessWidget {
     return  SafeArea(      
         child: Material(
           child: Container(
-            color: const Color.fromARGB(255, 225, 225, 225),
+            color: kSecondaryColor,
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -41,6 +42,8 @@ class LoginScreen extends StatelessWidget {
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: 'Ingresa tu PIN',
+                        fillColor: Colors.white,
+                        hoverColor: Colors.white,
                         
                       ),
                     ),

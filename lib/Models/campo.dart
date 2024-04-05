@@ -15,10 +15,10 @@ class Campo {
 
   factory Campo.fromJson(Map<String, dynamic> json) {
     return Campo(
-      id: json['id'],
-      nombre: json['nombre'],
-      ubicacion: json['ubicacion'],
-      hoyos: (json['hoyos'] as List).map((hoyoJson) => Hoyo.fromJson(hoyoJson)).toList(),
+      id: json['Id'],
+      nombre: json['Nombre'],
+      ubicacion: json['Ubicacion'],
+      hoyos: (json['Hoyos'] as List).map((hoyoJson) => Hoyo.fromJson(hoyoJson)).toList(),
     );
   }
 

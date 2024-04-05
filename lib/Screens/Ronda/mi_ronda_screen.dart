@@ -1,15 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/tarjeta_card.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
-import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Models/ronda.dart';
+import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/Screens/Ronda/estadistica_hoyo_dialog.dart';
-import 'package:ruitoque/Screens/golf_watch_screen.dart';
 import 'package:ruitoque/Screens/mi_mapa.dart';
 import 'package:ruitoque/constans.dart';
 
@@ -52,52 +47,50 @@ class _MiRondaState extends State<MiRonda> {
         
         ),
         body: CustomScrollView(
-      slivers: <Widget>[
-        SliverToBoxAdapter(
-          child:  TarjetaRonda(tarjeta: widget.ronda.tarjetas[0],),
-        ),
-        SliverGrid(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // Número de elementos en una fila (horizontalmente)
-            mainAxisSpacing: 5.0, // Espaciado vertical entre elementos
-            crossAxisSpacing: 5.0, // Espaciado horizontal entre elementos
-            childAspectRatio:  (1 / 1.2), // La proporción de la altura y ancho de los elementos
+            slivers: <Widget>[
+              SliverToBoxAdapter(
+                child:  TarjetaRonda(tarjeta: widget.ronda.tarjetas[0],),
+              ),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 220, // Ajusta esta altura según tus necesidades
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget.ronda.tarjetas[0].hoyos.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return buildCardEstadistica(widget.ronda.tarjetas[0].hoyos[index]);
+                    },
+                  ),
+                ),
+              ),
+            
+            ],
           ),
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-               return buildCardEstadistica(widget.ronda.tarjetas[0].hoyos[index]);
-            },
-            childCount:  widget.ronda.tarjetas[0].hoyos.length,
-          ),
-        ),
-      ],
-    ),
         
         ),
-        
-        
-      );
+   );
   }
-  
- 
+   
 
-  goHole(Hoyo hoyo) {
+  goHole(EstadisticaHoyo hoyo) {
    Navigator.push(
     context, 
     MaterialPageRoute(
-      builder: (context) =>  MiMapa(hoyo: hoyo,)
+      builder: (context) =>  MiMapa(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo,)
     )
    );
   }
 
-  goEstadistica(Hoyo hoyo) {
-    Navigator.push(
-      context, 
-      MaterialPageRoute(
-        builder: (context) =>  GolfWatchScreen(hoyo: hoyo,)
-      )
-    );
+   void agregarShotAEstadisticaHoyo(int idEstadisticaHoyo, Shot nuevoShot) {
+    setState(() {
+      var estadisticaHoyo = widget.ronda.tarjetas[0].hoyos.firstWhere(
+        (est) => est.id == idEstadisticaHoyo,        
+      );       
+        estadisticaHoyo.shots!.add(nuevoShot);     
+    });
   }
+
+ 
 
    gridHoyos() {
      return Padding(
@@ -120,10 +113,14 @@ class _MiRondaState extends State<MiRonda> {
 
   }
 
-  buildCardEstadistica(EstadisticaHoyo estadistica) {
-     return Card(
-       
-      color: estadistica.golpes == 0 ? const Color.fromARGB(255, 46, 46, 46) : kSecondaryColor,
+buildCardEstadistica(EstadisticaHoyo estadistica) {
+  return SizedBox(
+    width: 200, // O un ancho específico si lo prefieres
+    height: 200, // Ajusta esto según tus necesidades
+    child: Card(
+      color: estadistica.golpes == 0
+          ? const Color.fromARGB(255, 46, 46, 46)
+          : kSecondaryColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
       ),
@@ -135,73 +132,84 @@ class _MiRondaState extends State<MiRonda> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             ListTile(
-                title:  Text('Hoyo: ${estadistica.hoyo.numero.toString()}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),),
-                trailing: const Icon(Icons.golf_course, color: Colors.white,),
-           ),
-         
-     
-               Padding(
-                 padding: const EdgeInsets.only(left: 15),
-                 child: Text('Par: ${estadistica.hoyo.par.toString()}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),),
-               ),
-              
-               
-                Padding(
-                 padding: const EdgeInsets.only(left: 15),
-                  child: Text('Golpes: ${estadistica.golpes.toString()}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),),
+              title: Text(
+                'Hoyo: ${estadistica.hoyo.numero.toString()}',
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              trailing: const Icon(Icons.golf_course, color: Colors.white),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: SizedBox(
+                child: Text(
+                  'Par: ${estadistica.hoyo.par.toString()}',
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-               
-               Padding(
-                 padding: const EdgeInsets.only(left: 15),
-                 child: Text('Putts: ${estadistica.putts.toString()}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),),
-               ),
-               const SizedBox(height: 5,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround, // Centra los botones en la fila
-                  children: <Widget>[
-                   Ink(
-                      decoration: const ShapeDecoration(
-                        color: kTextColorBlanco, // Puedes cambiar el color de fondo aquí
-                        shape: CircleBorder(),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.flag,
-                          color:kPrimaryColor,
-                          size: 30,
-                        ),
-                        onPressed: () => goHole(estadistica.hoyo),
-                      ),
-                    ),
-                    Ink(
-                      decoration: const ShapeDecoration(
-                        color: kTextColorBlanco, // Puedes cambiar el color de fondo aquí
-                        shape: CircleBorder(),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.bar_chart,
-                          color: Colors.blueGrey,
-                          size: 30,
-                        ),
-                        onPressed: () => _mostrarDialogoEstadisticaHoyo(estadistica),
-                      ),
-                    ),
-                    // IconButton(
-                    //   icon: const Icon(Icons.bar_chart , color:Colors.blueGrey, size: 35,),  // Segundo ícono, cambia según tus necesidades
-                    //   onPressed: () => _mostrarDialogoEstadisticaHoyo(estadistica),
-                    // ),
-                  ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: SizedBox(
+                child: Text(
+                  'Golpes: ${estadistica.golpes.toString()}',
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-
-        
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: SizedBox(
+                child: Text(
+                  'Putts: ${estadistica.putts.toString()}',
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Container(
+                  decoration: const ShapeDecoration(
+                    color: kTextColorBlanco,
+                    shape: CircleBorder(),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.flag,
+                      color: kPrimaryColor,
+                      size: 30,
+                    ),
+                    onPressed: () => goHole(estadistica),
+                  ),
+                ),
+                Container(
+                  decoration: const ShapeDecoration(
+                    color: kTextColorBlanco,
+                    shape: CircleBorder(),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.bar_chart,
+                      color: Colors.blueGrey,
+                      size: 30,
+                    ),
+                    onPressed: () => _mostrarDialogoEstadisticaHoyo(estadistica),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-     );
+    ),
+  );
+}
 
-
-  }
 
   void _mostrarDialogoEstadisticaHoyo(EstadisticaHoyo estadistica) {
     if(estadistica.golpes == 0 
@@ -232,18 +240,4 @@ class _MiRondaState extends State<MiRonda> {
   );
 }
 
-
-
- Future<File> writeJsonToFile() async {
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/myJsonFile.json');
-
-  Map<String, dynamic> objeto = widget.ronda.toJson();
-  String jsonString = jsonEncode(objeto);
-
-  return file.writeAsString(jsonString);
-}
-
-
- 
 }

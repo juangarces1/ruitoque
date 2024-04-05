@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_campo.dart';
 import 'package:ruitoque/Components/loader_component.dart';
@@ -10,11 +15,11 @@ import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/tarjeta.dart';
+import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
+import 'package:ruitoque/Screens/Campos/agregar_campo_sreen.dart';
+
 import 'package:ruitoque/Screens/Ronda/mi_ronda_screen.dart';
-import 'package:ruitoque/Screens/golf_watch_screen.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:ruitoque/Screens/mi_mapa.dart';
+
 import 'package:ruitoque/constans.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -120,8 +125,15 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: CardCampo(campo: campo, onPressed: () => iniciarRonda(), ),
                     ) : const Text('No hay Campo'),
                        const SizedBox(height: 5,),
-              
-                  
+
+                      ElevatedButton(
+                        onPressed: ()=>goAddCampo(),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white, backgroundColor: Colors.blue, // Color del texto
+                          // Puedes personalizar aún más el estilo si lo deseas
+                        ),
+                        child: const Text('Agregar Campo'),
+                      ),
                   
                   ],
                 ),
@@ -154,7 +166,8 @@ class _MyHomePageState extends State<MyHomePage> {
              acertoFairway: false, 
              falloFairwayIzquierda: false, 
              falloFairwayDerecha: false, 
-             penaltyShots: 0
+             penaltyShots: 0,
+             shots: [],
           );
           tarjeta.hoyos.add(aux);
       }  
@@ -165,64 +178,50 @@ class _MyHomePageState extends State<MyHomePage> {
         context, 
         MaterialPageRoute(
           builder: (context) =>  MiRonda(ronda: ronda,)
-        )
-      ).then((value) {
-        //   _orderTransactions();
-        });
+        ),
+      );
   }
 
-  goHole(Hoyo hoyo) {
-    Navigator.push(
-      context, 
-      MaterialPageRoute(
-        builder: (context) =>  GolfWatchScreen(hoyo: hoyo,)
-      )
-    ).then((value) {
-      //   _orderTransactions();
-      });
-  }
+ 
 
   
 
 
 Widget  buildCardHoyo (Hoyo hoyo) {
- return InkWell(
-    onTap: () => goHole(hoyo),
-   child: Card(
-  
-    color: const Color.fromARGB(255, 46, 46, 46),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20.0),
-    ),
-    elevation: 10,
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-         Center(
-           child: Text(' ${hoyo.nombre}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-           textAlign: TextAlign.center,
-           ),
-         ), 
-       
+ return Card(
    
-             ListTile(
-              title: const Text('Par', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),),
-              subtitle: Text(
-              hoyo.par.toString(),
-                         style: const TextStyle(color: Colors.white, fontSize: 16, ),
-              ),
-              trailing: const Icon(Icons.flag_circle, color: Colors.white,),
-             
-                         ),
-             
-      
-        ],
-      ),
+  color: const Color.fromARGB(255, 46, 46, 46),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(20.0),
+  ),
+  elevation: 10,
+  child: Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+       Center(
+         child: Text(' ${hoyo.nombre}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+         textAlign: TextAlign.center,
+         ),
+       ), 
+     
+ 
+           ListTile(
+            title: const Text('Par', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),),
+            subtitle: Text(
+            hoyo.par.toString(),
+                       style: const TextStyle(color: Colors.white, fontSize: 16, ),
+            ),
+            trailing: const Icon(Icons.flag_circle, color: Colors.white,),
+           
+                       ),
+           
+    
+      ],
     ),
-   ),
+  ),
  );
 }
 
@@ -250,17 +249,49 @@ Widget gridHoyos() {
 
  Future<void> _getCampoJson() async {
 
-     String jsonString = await rootBundle.loadString('assets/ruitoque.json');
+  //   String jsonString = await rootBundle.loadString('assets/ruitoque.json');
   
   // Decodificar el JSON
-    final jsonResponse = json.decode(jsonString);
-
+ var jsonString = await readJsonFromFile();
+    
+   final jsondecode = json.decode(jsonString);
+ 
   // Crear una instancia de MiModelo
   setState(() {
-      campo= Campo.fromJson(jsonResponse);
+      campo= Campo.fromJson(jsondecode);
   });
   
   }
+  
+  goAddCampo() {
+     Navigator.push(
+        context, 
+        MaterialPageRoute(
+          builder: (context) =>  const AddCourseScreen()
+        ),
+      );
+  }
+
+  Future<String> readJsonFromFile() async {
+  try {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/ruitoque.json');
+
+    // Verifica si el archivo existe antes de intentar leerlo
+    if (await file.exists()) {
+      String jsonString = await file.readAsString();
+      // Decodifica el string JSON a un objeto Map
+     // Map<String, dynamic> jsonObject = jsonDecode(jsonString);
+      return jsonString;
+    } else {
+      print('Archivo no encontrado');
+      return '{}';
+    }
+  } catch (e) {
+    print('Error al leer el archivo: $e');
+    return '{};';
+  }
+}
   
 
 

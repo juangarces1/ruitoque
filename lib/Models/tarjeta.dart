@@ -1,6 +1,5 @@
 import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
-import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 
 
@@ -12,6 +11,7 @@ class Tarjeta {
    Campo? campo;
    int? porcentajeHandicap;
    List<EstadisticaHoyo> hoyos; 
+   String? teeSalida;
 
   Tarjeta({
     required this.id,
@@ -21,7 +21,7 @@ class Tarjeta {
     required this.hoyos,
     this.campo,
     this.porcentajeHandicap,
-   
+    this.teeSalida,
   });
 
   
@@ -87,7 +87,7 @@ class Tarjeta {
       jugadorId: json['jugadorId'],
       rondaId: json['rondaId'],
       jugador: Jugador.fromJson(json['jugador']),
-    
+
       hoyos: (json['hoyos'] as List).map((h) => EstadisticaHoyo.fromJson(h)).toList(),
     );
   }
@@ -97,7 +97,7 @@ class Tarjeta {
         'jugadorId': jugadorId,
         'rondaId': rondaId,
         'jugador': jugador.toJson(),
-       
+        'teeSalida' : teeSalida,
         'hoyos': hoyos.map((hoyo) => hoyo.toJson()).toList(),
       };
 }
