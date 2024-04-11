@@ -6,17 +6,18 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ruitoque/Components/enum.dart';
 import 'package:ruitoque/Components/position_item.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
-
 import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:ruitoque/sizeconfig.dart';
 
 class MiMapa extends StatefulWidget {
+  final String teeSalida;
   final EstadisticaHoyo hoyo;
   final Function(int, Shot) onAgregarShot;
   const MiMapa({
     required this.hoyo,
      required this.onAgregarShot,
+     required this.teeSalida,
     super.key});
 
   @override
@@ -46,7 +47,7 @@ class _MiMapaState extends State<MiMapa> {
   bool showLoader = false;
   double? altitude = 0;
   double bearing=0;
-
+  late String distanciaHoyo;
   double miLatitud = 0;
   double miLongitud=0;
 
@@ -60,6 +61,7 @@ class _MiMapaState extends State<MiMapa> {
   final Set<Marker> _markers = {};
 
   late Position pMedio;
+  late Position salida;
  
 
   @override
@@ -68,7 +70,88 @@ class _MiMapaState extends State<MiMapa> {
     _calculateDistances();
    
     _calculateBering();
-    puntoA = LatLng(widget.hoyo.hoyo.teeBlancas!.latitud, widget.hoyo.hoyo.teeBlancas!.longitud);
+    
+    switch (widget.teeSalida) {
+      case 'teeNegras' :
+         puntoA = LatLng(widget.hoyo.hoyo.teeNegras!.latitud, widget.hoyo.hoyo.teeNegras!.longitud);
+           salida = Position(
+            longitude: widget.hoyo.hoyo.teeNegras!.longitud, 
+            latitude: widget.hoyo.hoyo.teeNegras!.latitud, 
+            timestamp: DateTime.now(), 
+            accuracy: 1, 
+            altitude: 0, 
+            altitudeAccuracy: 10, 
+            heading: 0.0, 
+            headingAccuracy: 0.0, 
+            speed: 0.0, 
+            speedAccuracy: 0.0);
+            distanciaHoyo = widget.hoyo.hoyo.distanciaNegras.toString();
+        break;
+      case 'teeAzules' :
+         puntoA = LatLng(widget.hoyo.hoyo.teeAzules!.latitud, widget.hoyo.hoyo.teeAzules!.longitud);
+          salida = Position(
+            longitude: widget.hoyo.hoyo.teeAzules!.longitud, 
+            latitude: widget.hoyo.hoyo.teeAzules!.latitud, 
+            timestamp: DateTime.now(), 
+            accuracy: 1, 
+            altitude: 0, 
+            altitudeAccuracy: 10, 
+            heading: 0.0, 
+            headingAccuracy: 0.0, 
+            speed: 0.0, 
+            speedAccuracy: 0.0);
+             distanciaHoyo = widget.hoyo.hoyo.distamciaAzules.toString();
+        break;
+      case 'teeBlancas' :
+         puntoA = LatLng(widget.hoyo.hoyo.teeBlancas!.latitud, widget.hoyo.hoyo.teeBlancas!.longitud);
+          salida = Position(
+            longitude: widget.hoyo.hoyo.teeBlancas!.longitud, 
+            latitude: widget.hoyo.hoyo.teeBlancas!.latitud, 
+            timestamp: DateTime.now(), 
+            accuracy: 1, 
+            altitude: 0, 
+            altitudeAccuracy: 10, 
+            heading: 0.0, 
+            headingAccuracy: 0.0, 
+            speed: 0.0, 
+            speedAccuracy: 0.0);
+             distanciaHoyo = widget.hoyo.hoyo.distanciaBlancas.toString();
+        break;
+      case 'teeAmarillas' :
+         puntoA = LatLng(widget.hoyo.hoyo.teeAmarillas!.latitud, widget.hoyo.hoyo.teeAmarillas!.longitud);
+          salida = Position(
+            longitude: widget.hoyo.hoyo.teeAmarillas!.longitud, 
+            latitude: widget.hoyo.hoyo.teeAmarillas!.latitud, 
+            timestamp: DateTime.now(), 
+            accuracy: 1, 
+            altitude: 0, 
+            altitudeAccuracy: 10, 
+            heading: 0.0, 
+            headingAccuracy: 0.0, 
+            speed: 0.0, 
+            speedAccuracy: 0.0);
+             distanciaHoyo = widget.hoyo.hoyo.distanciaAmarillas.toString();
+        break;
+      case 'teeRojas' :
+         puntoA = LatLng(widget.hoyo.hoyo.teeRojas!.latitud, widget.hoyo.hoyo.teeRojas!.longitud);
+          salida = Position(
+            longitude: widget.hoyo.hoyo.teeRojas!.longitud, 
+            latitude: widget.hoyo.hoyo.teeRojas!.latitud, 
+            timestamp: DateTime.now(), 
+            accuracy: 1, 
+            altitude: 0, 
+            altitudeAccuracy: 10, 
+            heading: 0.0, 
+            headingAccuracy: 0.0, 
+            speed: 0.0, 
+            speedAccuracy: 0.0);
+             distanciaHoyo = widget.hoyo.hoyo.distanciaRojas.toString();
+        break;    
+      default:
+        break;
+    }
+    
+   
     puntoB = LatLng(widget.hoyo.hoyo.centroGreen!.latitud, widget.hoyo.hoyo.centroGreen!.longitud);
     puntoMedio = LatLng(widget.hoyo.hoyo.centroHoyo!.latitud, widget.hoyo.hoyo.centroHoyo!.longitud);
     _polylines.add(
@@ -129,7 +212,6 @@ class _MiMapaState extends State<MiMapa> {
       _markers.add(markerPersonalizado);
     });
   }
-
 
   void _updatePolyline(LatLng inicio, LatLng medio, LatLng fin) {
       // Crea una nueva lista de puntos para la polilínea
@@ -258,17 +340,7 @@ class _MiMapaState extends State<MiMapa> {
 
    
 
-     Position salida = Position(
-      longitude: widget.hoyo.hoyo.teeBlancas!.longitud, 
-      latitude: widget.hoyo.hoyo.teeBlancas!.latitud, 
-      timestamp: DateTime.now(), 
-      accuracy: 1, 
-      altitude: 0, 
-      altitudeAccuracy: 10, 
-      heading: 0.0, 
-      headingAccuracy: 0.0, 
-      speed: 0.0, 
-      speedAccuracy: 0.0);
+     
    
     if(mounted){
         setState(() {
@@ -388,7 +460,7 @@ class _MiMapaState extends State<MiMapa> {
                 
               ),
               Text(
-                  '${widget.hoyo.hoyo.nombre} | Par ${widget.hoyo.hoyo.par}',
+                  '${widget.hoyo.hoyo.nombre}| Par ${widget.hoyo.hoyo.par} | ${distanciaHoyo}y',
                        style: const TextStyle(
                       fontFamily: 'RobotoCondensed',
                       // Puedes especificar el peso y el estilo si es necesario
@@ -578,6 +650,13 @@ class _MiMapaState extends State<MiMapa> {
     LatLng start = LatLng(widget.hoyo.hoyo.centroHoyo!.latitud, widget.hoyo.hoyo.centroHoyo!.longitud);
     LatLng end = LatLng(widget.hoyo.hoyo.centroGreen!.latitud, widget.hoyo.hoyo.centroGreen!.longitud);
     bearing = calcularBearing(start, end);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    mapController.dispose();
   }
 }
 

@@ -3,9 +3,10 @@
   centroGreen,
   fondoGreen,
   centroHoyo,
-  teeBlancas,
   teeRojas,
+  teeAmarillas,
+  teeBlancas,  
   teeAzules,
   teeNegras,
-  teeAmarillas,
+  
 }

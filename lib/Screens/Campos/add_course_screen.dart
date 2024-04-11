@@ -2,11 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:ruitoque/Models/cordenada.dart';
-import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Models/Campo.dart';
+import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Screens/Campos/agregar_hoyos_screen.dart';
 
 class AddCourseScreen extends StatefulWidget {

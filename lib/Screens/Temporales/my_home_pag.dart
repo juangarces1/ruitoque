@@ -1,26 +1,22 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
-import 'package:ruitoque/Components/card_campo.dart';
+import 'package:ruitoque/Components/card_jugador.dart';
 import 'package:ruitoque/Components/loader_component.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
+import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/campo.dart';
-import 'package:ruitoque/Models/estadisticahoyo.dart';
-import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
-import 'package:ruitoque/Models/ronda.dart';
-import 'package:ruitoque/Models/tarjeta.dart';
-import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
-import 'package:ruitoque/Screens/Campos/agregar_campo_sreen.dart';
-
-import 'package:ruitoque/Screens/Ronda/mi_ronda_screen.dart';
-
+import 'package:ruitoque/Screens/LogIn/login_screen.dart';
+import 'package:ruitoque/Screens/Ronda/intro_ronda_screen.dart';
+import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
 import 'package:ruitoque/constans.dart';
+import 'package:ruitoque/sizeconfig.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -32,250 +28,202 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool showLoader =false;
+  double? value = 0;
   Campo campo = Campo(id: 0, nombre: '', ubicacion: '', hoyos: []);
+  late Jugador jugador;
 
-   @override
+  @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-   //  _getCampo();
-      _getCampoJson();
-   
-  }
-
-   Future<void> _getCampo() async {
-    setState(() {
-      showLoader = true;
-    });
-    
-   Response response = await ApiHelper.getCampo('1');
-
-    setState(() {
-      showLoader = false;
-    });
-
-    if (!response.isSuccess) {
-        if (mounted) {       
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Error'),
-                content:  Text(response.message),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('Aceptar'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        }  
-       return;
-     }
-     
-
-    setState(() {
-      campo=response.result;
-      
-    });
+    jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;
   }
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
+   
  
+   
     return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: MyCustomAppBar(
-           
-          title: 'Ruitoque Golf',
-          automaticallyImplyLeading: true,   
-          backgroundColor:kPrimaryColor,
-          elevation: 8.0,
-          shadowColor:kSecondaryColor,
-          foreColor: Colors.white,
-          actions: [ 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Image.asset(
-                    'assets/logoApp.jpg',
-                    width: 30,
-                    height: 30,
-                    fit: BoxFit.cover,
-                  ), // Ícono de perfil de usuario
-              ),
-          ],
-                 ),
-        body:  SafeArea(
-          child: Stack(
-            children: [
-              Center(
+      child: Scaffold(     
+               
+        body:  Stack(
+          children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: kPrimaryGradientColor
+            ),
+          ),
+          SafeArea(
+    
+            child: Container(
+            width: 250,
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
               
-                child: Column(
-                  
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                        const SizedBox(height: 20,),
-                  
-                    campo.nombre != '' ? Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: CardCampo(campo: campo, onPressed: () => iniciarRonda(), ),
-                    ) : const Text('No hay Campo'),
-                       const SizedBox(height: 5,),
-
-                      ElevatedButton(
-                        onPressed: ()=>goAddCampo(),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white, backgroundColor: Colors.blue, // Color del texto
-                          // Puedes personalizar aún más el estilo si lo deseas
+             const SizedBox(
+               height: 10,),
+               Container(
+                width: 50,  // Ancho del cuadrado
+                height: 50, // Altura del cuadrado
+                decoration: BoxDecoration(
+                    // Para esquinas redondeadas, usa BorderRadius
+                    borderRadius: BorderRadius.circular(8), // Puedes ajustar el radio
+                    image: const DecorationImage(
+                        image: AssetImage('assets/logoApp.jpg'),
+                        fit: BoxFit.cover, // Cubre el área del contenedor
+                    ),
+                ),
+            ),
+                const SizedBox(height: 10,),
+                Text(jugador.nombre, style: const TextStyle(color: Colors.white, fontSize: 18),),
+    
+                Expanded(             
+                
+               child:   ganaderoMenu() 
+                
+                ),
+            ]),
+          ),
+          ),
+    
+          TweenAnimationBuilder(
+            tween: Tween<double>(begin:0, end: value),
+            duration: const Duration(milliseconds: 500),
+             builder: (_,double val,__){
+              return(Transform(transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.001)
+              ..setEntry(0, 3, 200*val)
+              ..rotateY((pi/6)*val),
+              alignment: Alignment.center,
+              child: SafeArea(
+                child: Scaffold(
+                  backgroundColor: kSecondaryColor,
+                  appBar: PreferredSize(
+                    preferredSize: const Size.fromHeight(70),
+                    child:MyCustomAppBar(
+                        title: 'My Golf App',
+                          automaticallyImplyLeading: true,   
+                          backgroundColor: Colors.green,
+                          elevation: 8.0,
+                          shadowColor: Colors.blueGrey,
+                          foreColor: Colors.white,
+                          actions: [ 
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Image.asset(
+                                    'assets/logoApp.jpg',
+                                    width: 30,
+                                    height: 30,
+                                    fit: BoxFit.cover,
+                                  ), // Ícono de perfil de usuario
+                              ),
+                          ],
+                        
                         ),
-                        child: const Text('Agregar Campo'),
-                      ),
-                  
-                  ],
+              
+                  ),
+                  body: Stack(
+                    children: [
+                      Center(child: CardJugador(jugador: jugador,)),
+                      showLoader ? const Center(child: LoaderComponent(loadingText: 'Cargando...',),) : const SizedBox.shrink(),
+                    ],
+                  ),
                 ),
               ),
-              showLoader ? const LoaderComponent(loadingText: "Cargando",) : Container()
-            ],
-          ),
+              ));
+             }
+             
+             ),
+             
+          GestureDetector(
+            onHorizontalDragUpdate: (details){
+              if(details.delta.dx>0){
+                setState(() {
+                  value = 1;
+                });
+              }
+              else{
+                setState(() {
+                  value = 0;
+                });
+              }
+            },
+          ),     
+         ],
         ),
-      
       ),
     );
+    
   }
 
-    iniciarRonda() {
+   Widget ganaderoMenu() {
+      return ListView( 
+                itemExtent: 45,                  
+                 children: [
+                  ListTile(
+                    textColor: const Color(0xffadb5bd),
+                    leading: CircleAvatar(
+                      radius: 12,
+                      backgroundImage:  Image.asset('assets/marker.png').image, backgroundColor: kPrimaryColor,),
+                    title: const Text('Iniciar Ronda', style: TextStyle(color: Colors.white,),),
+                      onTap: () { 
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (context) => const IntroRondaScreen()
+                          )
+                        );
+                    },            
+                  ),  
+    
+    
+                  ListTile(
+                     textColor: const Color(0xffadb5bd),
+                     leading: const Icon(Icons.flag_circle, color:  Colors.white,),
+                     title: const Text('Rondas', style: TextStyle(color: Colors.white,),),
+                       onTap: () { 
+                         Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (context) =>  MyTarjetasScreen(jugador: jugador,)
+                          )
+                        );
+                     },                   
+                   ),
 
-      Jugador jugador = Jugador(id: 1, handicap: 24, nombre: 'JuanK Garces', pin: 2524, tarjetas: []);
+                    ListTile(
+                     textColor: Colors.white,
+                     leading: const Icon(Icons.logout, color:  Colors.white),
+                     title: const Text('Cerrar Sesión'),
+                     onTap: () => { 
+                         Navigator.pushReplacement(
+                           context, 
+                           MaterialPageRoute(
+                             builder: (context) => const LoginScreen()
+                           )
+                         ),
+                     },
+                   ),     
 
-      Tarjeta tarjeta = Tarjeta(id: 0, jugadorId: 1, rondaId: 1, jugador: jugador,  hoyos: [], campo: campo);
-
-      Ronda ronda = Ronda(id: 1, fecha: DateTime.now(), tarjetas: [], campo: campo, isComplete: false);
-
-      for (Hoyo hoyo in campo.hoyos) {
-          EstadisticaHoyo aux = EstadisticaHoyo(
-            id: hoyo.numero,
-             hoyo: hoyo,
-             hoyoId: hoyo.id, 
-             golpes: 0, 
-             putts: 0, 
-             bunkerShots: 0, 
-             acertoFairway: false, 
-             falloFairwayIzquierda: false, 
-             falloFairwayDerecha: false, 
-             penaltyShots: 0,
-             shots: [],
-          );
-          tarjeta.hoyos.add(aux);
-      }  
-
-      ronda.tarjetas.add(tarjeta);
-
-      Navigator.push(
-        context, 
-        MaterialPageRoute(
-          builder: (context) =>  MiRonda(ronda: ronda,)
-        ),
-      );
+                  
+                 
+                 ],
+               );
   }
 
- 
-
-  
-
-
-Widget  buildCardHoyo (Hoyo hoyo) {
- return Card(
    
-  color: const Color.fromARGB(255, 46, 46, 46),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(20.0),
-  ),
-  elevation: 10,
-  child: Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-       Center(
-         child: Text(' ${hoyo.nombre}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-         textAlign: TextAlign.center,
-         ),
-       ), 
-     
- 
-           ListTile(
-            title: const Text('Par', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),),
-            subtitle: Text(
-            hoyo.par.toString(),
-                       style: const TextStyle(color: Colors.white, fontSize: 16, ),
-            ),
-            trailing: const Icon(Icons.flag_circle, color: Colors.white,),
-           
-                       ),
-           
-    
-      ],
-    ),
-  ),
- );
-}
 
-Widget gridHoyos() {
- 
-      return Container(
-         color: Colors.white,
-        child: Padding(
-           padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // Dos columnas
-              crossAxisSpacing: 10, // Espacio horizontal entre tarjetas
-              mainAxisSpacing: 10, // Espacio vertical entre tarjetas
-            ),
-            itemCount: campo.hoyos.length,
-            itemBuilder: (context, index) {
-              return buildCardHoyo(campo.hoyos[index]);
-            },
-          ),
-        ),
-      );
-
-}
-
- Future<void> _getCampoJson() async {
-
-  //   String jsonString = await rootBundle.loadString('assets/ruitoque.json');
-  
-  // Decodificar el JSON
- var jsonString = await readJsonFromFile();
-    
-   final jsondecode = json.decode(jsonString);
- 
-  // Crear una instancia de MiModelo
-  setState(() {
-      campo= Campo.fromJson(jsondecode);
-  });
-  
-  }
-  
-  goAddCampo() {
-     Navigator.push(
-        context, 
-        MaterialPageRoute(
-          builder: (context) =>  const AddCourseScreen()
-        ),
-      );
-  }
+   
 
   Future<String> readJsonFromFile() async {
   try {
     final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/ruitoque.json');
+    final file = File('${directory.path}/ruitoque .json');
 
     // Verifica si el archivo existe antes de intentar leerlo
     if (await file.exists()) {
@@ -293,6 +241,86 @@ Widget gridHoyos() {
   }
 }
   
+  Future<List<String>> listJsonFiles() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final List<String> jsonFiles = [];
+
+    // Listar todos los archivos en el directorio.
+    final fileList = directory.listSync();
+    for (var file in fileList) {
+        // Verificar si el archivo es un .json
+        if (file.path.endsWith('.json')) {
+            jsonFiles.add(file.path.split('/').last);
+        }
+    }
+    return jsonFiles;
+}
+
+Future<void> _goSave() async {
+    
+    setState(() {
+     showLoader = true;
+   });
+
+   Response response = await ApiHelper.post('api/Campos/', campo.toJson());
+ 
+    setState(() {
+      showLoader = false;
+    });
+
+     if (!response.isSuccess) {
+      if(mounted) {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content:  Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+       }
+     }
+      if(mounted) {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Todo Good'),
+              content:  Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+  
+  }
+  
+  gointroRonda() {
+     Navigator.push(
+        context, 
+        MaterialPageRoute(
+          builder: (context) =>  const IntroRondaScreen()
+        ),
+      );
+
+  }
 
 
  

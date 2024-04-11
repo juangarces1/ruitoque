@@ -22,10 +22,50 @@ const kColorMenu= Color.fromARGB(251, 251, 245, 245);
 const kGradientHome = LinearGradient(colors: [kPrimaryColor, kBlueColorLogo ]);
 const kGradientHomeReverse = LinearGradient(colors: [kBlueColorLogo, kPrimaryColor ]);
 
-const kPrimaryGradientColor = LinearGradient(
+const kTextStyleBlancoNuevaFuente = TextStyle(
+                      fontFamily: 'RobotoCondensed',
+                      // Puedes especificar el peso y el estilo si es necesario
+                      fontWeight: FontWeight.bold,
+                      fontSize: 30,
+                      color: Colors.white,
+                       // Para un estilo en negrita
+                       // Para un estilo en cursiva
+                    );
+
+const kTextStyleBlancoNuevaFuente20 = TextStyle(
+  fontFamily: 'RobotoCondensed',
+  // Puedes especificar el peso y el estilo si es necesario
+  fontWeight: FontWeight.bold,
+  fontSize: 20,
+  color: Colors.white,
+    // Para un estilo en negrita
+    // Para un estilo en cursiva
+);
+
+const kTextStyleNegroRobotoSize20 = TextStyle(
+  fontFamily: 'RobotoCondensed',
+  // Puedes especificar el peso y el estilo si es necesario
+  fontWeight: FontWeight.bold,
+  fontSize: 20,
+  color: Colors.black,
+    // Para un estilo en negrita
+    // Para un estilo en cursiva
+);
+
+const kTextStyleNegroRobotoSize20Normal = TextStyle(
+  fontFamily: 'RobotoCondensed',
+  // Puedes especificar el peso y el estilo si es necesario
+  fontWeight: FontWeight.normal,
+  fontSize: 20,
+  color: Colors.black,
+    // Para un estilo en negrita
+    // Para un estilo en cursiva
+);
+
+const LinearGradient kPrimaryGradientColor = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFFF7643), Color(0xFFFC0102)],
+  colors: [kPrimaryColor, kSecondaryColor],
 );
 
 

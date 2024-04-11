@@ -7,21 +7,26 @@ class Tarjeta {
    int id;
    int jugadorId;
    int rondaId;
-   Jugador jugador; 
+   Jugador? jugador; 
    Campo? campo;
    int? porcentajeHandicap;
    List<EstadisticaHoyo> hoyos; 
    String? teeSalida;
+   String? fecha;
+   String? campoNombre;
+   
 
   Tarjeta({
     required this.id,
     required this.jugadorId,
     required this.rondaId,
-    required this.jugador,   
+    this.jugador,   
     required this.hoyos,
     this.campo,
     this.porcentajeHandicap,
     this.teeSalida,
+    this.fecha,
+    this.campoNombre,
   });
 
   
@@ -36,7 +41,7 @@ class Tarjeta {
 
   int get gross => puntuacionTotal;
 
-  int get neto =>  puntuacionTotal - jugador.handicap ;
+  int get neto =>  puntuacionTotal - jugador!.handicap! ;
 
   
 
@@ -86,8 +91,9 @@ class Tarjeta {
       id: json['id'],
       jugadorId: json['jugadorId'],
       rondaId: json['rondaId'],
-      jugador: Jugador.fromJson(json['jugador']),
-
+     // jugador:  json['tarjetas'] != null ? Jugador.fromJson(json['jugador']) : null,
+      fecha: json['fecha'],
+      campoNombre:  json['campoNombre'],
       hoyos: (json['hoyos'] as List).map((h) => EstadisticaHoyo.fromJson(h)).toList(),
     );
   }
@@ -96,7 +102,7 @@ class Tarjeta {
         'id': id,
         'jugadorId': jugadorId,
         'rondaId': rondaId,
-        'jugador': jugador.toJson(),
+      //  'jugador': jugador.toJson(),
         'teeSalida' : teeSalida,
         'hoyos': hoyos.map((hoyo) => hoyo.toJson()).toList(),
       };

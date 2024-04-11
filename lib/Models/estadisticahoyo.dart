@@ -72,16 +72,16 @@ class EstadisticaHoyo {
       falloFairwayIzquierda: json['falloFairwayIzquierda'],
       falloFairwayDerecha: json['falloFairwayDerecha'],
       neto: json['neto'],
-      shots: json['shots'] != null
-          ? List<Shot>.from(json['shots'].map((x) => Shot.fromJson(x)))
-          : null,
+      shots: json['shots'] != null 
+        ? (json['shots'] as List).map((item) => Shot.fromJson(item)).toList() 
+        : [], // Li
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'hoyo': hoyo.toJson(), // Asegúrate de que la clase Hoyo tenga un método toJson
+       //   'hoyo': hoyo.toJson(),
       'hoyoId': hoyoId,
       'golpes': golpes,
       'putts': putts,

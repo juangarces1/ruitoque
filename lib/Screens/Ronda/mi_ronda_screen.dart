@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
+import 'package:ruitoque/Components/default_button.dart';
 import 'package:ruitoque/Components/tarjeta_card.dart';
+import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
+import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/Screens/Ronda/estadistica_hoyo_dialog.dart';
@@ -28,7 +31,7 @@ class _MiRondaState extends State<MiRonda> {
         backgroundColor: kSecondaryColor,
         appBar: MyCustomAppBar(
         title: 'Nueva Ronda',
-         automaticallyImplyLeading: true,   
+          automaticallyImplyLeading: true,   
           backgroundColor: Colors.green,
           elevation: 8.0,
           shadowColor: Colors.blueGrey,
@@ -63,6 +66,22 @@ class _MiRondaState extends State<MiRonda> {
                   ),
                 ),
               ),
+               SliverToBoxAdapter(
+                child:   Stack(
+                  children: [
+                    Center(
+                      child: DefaultButton(
+                          text: const Text('Guardar Ronda', style: kTextStyleNegroRobotoSize20, textAlign: TextAlign.center ,),
+                          press: () => _goSave(),
+                          gradient: kPrimaryGradientColor,
+                          color: Colors.green,
+                          
+                          ),
+                    ),
+                        showLoader ? const Center(child: CircularProgressIndicator()) : Container(),
+                  ],
+                )
+              ),
             
             ],
           ),
@@ -70,13 +89,35 @@ class _MiRondaState extends State<MiRonda> {
         ),
    );
   }
+
+  Future<bool> mostrarDialogoSalida(BuildContext context) async {
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmación'),
+        content: const Text('¿Estás seguro de que quieres salir?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Salir'),
+          ),
+        ],
+      ),
+    );
+
+    return resultado ?? false;
+  }
    
 
   goHole(EstadisticaHoyo hoyo) {
    Navigator.push(
     context, 
     MaterialPageRoute(
-      builder: (context) =>  MiMapa(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo,)
+      builder: (context) =>  MiMapa(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo, teeSalida: widget.ronda.tarjetas[0].teeSalida ?? '',)
     )
    );
   }
@@ -228,7 +269,7 @@ buildCardEstadistica(EstadisticaHoyo estadistica) {
         onGuardar: (EstadisticaHoyo estadisticaModificada) {
           setState(() {
               // Encuentra el índice del objeto original y actualízalo
-              estadisticaModificada.calcularNetoPorHoyo(estadisticaModificada.hoyo, (widget.ronda.tarjetas[0].jugador.handicap * 0.75));
+              estadisticaModificada.calcularNetoPorHoyo(estadisticaModificada.hoyo, (widget.ronda.tarjetas[0].jugador!.handicap! * 0.75));
               int index = widget.ronda.tarjetas[0].hoyos.indexWhere((e) => e.id == estadisticaModificada.id);
               if (index != -1) {
                 widget.ronda.tarjetas[0].hoyos[index] = estadisticaModificada;
@@ -239,5 +280,61 @@ buildCardEstadistica(EstadisticaHoyo estadistica) {
     },
   );
 }
+
+  Future<void> _goSave() async {
+    
+    setState(() {
+     showLoader = true;
+   });
+ 
+   Response response = await ApiHelper.post('api/Rondas/', widget.ronda.toJson());
+ 
+    setState(() {
+      showLoader = false;
+    });
+
+     if (!response.isSuccess) {
+      if(mounted) {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content:  Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+       }
+     }
+      if(mounted) {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Todo Good'),
+              content:  Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+  
+  }
 
 }

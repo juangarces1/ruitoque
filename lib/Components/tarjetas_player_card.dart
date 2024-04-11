@@ -9,24 +9,25 @@ import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Screens/Estadisticas/golf_score_screen.dart';
 import 'package:ruitoque/constans.dart';
 
-class TarjetaRonda extends StatefulWidget {
+class TarjetaPlayer extends StatefulWidget {
   final Tarjeta tarjeta;
-  const TarjetaRonda({super.key, required this.tarjeta});
+  const TarjetaPlayer({super.key, required this.tarjeta});
 
   @override
-  State<TarjetaRonda> createState() => _TarjetaRondaState();
+  State<TarjetaPlayer> createState() => _TarjetaPlayerState();
 }
 
-class _TarjetaRondaState extends State<TarjetaRonda> {
+class _TarjetaPlayerState extends State<TarjetaPlayer> {
   @override
   Widget build(BuildContext context) {
     return Card(
       
       margin: const EdgeInsets.all(12.0),
       elevation: 4.0,
-      child: ExpansionTile(
-        title: _crearHeader(),
+      child: Column(
+        
         children: <Widget>[
+           _crearHeader(),
           const Divider(),
           _crearCuerpoEstadisticas(),
           const Divider(),
@@ -42,49 +43,66 @@ class _TarjetaRondaState extends State<TarjetaRonda> {
     TextStyle textStyleRed = const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red);
     return  Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        children: [
+           Row(
+             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Fecha ${widget.tarjeta.fecha}', style : textStyle),
+               Text('Campo ${widget.tarjeta.campoNombre}', style : textStyle),
+            ],),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Row(
-                children: [
-                  Text( widget.tarjeta.jugador!.nombre , style: textStyle),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('HCP ${widget.tarjeta.jugador!.handicap}', style : textStyle),
-                ],
-      
-              ),
-      
-      
-      
-            ],
-          ),
-           Column(
-               crossAxisAlignment: CrossAxisAlignment.end,
-             children: [
-               Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Score: ', style: textStyle,),
-                  Text(widget.tarjeta.puntuacionTotal.toString(), style: textStyle,),
-                  const SizedBox(width: 8),
                  
-                  const SizedBox(width: 8),
-                  // Aquí agregarías los botones o iconos para cambiar idioma/pantalla
-                ],
-                         ),
-                          Row(
+                  Row(
                     children: [
-                      Text('Score Par: ', style: textStyle,),
-                      Text(widget.tarjeta.scoreParString, style:  widget.tarjeta.scorePar < 0 ? textStyleRed : textStyle),
+                      Text('HCP ${widget.tarjeta.jugador!.handicap}', style : textStyle),
+                    ],
+          
+                  ),
+                  Row(
+                    children: [
+                      Text( widget.tarjeta.jugador!.nombre , style: textStyle),
                     ],
                   ),
-             ],
-           ),
+                  Row(
+                    children: [
+                      Text('HCP ${widget.tarjeta.jugador!.handicap}', style : textStyle),
+                    ],
+          
+                  ),
+          
+          
+          
+                ],
+              ),
+               Column(
+                   crossAxisAlignment: CrossAxisAlignment.end,
+                 children: [
+                   Row(
+                    children: <Widget>[
+                      Text('Score: ', style: textStyle,),
+                      Text(widget.tarjeta.puntuacionTotal.toString(), style: textStyle,),
+                      const SizedBox(width: 8),
+                     
+                      const SizedBox(width: 8),
+                      // Aquí agregarías los botones o iconos para cambiar idioma/pantalla
+                    ],
+                             ),
+                              Row(
+                        children: [
+                          Text('Score Par: ', style: textStyle,),
+                          Text(widget.tarjeta.scoreParString, style:  widget.tarjeta.scorePar < 0 ? textStyleRed : textStyle),
+                        ],
+                      ),
+                 ],
+               ),
+            ],
+          ),
         ],
       ),
     );
@@ -351,14 +369,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               // Botón 'Me gusta' con fondo circular
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  icon: const Icon(Icons.save),
-                  color: Colors.green,
-                  onPressed: () => writeJsonToFile(),
-                ),
-              ),
+            
               // Botón 'Comentar' con fondo circular
               CircleAvatar(
                 backgroundColor: Colors.white,
@@ -430,7 +441,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
 }
 
 getTarjeta() {
-  
+   
 
   
 }

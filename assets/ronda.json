@@ -1,0 +1,64 @@
+{
+  "id": 0,
+  "fecha": "2024-04-10T16:52:41.329Z",
+  "tarjetas": [
+    {
+      "id": 0,
+      "jugadorId": 1,
+      "rondaId": 0,
+      "hoyos": [
+        {
+          "id": 0,          
+          "hoyoId": 97,
+          "golpes": 4,
+          "putts": 0,
+          "bunkerShots": 0,
+          "acertoFairway": true,
+          "falloFairwayIzquierda": true,
+          "falloFairwayDerecha": true,
+          "neto": 0,
+          "shots": []
+        },
+        {
+          "id": 0,          
+          "hoyoId": 98,
+          "golpes": 4,
+          "putts": 0,
+          "bunkerShots": 0,
+          "acertoFairway": true,
+          "falloFairwayIzquierda": true,
+          "falloFairwayDerecha": true,
+          "neto": 0,
+          "shots": []
+        },
+        {
+          "id": 0,          
+          "hoyoId": 99,
+          "golpes": 4,
+          "putts": 0,
+          "bunkerShots": 0,
+          "acertoFairway": true,
+          "falloFairwayIzquierda": true,
+          "falloFairwayDerecha": true,
+          "neto": 0,
+          "shots": []
+        },
+        {
+          "id": 0,          
+          "hoyoId": 100,
+          "golpes": 4,
+          "putts": 0,
+          "bunkerShots": 0,
+          "acertoFairway": true,
+          "falloFairwayIzquierda": true,
+          "falloFairwayDerecha": true,
+          "neto": 0,
+          "shots": []
+        }
+      ]
+    }
+  ],
+ 
+  "campoId": 10,
+  "isComplete": true
+}

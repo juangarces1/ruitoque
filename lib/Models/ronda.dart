@@ -33,7 +33,7 @@ class Ronda {
         'id': id,
         'fecha': fecha.toIso8601String(),
         'tarjetas': tarjetas.map((tarjeta) => tarjeta.toJson()).toList(),
-        'campo': campo.toJson(),
+       // 'campo': campo.toJson(),
         'campoId': campoId,
         'isComplete': isComplete,
       };

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ruitoque/constans.dart';
 
 
 class MyCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -26,7 +27,7 @@ class MyCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(title, style: TextStyle(color: foreColor, fontWeight: FontWeight.bold, fontSize: 20)),
+      title: Text(title, style: kTextStyleBlancoNuevaFuente20),
       actions: actions,
       leading: automaticallyImplyLeading && Navigator.canPop(context)
           ? Padding(
