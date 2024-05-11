@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
@@ -15,6 +17,7 @@ import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Screens/Ronda/mi_ronda_screen.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
 
 class IntroRondaScreen extends StatefulWidget {
   const IntroRondaScreen({super.key});
@@ -232,7 +235,9 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
            gradient: kPrimaryGradientColor,
            color: Colors.green,
            
-          )
+          ),
+             const SizedBox(height: 5,),
+       
       ],
     );
   }
@@ -260,7 +265,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
 
       for (Hoyo hoyo in campoSeleccionado.hoyos) {
           EstadisticaHoyo aux = EstadisticaHoyo(
-             id: 0,
+             id: hoyo.id,
              hoyo: hoyo,
              hoyoId: hoyo.id, 
              golpes: 0, 
@@ -296,6 +301,89 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
 
     // Muestra el SnackBar usando ScaffoldMessenger
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+  
+  goCampo() async {
+
+     if(campoIdSelected == 0) {
+      mostrarSnackBar(context, '¡Seleccione un Campo!');
+      return;
+    }
+
+    
+    await getCampoSeleccuinado(campoIdSelected);
+
+    campoSeleccionado.id=0;
+    for (Hoyo hoyo in campoSeleccionado.hoyos){
+      hoyo.campoId=0;
+      hoyo.id=0;
+      hoyo.frenteGreen!.id=0;
+      hoyo.centroGreen!.id=0;
+      hoyo.fondoGreen!.id=0;
+      hoyo.centroHoyo!.id=0;
+      hoyo.teeAmarillas!.id=0;
+      hoyo.teeAzules!.id=0;
+      hoyo.teeBlancas!.id=0;
+      hoyo.teeNegras!.id=0;
+      hoyo.teeRojas!.id=0;
+    }
+
+     Map<String, dynamic> request = campoSeleccionado.toJson();
+
+    var url = Uri.parse('http://200.91.130.215:9095/api/Campos/');
+    var response = await http.post(
+      url,
+      headers: {
+        'content-type' : 'application/json',
+        'accept' : 'application/json',       
+      },
+      body: jsonEncode(request)
+    );    
+
+    if(response.statusCode >= 400){
+     
+        if (mounted) {       
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Error'),
+                content:  const Text('Paila'),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('Aceptar'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }  
+       return;
+     
+    }     
+     if (mounted) {       
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Error'),
+                content:  const Text('Todo Good'),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('Aceptar'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }  
+
   }
 
   

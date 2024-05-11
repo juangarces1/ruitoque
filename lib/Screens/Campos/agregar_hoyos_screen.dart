@@ -49,7 +49,7 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
   final _distanciaBlancas = TextEditingController();
   final _distanciaAmarillas = TextEditingController();
   final _distanciaRojas = TextEditingController();
-  Cordenada ubicacion= Cordenada(id: 0, latitud: 7.024484, longitud: -73.084170);
+  Cordenada ubicacion= Cordenada(id: 0, latitud: 9.656073, longitud: -84.660682);
 
 
   void _editarCoordenada(TipoCoordenada tipo) async {

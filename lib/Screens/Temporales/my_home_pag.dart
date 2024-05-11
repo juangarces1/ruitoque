@@ -12,6 +12,7 @@ import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
+import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Screens/Ronda/intro_ronda_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
@@ -33,8 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late Jugador jugador;
 
   @override
-  void initState() {
-    // TODO: implement initState
+  void initState() {   
     super.initState();
     jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;
   }
@@ -191,6 +191,20 @@ class _MyHomePageState extends State<MyHomePage> {
                           context, 
                           MaterialPageRoute(
                             builder: (context) =>  MyTarjetasScreen(jugador: jugador,)
+                          )
+                        );
+                     },                   
+                   ),
+
+                      ListTile(
+                     textColor: const Color(0xffadb5bd),
+                     leading: const Icon(Icons.flag_circle_outlined, color:  Colors.white,),
+                     title: const Text('Agregar Campo', style: TextStyle(color: Colors.white,),),
+                       onTap: () { 
+                         Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (context) =>  const AddCourseScreen()
                           )
                         );
                      },                   
