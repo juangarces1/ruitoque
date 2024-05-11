@@ -1,4 +1,5 @@
 import 'package:ruitoque/Models/cordenada.dart';
+import 'package:ruitoque/Models/hoyo_tee.dart';
 
 class Hoyo {
   int id;
@@ -6,21 +7,14 @@ class Hoyo {
   Cordenada? centroGreen;
   Cordenada? fondoGreen;
   Cordenada? centroHoyo;
-  Cordenada? teeBlancas;
-  Cordenada? teeRojas;
-  Cordenada? teeAzules;
-  Cordenada? teeNegras;
-  Cordenada? teeAmarillas;
+  
   int numero;
   String nombre;
   int par;
   int campoId;
   int? handicap;
-  int? distanciaNegras;
-  int? distamciaAzules;
-  int? distanciaBlancas;
-  int? distanciaAmarillas;
-  int? distanciaRojas;
+  List<HoyoTee>? hoyotees;
+ 
 
   Hoyo({
     required this.id,
@@ -28,21 +22,13 @@ class Hoyo {
     this.centroGreen,
     this.fondoGreen,
     this.centroHoyo,
-    this.teeBlancas,
-    this.teeRojas,
-    this.teeAzules,
-    this.teeNegras,
-    this.teeAmarillas,   
-    this.distanciaNegras,
-    this.distamciaAzules,
-    this.distanciaAmarillas,
-    this.distanciaBlancas,
-    this.distanciaRojas,
+    
     required this.numero,
     required this.nombre,
     required this.par,
     required this.campoId,
     this.handicap,
+    this.hoyotees,
  
   });
 
@@ -53,21 +39,14 @@ class Hoyo {
       'centroGreen': centroGreen?.toJson(),
       'fondoGreen': fondoGreen?.toJson(),
       'centroHoyo': centroHoyo?.toJson(),
-      'teeBlancas': teeBlancas?.toJson(),
-      'teeRojas': teeRojas?.toJson(),
-      'teeAzules': teeAzules?.toJson(),
-      'teeNegras': teeNegras?.toJson(),
-      'teeAmarillas': teeAmarillas?.toJson(),
+    
       'numero': numero,
       'nombre': nombre,
       'par': par,
       'campoId': campoId,
       'handicap': handicap,
-      'distanciaNegras': distanciaNegras,
-      'distanciaAzules': distamciaAzules,
-      'distanciaBlancas': distanciaBlancas,
-      'distanciaAmarillas': distanciaAmarillas,
-      'distanciaRojas': distanciaRojas,
+      'hoyotees': hoyotees?.map((hoyoTee) => hoyoTee.toJson()).toList() ?? [],
+      
     };
   }
 
@@ -79,21 +58,16 @@ class Hoyo {
        centroGreen: json['centroGreen'] != null ? Cordenada.fromJson(json['centroGreen']) : null,
        fondoGreen: json['fondoGreen'] != null ? Cordenada.fromJson(json['fondoGreen']) : null,
        centroHoyo: json['centroHoyo'] != null ? Cordenada.fromJson(json['centroHoyo']) : null,
-       teeBlancas: json['teeBlancas'] != null ? Cordenada.fromJson(json['teeBlancas']) : null,
-       teeRojas: json['teeRojas'] != null ? Cordenada.fromJson(json['teeRojas']) : null,
-       teeAzules: json['teeAzules'] != null ? Cordenada.fromJson(json['teeAzules']) : null,
-       teeNegras: json['teeNegras'] != null ? Cordenada.fromJson(json['teeNegras']) : null,
-       teeAmarillas: json['teeAmarillas'] != null ? Cordenada.fromJson(json['teeAmarillas']) : null,
+      
        numero: json['numero'],
        nombre: json['nombre'],
        par: json['par'],
        campoId: json['campoId'],
        handicap: json['handicap'],
-       distanciaNegras: json['distanciaNegras'],
-       distamciaAzules: json['distanciaAzules'],
-       distanciaBlancas: json['distanciaBlancas'],
-       distanciaAmarillas: json['distanciaAmarillas'],
-       distanciaRojas: json['distanciaRojas'],
+       hoyotees: json['hoyotees'] != null
+        ? (json['hoyotees'] as List).map((hoyoTeeJson) => HoyoTee.fromJson(hoyoTeeJson)).toList()
+        : [],
+     
      );
    }
 

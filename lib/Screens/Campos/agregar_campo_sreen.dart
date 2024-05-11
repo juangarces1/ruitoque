@@ -19,11 +19,7 @@ class _AgregarCampoScrenState extends State<AgregarCampoScren> {
   'centroGreen',
   'fondoGreen',
   'centroHoyo',
-  'teeBlancas',
-  'teeRojas',
-  'teeAzules',
-  'teeNegras',
-  'teeAmarillas',
+ 
   // Puedes agregar más si tu modelo Hoyo tiene más campos de coordenadas
 ];
 
@@ -137,70 +133,15 @@ class _AgregarCampoScrenState extends State<AgregarCampoScren> {
                           onSaved: (value) => _hoyo.handicap = int.tryParse(value!),
                         ),
      
-                        TextFormField(
-                          decoration: const InputDecoration(labelText: 'Distancia Negras'),
-                          initialValue: _hoyo.distanciaNegras?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _hoyo.distanciaNegras = int.tryParse(value!),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingresa una distancia';
-                            }
-                            return null;
-                          },
-                        ),
+                    
      
-                        TextFormField(
-                          decoration: const InputDecoration(labelText: 'Distancia Azules'),
-                          initialValue: _hoyo.distamciaAzules?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _hoyo.distamciaAzules = int.tryParse(value!),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingresa una distancia';
-                            }
-                            return null;
-                          },
-                        ),
+                    
      
-                        TextFormField(
-                          decoration: const InputDecoration(labelText: 'Distancia Blancas'),
-                          initialValue: _hoyo.distanciaBlancas?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _hoyo.distanciaBlancas = int.tryParse(value!),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingresa una distancia';
-                            }
-                            return null;
-                          },
-                        ),
+                   
      
-                        TextFormField(
-                          decoration: const InputDecoration(labelText: 'Distancia Amarillas'),
-                          initialValue: _hoyo.distanciaAmarillas?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _hoyo.distanciaAmarillas = int.tryParse(value!),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingresa una distancia';
-                            }
-                            return null;
-                          },
-                        ),
+                     
      
-                        TextFormField(
-                          decoration: const InputDecoration(labelText: 'Distancia Rojas'),
-                          initialValue: _hoyo.distanciaRojas?.toString(),
-                          keyboardType: TextInputType.number,
-                          onSaved: (value) => _hoyo.distanciaRojas = int.tryParse(value!),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, ingresa una distancia';
-                            }
-                            return null;
-                          },
-                        ),
+                     
      
                          DropdownButtonFormField<String>(
                           decoration: const InputDecoration(labelText: 'Seleccionar Coordenada'),

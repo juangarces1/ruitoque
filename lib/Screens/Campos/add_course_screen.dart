@@ -85,6 +85,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                         nombre: _nombreController.text,
                         ubicacion: _ubicacionController.text,
                         hoyos: _hoyos,
+                        tees: []
                       );
           
                      writeJsonToFile(nuevoCampo);

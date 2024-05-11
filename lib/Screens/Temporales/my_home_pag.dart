@@ -12,6 +12,8 @@ import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
+import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
+import 'package:ruitoque/Screens/Campos/agregar_campo_sreen.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Screens/Ronda/intro_ronda_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
@@ -29,7 +31,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool showLoader =false;
   double? value = 0;
-  Campo campo = Campo(id: 0, nombre: '', ubicacion: '', hoyos: []);
+  Campo campo = Campo(id: 0, nombre: '', ubicacion: '', hoyos: [], tees: []);
   late Jugador jugador;
 
   @override
@@ -176,6 +178,22 @@ class _MyHomePageState extends State<MyHomePage> {
                           context, 
                           MaterialPageRoute(
                             builder: (context) => const IntroRondaScreen()
+                          )
+                        );
+                    },            
+                  ),  
+
+                    ListTile(
+                    textColor: const Color(0xffadb5bd),
+                    leading: CircleAvatar(
+                      radius: 12,
+                      backgroundImage:  Image.asset('assets/marker.png').image, backgroundColor: kPrimaryColor,),
+                    title: const Text('Agregar Campo', style: TextStyle(color: Colors.white,),),
+                      onTap: () { 
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (context) => const AddCourseScreen()
                           )
                         );
                     },            

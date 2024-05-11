@@ -71,85 +71,85 @@ class _MiMapaState extends State<MiMapa> {
    
     _calculateBering();
     
-    switch (widget.teeSalida) {
-      case 'teeNegras' :
-         puntoA = LatLng(widget.hoyo.hoyo.teeNegras!.latitud, widget.hoyo.hoyo.teeNegras!.longitud);
-           salida = Position(
-            longitude: widget.hoyo.hoyo.teeNegras!.longitud, 
-            latitude: widget.hoyo.hoyo.teeNegras!.latitud, 
-            timestamp: DateTime.now(), 
-            accuracy: 1, 
-            altitude: 0, 
-            altitudeAccuracy: 10, 
-            heading: 0.0, 
-            headingAccuracy: 0.0, 
-            speed: 0.0, 
-            speedAccuracy: 0.0);
-            distanciaHoyo = widget.hoyo.hoyo.distanciaNegras.toString();
-        break;
-      case 'teeAzules' :
-         puntoA = LatLng(widget.hoyo.hoyo.teeAzules!.latitud, widget.hoyo.hoyo.teeAzules!.longitud);
-          salida = Position(
-            longitude: widget.hoyo.hoyo.teeAzules!.longitud, 
-            latitude: widget.hoyo.hoyo.teeAzules!.latitud, 
-            timestamp: DateTime.now(), 
-            accuracy: 1, 
-            altitude: 0, 
-            altitudeAccuracy: 10, 
-            heading: 0.0, 
-            headingAccuracy: 0.0, 
-            speed: 0.0, 
-            speedAccuracy: 0.0);
-             distanciaHoyo = widget.hoyo.hoyo.distamciaAzules.toString();
-        break;
-      case 'teeBlancas' :
-         puntoA = LatLng(widget.hoyo.hoyo.teeBlancas!.latitud, widget.hoyo.hoyo.teeBlancas!.longitud);
-          salida = Position(
-            longitude: widget.hoyo.hoyo.teeBlancas!.longitud, 
-            latitude: widget.hoyo.hoyo.teeBlancas!.latitud, 
-            timestamp: DateTime.now(), 
-            accuracy: 1, 
-            altitude: 0, 
-            altitudeAccuracy: 10, 
-            heading: 0.0, 
-            headingAccuracy: 0.0, 
-            speed: 0.0, 
-            speedAccuracy: 0.0);
-             distanciaHoyo = widget.hoyo.hoyo.distanciaBlancas.toString();
-        break;
-      case 'teeAmarillas' :
-         puntoA = LatLng(widget.hoyo.hoyo.teeAmarillas!.latitud, widget.hoyo.hoyo.teeAmarillas!.longitud);
-          salida = Position(
-            longitude: widget.hoyo.hoyo.teeAmarillas!.longitud, 
-            latitude: widget.hoyo.hoyo.teeAmarillas!.latitud, 
-            timestamp: DateTime.now(), 
-            accuracy: 1, 
-            altitude: 0, 
-            altitudeAccuracy: 10, 
-            heading: 0.0, 
-            headingAccuracy: 0.0, 
-            speed: 0.0, 
-            speedAccuracy: 0.0);
-             distanciaHoyo = widget.hoyo.hoyo.distanciaAmarillas.toString();
-        break;
-      case 'teeRojas' :
-         puntoA = LatLng(widget.hoyo.hoyo.teeRojas!.latitud, widget.hoyo.hoyo.teeRojas!.longitud);
-          salida = Position(
-            longitude: widget.hoyo.hoyo.teeRojas!.longitud, 
-            latitude: widget.hoyo.hoyo.teeRojas!.latitud, 
-            timestamp: DateTime.now(), 
-            accuracy: 1, 
-            altitude: 0, 
-            altitudeAccuracy: 10, 
-            heading: 0.0, 
-            headingAccuracy: 0.0, 
-            speed: 0.0, 
-            speedAccuracy: 0.0);
-             distanciaHoyo = widget.hoyo.hoyo.distanciaRojas.toString();
-        break;    
-      default:
-        break;
-    }
+    // switch (widget.teeSalida) {
+    //   case 'teeNegras' :
+    //      puntoA = LatLng(widget.hoyo.hoyo.teeNegras!.latitud, widget.hoyo.hoyo.teeNegras!.longitud);
+    //        salida = Position(
+    //         longitude: widget.hoyo.hoyo.teeNegras!.longitud, 
+    //         latitude: widget.hoyo.hoyo.teeNegras!.latitud, 
+    //         timestamp: DateTime.now(), 
+    //         accuracy: 1, 
+    //         altitude: 0, 
+    //         altitudeAccuracy: 10, 
+    //         heading: 0.0, 
+    //         headingAccuracy: 0.0, 
+    //         speed: 0.0, 
+    //         speedAccuracy: 0.0);
+    //         distanciaHoyo = widget.hoyo.hoyo.distanciaNegras.toString();
+    //     break;
+    //   case 'teeAzules' :
+    //      puntoA = LatLng(widget.hoyo.hoyo.teeAzules!.latitud, widget.hoyo.hoyo.teeAzules!.longitud);
+    //       salida = Position(
+    //         longitude: widget.hoyo.hoyo.teeAzules!.longitud, 
+    //         latitude: widget.hoyo.hoyo.teeAzules!.latitud, 
+    //         timestamp: DateTime.now(), 
+    //         accuracy: 1, 
+    //         altitude: 0, 
+    //         altitudeAccuracy: 10, 
+    //         heading: 0.0, 
+    //         headingAccuracy: 0.0, 
+    //         speed: 0.0, 
+    //         speedAccuracy: 0.0);
+    //          distanciaHoyo = widget.hoyo.hoyo.distamciaAzules.toString();
+    //     break;
+    //   case 'teeBlancas' :
+    //      puntoA = LatLng(widget.hoyo.hoyo.teeBlancas!.latitud, widget.hoyo.hoyo.teeBlancas!.longitud);
+    //       salida = Position(
+    //         longitude: widget.hoyo.hoyo.teeBlancas!.longitud, 
+    //         latitude: widget.hoyo.hoyo.teeBlancas!.latitud, 
+    //         timestamp: DateTime.now(), 
+    //         accuracy: 1, 
+    //         altitude: 0, 
+    //         altitudeAccuracy: 10, 
+    //         heading: 0.0, 
+    //         headingAccuracy: 0.0, 
+    //         speed: 0.0, 
+    //         speedAccuracy: 0.0);
+    //          distanciaHoyo = widget.hoyo.hoyo.distanciaBlancas.toString();
+    //     break;
+    //   case 'teeAmarillas' :
+    //      puntoA = LatLng(widget.hoyo.hoyo.teeAmarillas!.latitud, widget.hoyo.hoyo.teeAmarillas!.longitud);
+    //       salida = Position(
+    //         longitude: widget.hoyo.hoyo.teeAmarillas!.longitud, 
+    //         latitude: widget.hoyo.hoyo.teeAmarillas!.latitud, 
+    //         timestamp: DateTime.now(), 
+    //         accuracy: 1, 
+    //         altitude: 0, 
+    //         altitudeAccuracy: 10, 
+    //         heading: 0.0, 
+    //         headingAccuracy: 0.0, 
+    //         speed: 0.0, 
+    //         speedAccuracy: 0.0);
+    //          distanciaHoyo = widget.hoyo.hoyo.distanciaAmarillas.toString();
+    //     break;
+    //   case 'teeRojas' :
+    //      puntoA = LatLng(widget.hoyo.hoyo.teeRojas!.latitud, widget.hoyo.hoyo.teeRojas!.longitud);
+    //       salida = Position(
+    //         longitude: widget.hoyo.hoyo.teeRojas!.longitud, 
+    //         latitude: widget.hoyo.hoyo.teeRojas!.latitud, 
+    //         timestamp: DateTime.now(), 
+    //         accuracy: 1, 
+    //         altitude: 0, 
+    //         altitudeAccuracy: 10, 
+    //         heading: 0.0, 
+    //         headingAccuracy: 0.0, 
+    //         speed: 0.0, 
+    //         speedAccuracy: 0.0);
+    //          distanciaHoyo = widget.hoyo.hoyo.distanciaRojas.toString();
+    //     break;    
+    //   default:
+    //     break;
+    // }
     
    
     puntoB = LatLng(widget.hoyo.hoyo.centroGreen!.latitud, widget.hoyo.hoyo.centroGreen!.longitud);

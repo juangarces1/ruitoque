@@ -1,16 +1,19 @@
 import 'package:ruitoque/Models/hoyo.dart';
+import 'package:ruitoque/Models/tee.dart';
 
 class Campo {
   int id;
   String nombre;
   String ubicacion;
   List<Hoyo> hoyos;
+   List<Tee> tees;
 
   Campo({
     required this.id,
     required this.nombre,
     required this.ubicacion,
     required this.hoyos,
+    required this.tees,
   });
 
   factory Campo.fromJson(Map<String, dynamic> json) {
@@ -21,6 +24,9 @@ class Campo {
       hoyos: json['hoyos'] != null
         ? (json['hoyos'] as List).map((hoyoJson) => Hoyo.fromJson(hoyoJson)).toList()
         : [],
+      tees: json['tees'] != null
+        ? (json['tees'] as List).map((teeJson) => Tee.fromJson(teeJson)).toList()
+        : [],  
     );
   }
 
@@ -30,6 +36,7 @@ class Campo {
       'Nombre': nombre,
       'Ubicacion': ubicacion,
       'Hoyos': hoyos.map((hoyo) => hoyo.toJson()).toList(),
+      'tees': tees.map((tee) => tee.toJson()).toList(),
     };
   }
 
