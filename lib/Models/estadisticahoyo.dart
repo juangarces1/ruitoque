@@ -62,6 +62,7 @@ class EstadisticaHoyo {
   factory EstadisticaHoyo.fromJson(Map<String, dynamic> json) {
     return EstadisticaHoyo(
       id: json['id'],
+     // hoyo: Hoyo(id: 0, numero: 0, nombre: '', par: 0, campoId: 0),
       hoyo: Hoyo.fromJson(json['hoyo']), // Utiliza Hoyo.fromJson si hoyo es un objeto complejo
       hoyoId: json['hoyoId'],
       golpes: json['golpes'],

@@ -46,15 +46,15 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
         appBar: MyCustomAppBar(
           title: 'Mis Tarjetas',
           elevation: 6,
-          shadowColor: kSecondaryColor,
+          shadowColor: Colors.white,
           automaticallyImplyLeading: true,
           foreColor: Colors.white,
-          backgroundColor: kBlueColorLogo,
+          backgroundColor: kPrimaryColor,
           actions: <Widget>[
             Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
               child: ClipOval(child:  Image.asset(
-                  'assets/logoApp.jpg',
+                  'assets/LogoGolf.png',
                   width: 30,
                   height: 30,
                   fit: BoxFit.cover,
@@ -63,16 +63,18 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
           ],      
         ),
         body: showLoader ? const LoaderComponent(loadingText: 'Cargando...',) : Container(
-          color: kContrateFondoOscuro,
+          decoration: const BoxDecoration(
+            gradient: kPrimaryGradientColor,
+          ),
           child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(10), vertical: getProportionateScreenHeight(10)),
+          padding: EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(3), vertical: getProportionateScreenHeight(5)),
           child: ListView.builder(
             
             itemCount: tarjetas.length,
             itemBuilder: (context, index)  
             { 
               final item = tarjetas[index];
-              return TarjetaPlayer(tarjeta: item,);
+              return TarjetaPlayer(tarjeta: item, jugador: widget.jugador,);
             }        
           ),
           ),

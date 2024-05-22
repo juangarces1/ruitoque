@@ -5,7 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ruitoque/Components/enum.dart';
 import 'package:ruitoque/Components/position_item.dart';
+import 'package:ruitoque/Models/cordenada.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
+import 'package:ruitoque/Models/hoyo_tee.dart';
 import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:ruitoque/sizeconfig.dart';
@@ -70,86 +72,25 @@ class _MiMapaState extends State<MiMapa> {
     _calculateDistances();
    
     _calculateBering();
+
+    HoyoTee? tee = encontrarHoyoTeePorColor(widget.hoyo.hoyo.hoyotees!, widget.teeSalida);
+
+     puntoA = LatLng(tee!.cordenada.latitud, tee.cordenada.longitud);
+      salida = Position(
+       longitude: tee.cordenada.longitud, 
+       latitude: tee.cordenada.latitud,
+       timestamp: DateTime.now(), 
+       accuracy: 1, 
+       altitude: 0, 
+       altitudeAccuracy: 10, 
+       heading: 0.0, 
+       headingAccuracy: 0.0, 
+       speed: 0.0, 
+       speedAccuracy: 0.0);
+       distanciaHoyo = tee.distancia.toString();
+
     
-    // switch (widget.teeSalida) {
-    //   case 'teeNegras' :
-    //      puntoA = LatLng(widget.hoyo.hoyo.teeNegras!.latitud, widget.hoyo.hoyo.teeNegras!.longitud);
-    //        salida = Position(
-    //         longitude: widget.hoyo.hoyo.teeNegras!.longitud, 
-    //         latitude: widget.hoyo.hoyo.teeNegras!.latitud, 
-    //         timestamp: DateTime.now(), 
-    //         accuracy: 1, 
-    //         altitude: 0, 
-    //         altitudeAccuracy: 10, 
-    //         heading: 0.0, 
-    //         headingAccuracy: 0.0, 
-    //         speed: 0.0, 
-    //         speedAccuracy: 0.0);
-    //         distanciaHoyo = widget.hoyo.hoyo.distanciaNegras.toString();
-    //     break;
-    //   case 'teeAzules' :
-    //      puntoA = LatLng(widget.hoyo.hoyo.teeAzules!.latitud, widget.hoyo.hoyo.teeAzules!.longitud);
-    //       salida = Position(
-    //         longitude: widget.hoyo.hoyo.teeAzules!.longitud, 
-    //         latitude: widget.hoyo.hoyo.teeAzules!.latitud, 
-    //         timestamp: DateTime.now(), 
-    //         accuracy: 1, 
-    //         altitude: 0, 
-    //         altitudeAccuracy: 10, 
-    //         heading: 0.0, 
-    //         headingAccuracy: 0.0, 
-    //         speed: 0.0, 
-    //         speedAccuracy: 0.0);
-    //          distanciaHoyo = widget.hoyo.hoyo.distamciaAzules.toString();
-    //     break;
-    //   case 'teeBlancas' :
-    //      puntoA = LatLng(widget.hoyo.hoyo.teeBlancas!.latitud, widget.hoyo.hoyo.teeBlancas!.longitud);
-    //       salida = Position(
-    //         longitude: widget.hoyo.hoyo.teeBlancas!.longitud, 
-    //         latitude: widget.hoyo.hoyo.teeBlancas!.latitud, 
-    //         timestamp: DateTime.now(), 
-    //         accuracy: 1, 
-    //         altitude: 0, 
-    //         altitudeAccuracy: 10, 
-    //         heading: 0.0, 
-    //         headingAccuracy: 0.0, 
-    //         speed: 0.0, 
-    //         speedAccuracy: 0.0);
-    //          distanciaHoyo = widget.hoyo.hoyo.distanciaBlancas.toString();
-    //     break;
-    //   case 'teeAmarillas' :
-    //      puntoA = LatLng(widget.hoyo.hoyo.teeAmarillas!.latitud, widget.hoyo.hoyo.teeAmarillas!.longitud);
-    //       salida = Position(
-    //         longitude: widget.hoyo.hoyo.teeAmarillas!.longitud, 
-    //         latitude: widget.hoyo.hoyo.teeAmarillas!.latitud, 
-    //         timestamp: DateTime.now(), 
-    //         accuracy: 1, 
-    //         altitude: 0, 
-    //         altitudeAccuracy: 10, 
-    //         heading: 0.0, 
-    //         headingAccuracy: 0.0, 
-    //         speed: 0.0, 
-    //         speedAccuracy: 0.0);
-    //          distanciaHoyo = widget.hoyo.hoyo.distanciaAmarillas.toString();
-    //     break;
-    //   case 'teeRojas' :
-    //      puntoA = LatLng(widget.hoyo.hoyo.teeRojas!.latitud, widget.hoyo.hoyo.teeRojas!.longitud);
-    //       salida = Position(
-    //         longitude: widget.hoyo.hoyo.teeRojas!.longitud, 
-    //         latitude: widget.hoyo.hoyo.teeRojas!.latitud, 
-    //         timestamp: DateTime.now(), 
-    //         accuracy: 1, 
-    //         altitude: 0, 
-    //         altitudeAccuracy: 10, 
-    //         heading: 0.0, 
-    //         headingAccuracy: 0.0, 
-    //         speed: 0.0, 
-    //         speedAccuracy: 0.0);
-    //          distanciaHoyo = widget.hoyo.hoyo.distanciaRojas.toString();
-    //     break;    
-    //   default:
-    //     break;
-    // }
+    
     
    
     puntoB = LatLng(widget.hoyo.hoyo.centroGreen!.latitud, widget.hoyo.hoyo.centroGreen!.longitud);
@@ -212,6 +153,15 @@ class _MiMapaState extends State<MiMapa> {
       _markers.add(markerPersonalizado);
     });
   }
+
+  HoyoTee? encontrarHoyoTeePorColor(List<HoyoTee> hoyos, String color) {
+  for (var hoyotee in hoyos) {
+    if (hoyotee.color.toLowerCase() == color.toLowerCase()) {
+      return hoyotee;
+    }
+  }
+  return null; // Retorna null si no encuentra ninguna coincidencia
+}
 
   void _updatePolyline(LatLng inicio, LatLng medio, LatLng fin) {
       // Crea una nueva lista de puntos para la polilínea
@@ -474,6 +424,43 @@ class _MiMapaState extends State<MiMapa> {
             ],),
           ),
         ),
+
+          Positioned(
+          top: SizeConfig.screenHeight / 2 - 80, // Ajusta la distancia desde la parte superior
+          left: 20, // Ajusta la distancia desde la izquierda
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment:  CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+              const Text(
+                  'FONDO',
+                  style: TextStyle(
+                    fontSize: 12.0, // Tamaño de la fuente
+                    fontWeight: FontWeight.bold, // Negrita
+                    color: Colors.white, // Color de la fuente
+                  ),
+                ),
+                 Text(
+                 '${dAtras.toString()}y',
+                  style: const  TextStyle(
+                      fontFamily: 'RobotoCondensed',
+                      // Puedes especificar el peso y el estilo si es necesario
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white,
+                       // Para un estilo en negrita
+                       // Para un estilo en cursiva
+                    ),
+                ),
+               
+            
+              ],
+            ),
+          ),
+        ),
+
        Positioned(
           top: SizeConfig.screenHeight / 2, // Ajusta la distancia desde la parte superior
           left: 20, // Ajusta la distancia desde la izquierda
@@ -488,7 +475,7 @@ class _MiMapaState extends State<MiMapa> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                     const Text(
-                        'CENTRO GREEN',
+                        'CENTRO',
                         style: TextStyle(
                           fontSize: 15.0, // Tamaño de la fuente
                           fontWeight: FontWeight.bold, // Negrita
@@ -517,6 +504,43 @@ class _MiMapaState extends State<MiMapa> {
             ),
           ),
         ),
+
+         Positioned(
+          top: SizeConfig.screenHeight / 2 + 80, // Ajusta la distancia desde la parte superior
+          left: 20, // Ajusta la distancia desde la izquierda
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment:  CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+              const Text(
+                  'FRENTE ',
+                  style: TextStyle(
+                    fontSize: 12.0, // Tamaño de la fuente
+                    fontWeight: FontWeight.bold, // Negrita
+                    color: Colors.white, // Color de la fuente
+                  ),
+                ),
+                 Text(
+                 '${dfrente.toString()}y',
+                  style: const  TextStyle(
+                      fontFamily: 'RobotoCondensed',
+                      // Puedes especificar el peso y el estilo si es necesario
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white,
+                       // Para un estilo en negrita
+                       // Para un estilo en cursiva
+                    ),
+                ),
+               
+            
+              ],
+            ),
+          ),
+        ),
+
 
          Positioned(
           top: SizeConfig.screenHeight / 3 * 2, // Ajusta la distancia desde la parte superior
@@ -620,11 +644,62 @@ class _MiMapaState extends State<MiMapa> {
     );
   }
 
-  void grabasGolpe() {
-      _calculateDistances();
-            Shot nuevoShot = Shot(latitud: miLatitud, longitud: miLatitud);
-           widget.onAgregarShot(widget.hoyo.id, nuevoShot);
+ void grabasGolpe() async {
+  await _calculateDistances(); // Asegúrate de tener la posición actualizada
+
+  LatLng puntoAnterior;
+
+  if (widget.hoyo.shots == null || widget.hoyo.shots!.isEmpty) {
+    // Si no hay shots registrados, usar el puntoA
+    puntoAnterior = puntoA;
+  } else {
+    // Si ya hay shots, usar la última posición registrada
+    Shot ultimoShot = widget.hoyo.shots!.last;
+    puntoAnterior = LatLng(ultimoShot.latitud, ultimoShot.longitud);
   }
+
+  // Obtener la posición actual
+  Position position = await _geolocatorPlatform.getCurrentPosition();
+  LatLng puntoActual = LatLng(position.latitude, position.longitude);
+
+  // Calcular la distancia en yardas
+  int distancia = calculateDistanceInYards(Position(
+    latitude: puntoAnterior.latitude,
+    longitude: puntoAnterior.longitude,
+    timestamp: DateTime.now(),
+    accuracy: 1,
+    altitude: 0,
+    altitudeAccuracy: 10,
+    heading: 0.0,
+    headingAccuracy: 0.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
+  ), Position(
+    latitude: puntoActual.latitude,
+    longitude: puntoActual.longitude,
+    timestamp: DateTime.now(),
+    accuracy: 1,
+    altitude: 0,
+    altitudeAccuracy: 10,
+    heading: 0.0,
+    headingAccuracy: 0.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
+  ));
+
+  // Crear un nuevo shot con la distancia calculada
+  Shot nuevoShot = Shot(
+    latitud: puntoActual.latitude,
+    longitud: puntoActual.longitude,
+    distancia: distancia,
+  );
+
+  // Agregar el shot a la lista y ejecutar el callback
+  widget.onAgregarShot(widget.hoyo.id, nuevoShot);
+ // widget.hoyo.shots = [...?widget.hoyo.shots, nuevoShot];
+
+  setState(() {});
+}
 
  double calcularBearing(LatLng start, LatLng end) {
   var startLat = radians(start.latitude);
@@ -654,7 +729,7 @@ class _MiMapaState extends State<MiMapa> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    
     super.dispose();
     mapController.dispose();
   }

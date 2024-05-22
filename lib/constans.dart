@@ -9,8 +9,8 @@ const kEagleColor = Colors.green;
 const kDoubleBogueColor = Colors.deepPurple;
 
 
-const kPrimaryColor =Color(0xFF4CAF50);
-const kSecondaryColor = Color(0xFF9E9E9E);
+const kPrimaryColor =Color(0xFF0033A0);
+const kSecondaryColor = Color(0xFFCE1126);
 const kTextColorBlanco = Color(0xFFF5F5F5);
 const kAzulCielo =Color(0xFF81D4FA);
 const kOroMetalico = Color.fromARGB(174, 135, 118, 25);
@@ -67,14 +67,18 @@ const LinearGradient kPrimaryGradientColor = LinearGradient(
   end: Alignment.bottomRight,
   colors: [kPrimaryColor, kSecondaryColor],
 );
-
+const LinearGradient kSecondaryGradient =  LinearGradient(
+                 colors: [Color(0xFFCE1126), Color(0xFF0033A0)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              );
 
 
 
 const kBlueColorLogo =Color(0xFF175fb1);
 const inActiveIconColor =  Color(0xFFB6B6B6);
 const kColorFondoOscuro = Color.fromARGB(255, 70, 72, 77);
-const kContrateFondoOscuro = Color.fromARGB(255, 232, 236, 240);
+const kContrateFondoOscuro = Color.fromARGB(255, 22, 49, 77);
 const kPrimaryText = Color(0xFFFF7643);
 
 const kAnimationDuration = Duration(milliseconds: 200);

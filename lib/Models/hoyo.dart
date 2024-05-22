@@ -64,8 +64,8 @@ class Hoyo {
        par: json['par'],
        campoId: json['campoId'],
        handicap: json['handicap'],
-       hoyotees: json['hoyotees'] != null
-        ? (json['hoyotees'] as List).map((hoyoTeeJson) => HoyoTee.fromJson(hoyoTeeJson)).toList()
+       hoyotees: json['hoyoTees'] != null
+        ? (json['hoyoTees'] as List).map((hoyoTeeJson) => HoyoTee.fromJson(hoyoTeeJson)).toList()
         : [],
      
      );

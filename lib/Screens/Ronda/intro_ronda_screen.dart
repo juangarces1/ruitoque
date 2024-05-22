@@ -14,6 +14,7 @@ import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/tarjeta.dart';
+import 'package:ruitoque/Models/tee.dart';
 import 'package:ruitoque/Screens/Ronda/mi_ronda_screen.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,10 +31,10 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
   bool showLoader = false;
   List<Campo>? campos = [];
   int campoIdSelected = 0;
-  String _seleccionado ='teeAzules';
-  List<String> salidas = ['teeNegras','teeAzules','teeBlancas','teeAmarillas','teeRojas'];
+  String _seleccionado =''; 
   late Campo campoSeleccionado;
   late Jugador jugador;
+   bool _isCampoSeleccionadoInitialized = false;
 
   @override
   void initState() {
@@ -59,7 +60,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
          actions: [ Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: ClipOval(child:  Image.asset(
-                  'assets/logoApp.jpg',
+                  'assets/LogoGolf.png',
                   width: 30,
                   height: 30,
                   fit: BoxFit.cover,
@@ -69,10 +70,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
          body: Container(
           color: const Color.fromARGB(255, 176, 184, 200),
           child: Center(
-            child: showLoader ? const CircularProgressIndicator() : Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: _getContent(),
-            ),
+            child: showLoader ? const CircularProgressIndicator() : _getContent(),
           ),
         ), 
 
@@ -159,13 +157,17 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
 
     setState(() {
       campoSeleccionado = response.result;
-   
+      _seleccionado=campoSeleccionado.tees[0].color;
+      _isCampoSeleccionadoInitialized=true;
     });
   }
 
   Widget _noContent() {
    return Center(
       child: Container(
+        decoration: const BoxDecoration(
+          gradient: kPrimaryGradientColor
+        ),
         margin: const EdgeInsets.all(20),
         child: const Text(
          'No hay Campos.',
@@ -186,70 +188,78 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
   }
 
   _getBody() {
-    return Column(
-      children: [
-          const SizedBox(height: 5,),
-        const Text('Campo: ', style: kTextStyleNegroRobotoSize20 ,),
-       CampoListTileWidget(
-          campos: campos!,
-          onCampoSelected: (int id) {
-           setState(() {
-             campoIdSelected = id;            
-           });
-          },
-        ),
-         const SizedBox(height: 5,),
-        const Text('Tee de Salida: ', style: kTextStyleNegroRobotoSize20 ,),
-          Container(
-            height: 100,
-            decoration: BoxDecoration(
-              color: Colors.white, // Color de fondo del contenedor
-              borderRadius: BorderRadius.circular(10.0), // Radio de los bordes redondeados
-              // Puedes agregar más propiedades de estilo si lo necesitas
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CupertinoPicker(
-                magnification: 1.2,
-                diameterRatio: 1.1,
-                backgroundColor: Colors.white,
-                itemExtent: 32.0,
-                onSelectedItemChanged: (int index) {
-                  setState(() {
-                    _seleccionado = salidas[index];
-                  });
-                },
-                children: salidas.map((String value) {
-                  return Center(
-                    child: Text(value.replaceAll('tee', '')),
-                  );
-                }).toList(),
+    return Container(
+       decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
+      child: Column(
+        children: [
+            const SizedBox(height: 30,),
+          const Text('Seleccione el Campo: ', style: kTextStyleBlancoNuevaFuente20 ,),
+         CampoListTileWidget(
+            campos: campos!,
+            onCampoSelected: (int id) {
+             setState(() {
+               campoIdSelected = id;            
+             });
+             getCampoSeleccuinado(campoIdSelected);
+            },
+          ),
+           const SizedBox(height: 20,),
+           _isCampoSeleccionadoInitialized ?   const Text('Tee de Salida: ', style: kTextStyleBlancoNuevaFuente20 ,) : Container(),
+           _isCampoSeleccionadoInitialized ? Padding(
+             padding: const EdgeInsets.all(10),
+             child: Container(
+                  padding: const EdgeInsets.all(8),
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: kPrimaryGradientColor,
+                  borderRadius: BorderRadius.circular(10.0), // Radio de los bordes redondeados
+                  // Puedes agregar más propiedades de estilo si lo necesitas
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CupertinoPicker(
+                    magnification: 1.2,
+                    diameterRatio: 1.1,
+                    backgroundColor: Colors.white,
+                    itemExtent: 32.0,
+                    onSelectedItemChanged: (int index) {
+                      setState(() {
+                        _seleccionado = campoSeleccionado.tees[index].color;
+                      });
+                    },
+                    children: campoSeleccionado.tees.map((Tee tee) {
+                      return Center(
+                        child: Text(tee.color), // Solo se muestra el nombre del color
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
-          ),
-
-        const SizedBox(height: 5,),
-        DefaultButton(
-          text: const Text('Iniciar Ronda', style: kTextStyleNegroRobotoSize20, textAlign: TextAlign.center ,),
-           press: () => goRonda(),
-           gradient: kPrimaryGradientColor,
-           color: Colors.green,
-           
-          ),
-             const SizedBox(height: 5,),
-       
-      ],
+           ) : Container( decoration: const BoxDecoration(gradient: kPrimaryGradientColor), ),
+      
+          const SizedBox(height: 5,),
+       _isCampoSeleccionadoInitialized ?   DefaultButton(
+            text: const Text('Iniciar Ronda', style: kTextStyleBlancoNuevaFuente20, textAlign: TextAlign.center ,),
+             press: () => goRonda(),
+             gradient: kSecondaryGradient,
+             color: kPrimaryColor,
+             
+            ) :Container( decoration: const BoxDecoration(gradient: kPrimaryGradientColor), ),
+               const SizedBox(height: 5,),
+         
+        ],
+      ),
     );
   }
   
  Future<void> goRonda() async {
 
-    if(campoIdSelected == 0) {
-      mostrarSnackBar(context, '¡Seleccione un Campo!');
-      return;
-    }
+    // if(campoIdSelected == 0) {
+    //   mostrarSnackBar(context, '¡Seleccione un Campo!');
+    //   return;
+    // }
 
-    await getCampoSeleccuinado(campoIdSelected);
+    // await getCampoSeleccuinado(campoIdSelected);
  
       Tarjeta tarjeta = Tarjeta(
         id: 0, 
@@ -263,7 +273,30 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
 
       Ronda ronda = Ronda(id: 0, fecha: DateTime.now(), tarjetas: [], campo: campoSeleccionado, campoId: campoSeleccionado.id, isComplete: false);
 
-      for (Hoyo hoyo in campoSeleccionado.hoyos) {
+      if (campoSeleccionado.hoyos.length == 6){
+        int idc = 1;
+          for (int i = 1; i <= 3; i++) {
+               for (Hoyo hoyo in campoSeleccionado.hoyos) {
+                  EstadisticaHoyo aux = EstadisticaHoyo(
+                    id: idc,
+                    hoyo: hoyo,
+                    hoyoId: hoyo.id, 
+                    golpes: 0, 
+                    putts: 0, 
+                    bunkerShots: 0, 
+                    acertoFairway: false, 
+                    falloFairwayIzquierda: false, 
+                    falloFairwayDerecha: false, 
+                    penaltyShots: 0,
+                    shots: [],
+                  );
+                  tarjeta.hoyos.add(aux);
+                  idc+=1;
+                }
+           }
+      }
+      else {
+        for (Hoyo hoyo in campoSeleccionado.hoyos) {
           EstadisticaHoyo aux = EstadisticaHoyo(
              id: hoyo.id,
              hoyo: hoyo,
@@ -279,6 +312,9 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
           );
           tarjeta.hoyos.add(aux);
       }  
+      }
+
+      
 
       ronda.tarjetas.add(tarjeta);
 
@@ -303,84 +339,84 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
   
-  goCampo() async {
+  // goCampo() async {
 
-     if(campoIdSelected == 0) {
-      mostrarSnackBar(context, '¡Seleccione un Campo!');
-      return;
-    }
+  //    if(campoIdSelected == 0) {
+  //     mostrarSnackBar(context, '¡Seleccione un Campo!');
+  //     return;
+  //   }
 
     
-    await getCampoSeleccuinado(campoIdSelected);
+  //   await getCampoSeleccuinado(campoIdSelected);
 
-    campoSeleccionado.id=0;
-    for (Hoyo hoyo in campoSeleccionado.hoyos){
-      hoyo.campoId=0;
-      hoyo.id=0;
-      hoyo.frenteGreen!.id=0;
-      hoyo.centroGreen!.id=0;
-      hoyo.fondoGreen!.id=0;
-      hoyo.centroHoyo!.id=0;
+  //   campoSeleccionado.id=0;
+  //   for (Hoyo hoyo in campoSeleccionado.hoyos){
+  //     hoyo.campoId=0;
+  //     hoyo.id=0;
+  //     hoyo.frenteGreen!.id=0;
+  //     hoyo.centroGreen!.id=0;
+  //     hoyo.fondoGreen!.id=0;
+  //     hoyo.centroHoyo!.id=0;
      
-    }
+  //   }
 
-     Map<String, dynamic> request = campoSeleccionado.toJson();
+  //    Map<String, dynamic> request = campoSeleccionado.toJson();
 
-    var url = Uri.parse('http://200.91.130.215:9095/api/Campos/');
-    var response = await http.post(
-      url,
-      headers: {
-        'content-type' : 'application/json',
-        'accept' : 'application/json',       
-      },
-      body: jsonEncode(request)
-    );    
+  //   var url = Uri.parse('http://200.91.130.215:9095/api/Campos/');
+  //   var response = await http.post(
+  //     url,
+  //     headers: {
+  //       'content-type' : 'application/json',
+  //       'accept' : 'application/json',       
+  //     },
+  //     body: jsonEncode(request)
+  //   );    
 
-    if(response.statusCode >= 400){
+  //   if(response.statusCode >= 400){
      
-        if (mounted) {       
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Error'),
-                content:  const Text('Paila'),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('Aceptar'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        }  
-       return;
+  //       if (mounted) {       
+  //         showDialog(
+  //           context: context,
+  //           builder: (BuildContext context) {
+  //             return AlertDialog(
+  //               title: const Text('Error'),
+  //               content:  const Text('Paila'),
+  //               actions: <Widget>[
+  //                 TextButton(
+  //                   child: const Text('Aceptar'),
+  //                   onPressed: () {
+  //                     Navigator.of(context).pop();
+  //                   },
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         );
+  //       }  
+  //      return;
      
-    }     
-     if (mounted) {       
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Error'),
-                content:  const Text('Todo Good'),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('Aceptar'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        }  
+  //   }     
+  //    if (mounted) {       
+  //         showDialog(
+  //           context: context,
+  //           builder: (BuildContext context) {
+  //             return AlertDialog(
+  //               title: const Text('Error'),
+  //               content:  const Text('Todo Good'),
+  //               actions: <Widget>[
+  //                 TextButton(
+  //                   child: const Text('Aceptar'),
+  //                   onPressed: () {
+  //                     Navigator.of(context).pop();
+  //                   },
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         );
+  //       }  
 
-  }
+  // }
 
   
 }

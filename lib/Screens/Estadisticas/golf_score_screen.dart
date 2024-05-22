@@ -36,7 +36,7 @@ class GolfScoreScreen extends StatelessWidget {
 
                ElevatedButton(
                onPressed: () {
-                 // TODO: Agregar lógica para el botón Siguiente
+               
                },
                child: const Text('Siguiente'),
               ),
@@ -58,7 +58,7 @@ class GolfScoreScreen extends StatelessWidget {
               //     color: Colors.amber,
               //   ),
               //   onRatingUpdate: (rating) {
-              //     // TODO: Agregar lógica al actualizar el rating
+              //    
               //   },
               // ),
       
@@ -100,7 +100,7 @@ class GolfScoreScreen extends StatelessWidget {
               // Botón de Navegación
                ElevatedButton(
                onPressed: () {
-                 // TODO: Agregar lógica para el botón Siguiente
+                
                },
                child: const Text('Siguiente'),
               ),

@@ -41,10 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-   
- 
-   
+    SizeConfig().init(context);  
     return SafeArea(
       child: Scaffold(     
                
@@ -52,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
           Container(
             decoration: const BoxDecoration(
-              gradient: kPrimaryGradientColor
+              gradient: kSecondaryGradient
             ),
           ),
           SafeArea(
@@ -74,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     // Para esquinas redondeadas, usa BorderRadius
                     borderRadius: BorderRadius.circular(8), // Puedes ajustar el radio
                     image: const DecorationImage(
-                        image: AssetImage('assets/logoApp.jpg'),
+                        image: AssetImage('assets/LogoGolf.png'),
                         fit: BoxFit.cover, // Cubre el área del contenedor
                     ),
                 ),
@@ -102,21 +99,21 @@ class _MyHomePageState extends State<MyHomePage> {
               alignment: Alignment.center,
               child: SafeArea(
                 child: Scaffold(
-                  backgroundColor: kSecondaryColor,
+                  backgroundColor: kColorFondoOscuro,
                   appBar: PreferredSize(
-                    preferredSize: const Size.fromHeight(70),
+                    preferredSize: const Size.fromHeight(60),
                     child:MyCustomAppBar(
-                        title: 'My Golf App',
+                        title: 'Golf Colombia',
                           automaticallyImplyLeading: true,   
-                          backgroundColor: Colors.green,
+                          backgroundColor: kPrimaryColor,
                           elevation: 8.0,
-                          shadowColor: Colors.blueGrey,
+                          shadowColor: const Color.fromARGB(255, 244, 244, 245),
                           foreColor: Colors.white,
                           actions: [ 
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                                 child: Image.asset(
-                                    'assets/logoApp.jpg',
+                                    'assets/LogoGolf.png',
                                     width: 30,
                                     height: 30,
                                     fit: BoxFit.cover,
@@ -127,11 +124,21 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
               
                   ),
-                  body: Stack(
-                    children: [
-                      Center(child: CardJugador(jugador: jugador,)),
-                      showLoader ? const Center(child: LoaderComponent(loadingText: 'Cargando...',),) : const SizedBox.shrink(),
-                    ],
+                  body: Container(
+                    decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10 , right: 10, left: 10),
+                          child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CardJugador(jugador: jugador,),
+                          ],
+                        )),
+                        showLoader ? const Center(child: LoaderComponent(loadingText: 'Cargando...',),) : const SizedBox.shrink(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -181,21 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     },            
                   ),  
 
-                    ListTile(
-                    textColor: const Color(0xffadb5bd),
-                    leading: CircleAvatar(
-                      radius: 12,
-                      backgroundImage:  Image.asset('assets/marker.png').image, backgroundColor: kPrimaryColor,),
-                    title: const Text('Agregar Campo', style: TextStyle(color: Colors.white,),),
-                      onTap: () { 
-                        Navigator.push(
-                          context, 
-                          MaterialPageRoute(
-                            builder: (context) => const AddCourseScreen()
-                          )
-                        );
-                    },            
-                  ),  
+                  
     
     
                   ListTile(
@@ -245,10 +238,6 @@ class _MyHomePageState extends State<MyHomePage> {
                  ],
                );
   }
-
-   
-
-   
 
   Future<String> readJsonFromFile() async {
   try {

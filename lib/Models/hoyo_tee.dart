@@ -1,21 +1,17 @@
 import 'package:ruitoque/Models/cordenada.dart';
-import 'package:ruitoque/Models/hoyo.dart';
-import 'package:ruitoque/Models/tee.dart';
 
 class HoyoTee {
   int id;
-  int hoyoId;
-  Hoyo? hoyo;  // Asumiendo que existe una clase Hoyo.
+  int hoyoId; 
   Cordenada cordenada;  // Asumiendo que existe una clase Cordenada.
-  Tee? tee;  // Asumiendo que existe una clase Tee.
+  String color;
   int distancia;
 
   HoyoTee({
     required this.id,
     required this.hoyoId,
-    this.hoyo,
-    required this.cordenada,
-    this.tee,
+    required this.color,
+    required this.cordenada,    
     required this.distancia,
   });
 
@@ -23,10 +19,9 @@ class HoyoTee {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'hoyoId': hoyoId,
-      'hoyo': hoyo?.toJson(),
+      'hoyoId': hoyoId,      
       'cordenada': cordenada.toJson(),
-      'tee': tee?.toJson(),
+      'color':color,
       'distancia': distancia,
     };
   }
@@ -35,10 +30,9 @@ class HoyoTee {
   factory HoyoTee.fromJson(Map<String, dynamic> json) {
     return HoyoTee(
       id: json['id'] as int,
-      hoyoId: json['hoyoId'] as int,
-      hoyo: json['hoyo'] != null ? Hoyo.fromJson(json['hoyo']) : null,
+      hoyoId: json['hoyoId'] as int,    
       cordenada: Cordenada.fromJson(json['cordenada']),
-      tee: json['tee'] != null ? Tee.fromJson(json['tee']) : null,
+      color: json['color'],
       distancia: json['distancia'] as int,
     );
   }

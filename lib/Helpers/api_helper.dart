@@ -115,7 +115,7 @@ class ApiHelper {
 
       } catch (e) {
         // Catch any other errors, like JSON parsing errors
-       
+         print(e.toString());
         return Response(isSuccess: false, message: "Exception: ${e.toString()}");
       }
     

@@ -6,7 +6,7 @@ class Campo {
   String nombre;
   String ubicacion;
   List<Hoyo> hoyos;
-   List<Tee> tees;
+  List<Tee> tees;
 
   Campo({
     required this.id,
@@ -44,9 +44,21 @@ class Campo {
 
   int get par => hoyos.fold(0, (sum, hoyo) => sum + hoyo.par);
 
-  int get ida => hoyos.take(9).fold(0, (sum, hoyo) => sum + hoyo.par);
+  // int get ida => hoyos.take(9).fold(0, (sum, hoyo) => sum + hoyo.par);
 
 
-  int get vuelta => hoyos.skip(hoyos.length - 9).fold(0, (sum, hoyo) => sum + hoyo.par);
+  // int get vuelta => hoyos.skip(hoyos.length - 9).fold(0, (sum, hoyo) => sum + hoyo.par);
+
+  int get ida {
+    // Calcula la mitad de los hoyos, redondeando hacia abajo si es impar.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.take(mitad).fold(0, (sum, hoyo) => sum + hoyo.par);
+  }
+
+  int get vuelta {
+    // Inicia desde la mitad hasta el final.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.length > mitad ? hoyos.skip(mitad).fold(0, (sum, hoyo) => sum + hoyo.par) : 0;
+  }
 
 }

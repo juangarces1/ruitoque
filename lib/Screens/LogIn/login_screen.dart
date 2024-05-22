@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ruitoque/Components/default_button.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Preferences/jugadorpreferences.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
@@ -34,42 +35,44 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Stack(
             children: [
               Container(
-                color: kSecondaryColor,
+                color: Colors.black,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
+                     
                         const Text(
                         'Bienvenido',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                        style: kTextStyleBlancoNuevaFuente
                       ),
                        const SizedBox(height: 10.0),
-                    Image.asset(
-                        'assets/logoApp.jpg',
-                        width: 100.0, // ajusta el ancho según tus necesidades
-                        height: 100.0, // ajusta la altura según tus necesidades
-                      ),// Logo de tu app
-                
-                      const SizedBox(height: 20.0),
-                     _showPassword(),
-                     _showRememberme(),
-                      const SizedBox(height: 20.0),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 50, right: 50),
-                        child: ElevatedButton(
-                          onPressed: () => goLogIn(),
-                          style: ElevatedButton.styleFrom(
-                            elevation: 8,
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(vertical: 15.0),
-                            textStyle: const TextStyle(fontSize: 18.0),
-                          ),
-                          child: const Text('Ingresar', style:  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+                  SizedBox(
+                      width: 150.0, // Ajusta el ancho según tus necesidades
+                      height: 150.0, // Ajusta la altura según tus necesidades
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(50.0), // Ajusta el radio según tus necesidades
+                        child: Image.asset(
+                          'assets/LogoGolf.png',
+                          fit: BoxFit.cover, // Ajusta esto para asegurarte de que la imagen llena el contenedor
                         ),
                       ),
+                    ),
+                
+                      const SizedBox(height: 40.0),
+                     _showPassword(),
+                     _showRememberme(),
+                      const SizedBox(height: 40.0),
+                   
+                       DefaultButton(
+                          text: const Text('Ingresar', style: kTextStyleBlancoNuevaFuente20, textAlign: TextAlign.center ,),
+                          press: () => goLogIn(),
+                          gradient: kSecondaryGradient,
+                          color: kPrimaryColor,
+                          
+                          ),
                     ],
                   ),
                 ),

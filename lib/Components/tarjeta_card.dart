@@ -18,6 +18,14 @@ class TarjetaRonda extends StatefulWidget {
 }
 
 class _TarjetaRondaState extends State<TarjetaRonda> {
+  late int mitad;
+
+  @override
+  void initState() {
+     super.initState();    
+      mitad = (widget.tarjeta.hoyos.length / 2).floor();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -94,15 +102,16 @@ Widget _crearCuerpoEstadisticas() {
   // Definiendo las columnas para 'Ida' y 'Vuelta' por separado
   return Column(
     children: [
-      _crearTablaEstadisticas('Ida', 1, 9), // Tabla para los hoyos 1-9
+      _crearTablaEstadisticas('Ida', 1, mitad), // Tabla para los hoyos 1-9
      
-      _crearTablaEstadisticas('Vuelta', 10, 18), // Tabla para los hoyos 10-18
+      _crearTablaEstadisticas('Vuelta', mitad + 1, widget.tarjeta.hoyos.length), // Tabla para los hoyos 10-18
     ],
   );
 }
 
 Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
    double espacio = 24;
+  
    TextStyle styleFirstRow = const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
    TextStyle styleScore = const TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold);
   return Column(
@@ -120,7 +129,7 @@ Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
           6: FixedColumnWidth(espacio), // Para el par
           7: FixedColumnWidth(espacio), // Para el handicap
           8: FixedColumnWidth(espacio), // Para el par
-         9: FixedColumnWidth(espacio),
+          9: FixedColumnWidth(espacio),
           10: const FixedColumnWidth(50),
           // Para el par
          
@@ -131,7 +140,7 @@ Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
           // Encabezado de hoyos
         TableRow(
                     decoration: const BoxDecoration(
-            color: Colors.green, // Color de fondo para toda la fila
+            color: kSecondaryColor, // Color de fondo para toda la fila
             // Aquí puedes agregar más estilos como bordes, sombras, etc.
           ),
           children: <Widget>[
@@ -142,17 +151,17 @@ Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
         ),
         TableRow(
           children: <Widget>[
-            const Center(child: Text('Handicap')), ...List<Widget>.generate(9, (index) {
-                return inicioHoyo == 1 ? Center(child: Text('${widget.tarjeta.hoyos[index].hoyo.handicap}')) : Center(child: Text('${widget.tarjeta.hoyos[index + 9].hoyo.handicap}'));
+            const Center(child: Text('Handicap')), ...List<Widget>.generate(mitad, (index) {
+                return inicioHoyo == 1 ? Center(child: Text('${widget.tarjeta.hoyos[index].hoyo.handicap}')) : Center(child: Text('${widget.tarjeta.hoyos[index + mitad].hoyo.handicap}'));
               }), const Center(child: Text('')), // Título al inicio de la fila
           ],
         ),
 
         TableRow(
           children: <Widget>[
-            const Center(child: Text('Par')), ...List<Widget>.generate(9, (index) {
-                return inicioHoyo == 1 ? Center(child: Text('${widget.tarjeta.hoyos[index].hoyo.par}')) : Center(child: Text('${widget.tarjeta.hoyos[index + 9].hoyo.par}'));
-              }),  Center(child: Text(inicioHoyo ==1 ?  widget.tarjeta.campo!.ida.toString(): widget.tarjeta.campo!.vuelta.toString() ))  , // Título al inicio de la fila
+            const Center(child: Text('Par')), ...List<Widget>.generate(mitad, (index) {
+                return inicioHoyo == 1 ? Center(child: Text('${widget.tarjeta.hoyos[index].hoyo.par}')) : Center(child: Text('${widget.tarjeta.hoyos[index + mitad].hoyo.par}'));
+              }),  Center(child: Text(inicioHoyo ==1 ?  widget.tarjeta.parIda.toString(): widget.tarjeta.parVuelta.toString() ))  , // Título al inicio de la fila
           ],
         ),
 
@@ -160,10 +169,10 @@ Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
           children: <Widget>[
             Container(
                padding: const EdgeInsets.all(4), 
-              child: Center(child: Text('Score', style: styleScore,))), ...List<Widget>.generate(9, (index) {
+              child: Center(child: Text('Score', style: styleScore,))), ...List<Widget>.generate(mitad, (index) {
                 return inicioHoyo == 1 ?
                 celdaTarjeta(widget.tarjeta.hoyos[index].pontajeVsPar, widget.tarjeta.hoyos[index].golpes)  
-                  : celdaTarjeta(widget.tarjeta.hoyos[index + 9].pontajeVsPar, widget.tarjeta.hoyos[index + 9].golpes);  
+                  : celdaTarjeta(widget.tarjeta.hoyos[index + mitad].pontajeVsPar, widget.tarjeta.hoyos[index + mitad].golpes);  
               }),  Container(
                   padding: const EdgeInsets.all(4), 
                 child: Center(child: Text(inicioHoyo == 1 ? 
@@ -177,10 +186,10 @@ Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
 
          TableRow(
             children: <Widget>[
-               const Center(child: Text('Neto')), ...List<Widget>.generate(9, (index) {
+               const Center(child: Text('Neto')), ...List<Widget>.generate(mitad, (index) {
                   return inicioHoyo == 1 ?
                   calcularNeto(widget.tarjeta.hoyos[index])  
-                    : calcularNeto(widget.tarjeta.hoyos[index + 9]);  
+                    : calcularNeto(widget.tarjeta.hoyos[index + mitad]);  
                 }),  Center(child: Text(inicioHoyo == 1 ? 
                  widget.tarjeta.netoIda == 0 ?  ''
                   : widget.tarjeta.netoIda.toString()

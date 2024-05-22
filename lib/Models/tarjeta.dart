@@ -43,11 +43,21 @@ class Tarjeta {
 
   int get neto =>  puntuacionTotal - jugador!.handicap! ;
 
-  
+  int? get netoIda {
+    // Toma la mitad de los hoyos, redondeando hacia abajo si el número es impar.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.take(mitad).fold<int>(0, (total, h) => total + (h.neto ?? 0));
+  }
 
-  int? get netoIda => hoyos.take(9).fold<int>(0, (total, h) => total + (h.neto ?? 0));
+  int? get netoVuelta {
+    // Si hay menos de 9 hoyos, netoVuelta debería ser 0 o la suma de los restantes.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.length > mitad ? hoyos.skip(mitad).fold<int>(0, (total, h) => total + (h.neto ?? 0)) : 0;
+  }
 
-  int? get netoVuelta => hoyos.skip(hoyos.length - 9).fold<int>(0, (total, h) => total + (h.neto ?? 0));
+  // int? get netoIda => hoyos.take(9).fold<int>(0, (total, h) => total + (h.neto ?? 0));
+
+  // int? get netoVuelta => hoyos.skip(hoyos.length - 9).fold<int>(0, (total, h) => total + (h.neto ?? 0));
 
   int get totalNeto => (netoIda ?? 0) + (netoVuelta ?? 0);
 
@@ -72,9 +82,33 @@ class Tarjeta {
       }
   }
 
-  int get scoreIda  => hoyos.take(9).fold(0, (total, h) => total + h.golpes);
+  int get parIda {
+    // Toma la mitad de los hoyos, redondeando hacia abajo si el número total es impar.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.take(mitad).fold(0, (total, h) => total + h.hoyo.par);
+  }
 
-  int get scoreVuelta => hoyos.skip(hoyos.length - 9).fold(0, (sum, hoyo) => sum + hoyo.golpes);
+  int get parVuelta {
+    // Inicia desde la mitad hasta el final. Si hay menos hoyos que la mitad, retorna 0.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.length > mitad ? hoyos.skip(mitad).fold(0, (sum, hoyo) => sum + hoyo.hoyo.par) : 0;
+  }
+
+    int get scoreIda {
+    // Toma la mitad de los hoyos, redondeando hacia abajo si el número total es impar.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.take(mitad).fold(0, (total, h) => total + h.golpes);
+  }
+
+  int get scoreVuelta {
+    // Inicia desde la mitad hasta el final. Si hay menos hoyos que la mitad, retorna 0.
+    int mitad = (hoyos.length / 2).floor();
+    return hoyos.length > mitad ? hoyos.skip(mitad).fold(0, (sum, hoyo) => sum + hoyo.golpes) : 0;
+  }
+
+  // int get scoreIda  => hoyos.take(9).fold(0, (total, h) => total + h.golpes);
+
+  // int get scoreVuelta => hoyos.skip(hoyos.length - 9).fold(0, (sum, hoyo) => sum + hoyo.golpes);
 
   String get porcentajeAciertoFairway {
     if (hoyos.isEmpty) return '0%';
@@ -95,6 +129,7 @@ class Tarjeta {
       fecha: json['fecha'],
       campoNombre:  json['campoNombre'],
       hoyos: (json['hoyos'] as List).map((h) => EstadisticaHoyo.fromJson(h)).toList(),
+      teeSalida:  json['teeSalida'],
     );
   }
 

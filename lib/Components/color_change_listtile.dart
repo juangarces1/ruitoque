@@ -19,9 +19,9 @@ class CampoListTileWidgetState extends State<CampoListTileWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 150,
+      height: 300,
        decoration: BoxDecoration(
-              color: Colors.white, // Color de fondo del contenedor
+              gradient: kPrimaryGradientColor, // Color de fondo del contenedor
               borderRadius: BorderRadius.circular(10.0), // Radio de los bordes redondeados
               // Puedes agregar más propiedades de estilo si lo necesitas
             ),

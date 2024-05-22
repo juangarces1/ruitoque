@@ -28,11 +28,11 @@ class _MiRondaState extends State<MiRonda> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: Colors.black,
         appBar: MyCustomAppBar(
         title: 'Nueva Ronda',
           automaticallyImplyLeading: true,   
-          backgroundColor: Colors.green,
+          backgroundColor: kPrimaryColor,
           elevation: 8.0,
           shadowColor: Colors.blueGrey,
           foreColor: Colors.white,
@@ -40,7 +40,7 @@ class _MiRondaState extends State<MiRonda> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Image.asset(
-                    'assets/logoApp.jpg',
+                    'assets/LogoGolf.png',
                     width: 30,
                     height: 30,
                     fit: BoxFit.cover,
@@ -56,7 +56,7 @@ class _MiRondaState extends State<MiRonda> {
               ),
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: 220, // Ajusta esta altura según tus necesidades
+                  height: 280, // Ajusta esta altura según tus necesidades
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: widget.ronda.tarjetas[0].hoyos.length,
@@ -71,10 +71,10 @@ class _MiRondaState extends State<MiRonda> {
                   children: [
                     Center(
                       child: DefaultButton(
-                          text: const Text('Guardar Ronda', style: kTextStyleNegroRobotoSize20, textAlign: TextAlign.center ,),
+                          text: const Text('Guardar Ronda', style: kTextStyleBlancoNuevaFuente20, textAlign: TextAlign.center ,),
                           press: () => _goSave(),
-                          gradient: kPrimaryGradientColor,
-                          color: Colors.green,
+                          gradient: kSecondaryGradient,
+                          color: kPrimaryColor,
                           
                           ),
                     ),
@@ -143,7 +143,7 @@ class _MiRondaState extends State<MiRonda> {
            crossAxisCount: 2, // Dos columnas
            crossAxisSpacing: 5, // Espacio horizontal entre tarjetas
            mainAxisSpacing: 5, // Espacio vertical entre tarjetas
-            childAspectRatio: (1 / 1.3),
+           childAspectRatio: 0.75,
          ),
          itemCount: widget.ronda.tarjetas[0].hoyos.length,
          itemBuilder: (context, index) {
@@ -154,10 +154,10 @@ class _MiRondaState extends State<MiRonda> {
 
   }
 
-buildCardEstadistica(EstadisticaHoyo estadistica) {
+Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
   return SizedBox(
-    width: 200, // O un ancho específico si lo prefieres
-    height: 200, // Ajusta esto según tus necesidades
+    width: 200,   
+
     child: Card(
       color: estadistica.golpes == 0
           ? const Color.fromARGB(255, 46, 46, 46)
@@ -184,22 +184,13 @@ buildCardEstadistica(EstadisticaHoyo estadistica) {
               padding: const EdgeInsets.only(left: 15),
               child: SizedBox(
                 child: Text(
-                  'Par: ${estadistica.hoyo.par.toString()}',
+                  'Par: ${estadistica.hoyo.par.toString()}  --  Golpes: ${estadistica.golpes.toString()}',
                   style: const TextStyle(
                       color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: SizedBox(
-                child: Text(
-                  'Golpes: ${estadistica.golpes.toString()}',
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
+           
             Padding(
               padding: const EdgeInsets.only(left: 15),
               child: SizedBox(
@@ -210,6 +201,39 @@ buildCardEstadistica(EstadisticaHoyo estadistica) {
                 ),
               ),
             ),
+            const SizedBox(height: 5),
+        estadistica.shots != null || estadistica.shots!.isNotEmpty ?  SizedBox(
+              height: 60, // Ajusta la altura según tus necesidades
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: estadistica.shots?.map((shot) {
+                    int index = estadistica.shots!.indexOf(shot);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Shot ${index + 1}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            '${shot.distancia.toString()}y',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList() ?? [],
+                ),
+              ),
+            ) : Container(),
             const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -236,7 +260,7 @@ buildCardEstadistica(EstadisticaHoyo estadistica) {
                   child: IconButton(
                     icon: const Icon(
                       Icons.bar_chart,
-                      color: Colors.blueGrey,
+                      color: kSecondaryColor,
                       size: 30,
                     ),
                     onPressed: () => _mostrarDialogoEstadisticaHoyo(estadistica),
@@ -286,7 +310,13 @@ buildCardEstadistica(EstadisticaHoyo estadistica) {
     setState(() {
      showLoader = true;
    });
- 
+
+   for (var hoyo in widget.ronda.tarjetas[0].hoyos) {
+     hoyo.id=0;
+  }
+  Map<String, dynamic> ronda = widget.ronda.toJson();
+  
+   int x=1;
    Response response = await ApiHelper.post('api/Rondas/', widget.ronda.toJson());
  
     setState(() {

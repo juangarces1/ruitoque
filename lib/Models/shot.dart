@@ -1,10 +1,12 @@
 class Shot {
   double latitud;
   double longitud;
+  int distancia;
 
   Shot({
     required this.latitud,
     required this.longitud,
+    required this.distancia,
   });
 
   // Método para convertir un objeto Shot a un mapa (útil para convertir a JSON)
@@ -12,6 +14,7 @@ class Shot {
     return {
       'latitud': latitud,
       'longitud': longitud,
+       'distancia': distancia,
     };
   }
 
@@ -20,6 +23,7 @@ class Shot {
     return Shot(
       latitud: json['latitud'].toDouble(),
       longitud: json['longitud'].toDouble(),
+      distancia: json['distancia'],
     );
   }
 }
