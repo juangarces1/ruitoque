@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              _showLoader ? const CircularProgressIndicator() : Container(),
+              _showLoader ? const Center(child: CircularProgressIndicator()) : Container(),
             ],
           ),
         ),
@@ -85,8 +85,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
      padding: const EdgeInsets.only(left: 30, right: 30, bottom: 10),
       child: TextField(
-         style:  const TextStyle(color: Colors.white ),  
+        keyboardType: TextInputType.number,
+        style:  const TextStyle(color: Colors.white ),  
         obscureText: !_passwordShow,
+        
         decoration: InputDecoration(
            labelStyle: const TextStyle(color: Colors.white ),
           hintStyle: const TextStyle(color: Colors.white ),

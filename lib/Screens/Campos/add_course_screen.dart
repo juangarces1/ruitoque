@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Campo.dart';
 import 'package:ruitoque/Models/hoyo.dart';
+import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Screens/Campos/agregar_hoyos_screen.dart';
 
 class AddCourseScreen extends StatefulWidget {
@@ -19,6 +21,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
   final _nombreController = TextEditingController();
   final _ubicacionController = TextEditingController();
   final List<Hoyo> _hoyos = [];
+  bool showLoader = false;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +79,11 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                 },
                 child: const Text('Agregar Hoyos'),
               ),
-              ElevatedButton(
+            
+              const Divider(thickness: 3,),
+              buildCard(),
+               const Divider(thickness: 3,),
+                ElevatedButton(
                 onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
                       // Aquí guardas tu campo o haces lo que necesites con la información
@@ -91,18 +98,28 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                      writeJsonToFile(nuevoCampo);
                     }
                   },
-                child: const Text('Guardar Campo'),
+                child: const Text('Guardar Campo Json'),
               ),
              
-              const Divider(thickness: 3,),
-              buildCard(),
-
+               ElevatedButton(
+                onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      // Aquí guardas tu campo o haces lo que necesites con la información
+                     
+          
+                     _goSave();
+                    }
+                  },
+                child: const Text('Guardar Campo BD'),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  
 
    Future<File> writeJsonToFile(Campo nuevoCampo) async {
     final directory = await getApplicationDocumentsDirectory();
@@ -130,6 +147,71 @@ class AddCourseScreenState extends State<AddCourseScreen> {
     ),
   );
 }
+
+
+Future<void> _goSave() async {
+    
+    setState(() {
+     showLoader = true;
+   });
+ var nuevoCampo = Campo(
+                        id: int.parse(_idController.text),
+                        nombre: _nombreController.text,
+                        ubicacion: _ubicacionController.text,
+                        hoyos: _hoyos,
+                        tees: [],
+                      );
+
+   Response response = await ApiHelper.post('api/Campos/', nuevoCampo.toJson());
+ 
+    setState(() {
+      showLoader = false;
+    });
+
+     if (!response.isSuccess) {
+      if(mounted) {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content:  Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+       }
+     }
+      if(mounted) {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Todo Good'),
+              content:  Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+  
+  }
+  
 
   Widget buildCard() {
     return Card(

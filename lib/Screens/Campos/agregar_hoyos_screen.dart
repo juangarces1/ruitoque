@@ -1,14 +1,17 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:ruitoque/Models/cordenada.dart';
 import 'package:ruitoque/Models/hoyo.dart';
+import 'package:ruitoque/Models/hoyo_tee.dart';
+import 'package:ruitoque/Models/tee.dart';
 import 'package:ruitoque/Models/tipos_cordenada.dart';
+import 'package:ruitoque/Screens/Campos/Components/hoyo_tee_list.dart';
+import 'package:ruitoque/Screens/Campos/add_hoyo_tee.dart';
 import 'package:ruitoque/Screens/Campos/editar_coordenada_screen.dart';
 
 class AgregarHoyosScreen extends StatefulWidget {
+  final List<Tee> tees;
   final Function(Hoyo) onAgregarHoyo;
-  const AgregarHoyosScreen({super.key, required this.onAgregarHoyo});
+  const AgregarHoyosScreen({super.key, required this.onAgregarHoyo, required this.tees});
 
   @override
   State<AgregarHoyosScreen> createState() => _AgregarHoyosScreenState();
@@ -22,6 +25,7 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
       numero: 0,
       par:0,
       campoId: 0,
+      hoyotees: [],
      
       fondoGreen: Cordenada(id: 0, latitud: 0,longitud: 0),
       frenteGreen: Cordenada(id: 0, latitud: 0,longitud: 0),
@@ -39,7 +43,7 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
   final _handicapController = TextEditingController();
 
   
-  Cordenada ubicacion= Cordenada(id: 0, latitud: 7.024484, longitud: -73.084170);
+  Cordenada ubicacion= Cordenada(id: 0, latitud: 7.027436, longitud: -73.083597);
 
 
   void _editarCoordenada(TipoCoordenada tipo) async {
@@ -190,7 +194,31 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
                 );
               },
             ),
-            ElevatedButton(
+             ElevatedButton(
+               onPressed: () => _navegarYAgregarHoyoTee(context),
+                  child: const Text('Agregar Tee'),
+             ),
+          
+          const Divider(),
+           Text('Tees', style: Theme.of(context).textTheme.titleLarge),
+           SizedBox(
+                  height: 130,
+                 child: HoyoTeesListWidget(
+                    hoyoTees: nuevoHoyo.hoyotees!,
+                    onDelete: (HoyoTee hoyoTee) {
+                        setState(() {
+                            nuevoHoyo.hoyotees!.removeWhere((hoyoTee) => hoyoTee.color == hoyoTee.color);
+                        });
+
+                      // Aquí implementarías la lógica para borrar el HoyoTee del backend o del estado de la app
+                   
+                    },
+                  ),
+                ),
+          const Divider(),
+            buildCard(),
+             const Divider(),
+              ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                    widget.onAgregarHoyo(nuevoHoyo);
@@ -199,13 +227,27 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
               },
               child: const Text('Guardar Hoyo'),
             ),
-          const Divider(),
-            buildCard(),
           ],
         ),
       ),
     );
   }
+  void _navegarYAgregarHoyoTee(BuildContext context) async {
+   await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AddHoyoTeesPage(
+        cordenada: ubicacion,
+        onAddHoyoTee: (tee) {
+          setState(() {
+            nuevoHoyo.hoyotees!.add(tee);
+          });
+        },
+        availableTees:getAvailableTeesByColor( widget.tees, nuevoHoyo.hoyotees!)
+      ),
+    ),
+  );
+}
 
   Widget buildCard() {
   return Card(
@@ -236,4 +278,15 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
   Widget _construirTextoCoordenada(String titulo, Cordenada? coordenada) {
     return Text("$titulo: ${coordenada != null ? 'Lat: ${coordenada.latitud}, Long: ${coordenada.longitud}' : 'No especificado'}");
   }
+
+  List<Tee> getAvailableTeesByColor(List<Tee> campoTees, List<HoyoTee> hoyoTees) {
+  // Crear un conjunto de colores de Tees que están siendo usados
+  Set<String> usedTeeColors = hoyoTees.map((hoyoTee) => hoyoTee.color).toSet();
+
+  // Filtrar los tees del campo para excluir los que están en usedTeeColors
+  List<Tee> availableTees = campoTees.where((tee) => !usedTeeColors.contains(tee.color)).toList();
+
+  return availableTees;
+}
+
 }

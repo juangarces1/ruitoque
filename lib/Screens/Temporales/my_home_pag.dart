@@ -13,7 +13,6 @@ import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
-import 'package:ruitoque/Screens/Campos/agregar_campo_sreen.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Screens/Ronda/intro_ronda_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
@@ -35,8 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late Jugador jugador;
 
   @override
-  void initState() {
-    // TODO: implement initState
+  void initState() {   
     super.initState();
     jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;
   }
@@ -214,6 +212,20 @@ class _MyHomePageState extends State<MyHomePage> {
                      },                   
                    ),
 
+                      ListTile(
+                     textColor: const Color(0xffadb5bd),
+                     leading: const Icon(Icons.flag_circle_outlined, color:  Colors.white,),
+                     title: const Text('Agregar Campo', style: TextStyle(color: Colors.white,),),
+                       onTap: () { 
+                         Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (context) =>  const AddCourseScreen()
+                          )
+                        );
+                     },                   
+                   ),
+
                     ListTile(
                      textColor: Colors.white,
                      leading: const Icon(Icons.logout, color:  Colors.white),
@@ -250,11 +262,11 @@ class _MyHomePageState extends State<MyHomePage> {
      // Map<String, dynamic> jsonObject = jsonDecode(jsonString);
       return jsonString;
     } else {
-      print('Archivo no encontrado');
+     
       return '{}';
     }
   } catch (e) {
-    print('Error al leer el archivo: $e');
+   
     return '{};';
   }
 }
