@@ -121,7 +121,22 @@ class ApiHelper {
     
  } 
 
- 
+ static Future<Response> put(String controller, Map<String, dynamic> request) async {        
+    var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
+    var response = await http.put(
+      url,
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: jsonEncode(request),
+    );
+
+    if (response.statusCode >= 400) {
+      return Response(isSuccess: false, message: response.body);
+    }
+    return Response(isSuccess: true, result: response.body);
+  }
 
  static Future<Response> getCampos() async {  
 

@@ -12,12 +12,12 @@ class LoaderComponent extends StatelessWidget {
   final double borderWidth;
 
   const LoaderComponent({super.key, 
-    this.gifPath = 'assets/FrGif.gif',
+    this.gifPath = 'assets/LogoGolf.png',
     this.width = 100.0,
     this.height = 100.0,
-    this.backgroundColor = Colors.black45,
+    this.backgroundColor = Colors.blue,
     this.loadingText = '',
-    this.borderColor = Colors.red,
+    this.borderColor = const Color.fromARGB(255, 24, 46, 83),
     this.borderWidth = 2.0,
   });
 

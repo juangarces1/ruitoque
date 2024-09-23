@@ -4,9 +4,10 @@ import 'package:ruitoque/constans.dart';
 
 class CampoListTileWidget extends StatefulWidget {
   final List<Campo> campos;
+  
   final Function(int) onCampoSelected;
 
-  const CampoListTileWidget({Key? key, required this.campos, required this.onCampoSelected}) 
+  const CampoListTileWidget({Key? key, required this.campos, required this.onCampoSelected,}) 
     : super(key: key);
 
   @override
@@ -19,9 +20,9 @@ class CampoListTileWidgetState extends State<CampoListTileWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 300,
+     
        decoration: BoxDecoration(
-              gradient: kPrimaryGradientColor, // Color de fondo del contenedor
+              gradient: kFondoGradient, // Color de fondo del contenedor
               borderRadius: BorderRadius.circular(10.0), // Radio de los bordes redondeados
               // Puedes agregar más propiedades de estilo si lo necesitas
             ),

@@ -1,10 +1,10 @@
-import 'dart:convert';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
-import 'package:ruitoque/Components/color_change_listtile.dart';
+import 'package:ruitoque/Components/card_item_campo.dart';
 import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/campo.dart';
@@ -17,8 +17,6 @@ import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Models/tee.dart';
 import 'package:ruitoque/Screens/Ronda/mi_ronda_screen.dart';
 import 'package:ruitoque/constans.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
 
 class IntroRondaScreen extends StatefulWidget {
   const IntroRondaScreen({super.key});
@@ -55,7 +53,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
         automaticallyImplyLeading: true,   
         backgroundColor: kPrimaryColor,
         elevation: 8.0,
-        shadowColor: const Color.fromARGB(255, 207, 214, 218),
+        shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
          actions: [ Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -68,9 +66,11 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
             ),],
       ),
          body: Container(
-          color: const Color.fromARGB(255, 176, 184, 200),
+         decoration: const BoxDecoration(
+          gradient: kFondoGradient
+         ),
           child: Center(
-            child: showLoader ? const CircularProgressIndicator() : _getContent(),
+            child: showLoader ? const MyLoader(opacity: 0.8, text: 'Cargando...',) : _getContent(),
           ),
         ), 
 
@@ -187,79 +187,105 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
       : _getBody();
   }
 
-  _getBody() {
+  _setCampoSelect (int id) {    
+    setState(() {
+      campoIdSelected = id;
+    });
+    getCampoSeleccuinado(campoIdSelected);
+                  
+  }
+ 
+  Widget _getBody() {
     return Container(
-       decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
+      decoration: const BoxDecoration(
+        gradient: kFondoGradient
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            const SizedBox(height: 30,),
-          const Text('Seleccione el Campo: ', style: kTextStyleBlancoNuevaFuente20 ,),
-         CampoListTileWidget(
-            campos: campos!,
-            onCampoSelected: (int id) {
-             setState(() {
-               campoIdSelected = id;            
-             });
-             getCampoSeleccuinado(campoIdSelected);
-            },
+          const SizedBox(height: 30),
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
+                'Seleccione el Campo:',
+                style: kTextStyleBlancoNuevaFuente20,
+              ),
+            ),
           ),
-           const SizedBox(height: 20,),
-           _isCampoSeleccionadoInitialized ?   const Text('Tee de Salida: ', style: kTextStyleBlancoNuevaFuente20 ,) : Container(),
-           _isCampoSeleccionadoInitialized ? Padding(
-             padding: const EdgeInsets.all(10),
-             child: Container(
-                  padding: const EdgeInsets.all(8),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              child: ListView.builder(
+                itemCount: campos!.length,
+                itemBuilder: (context, index) {
+                  Campo campo = campos![index];
+                  return CardItemCampo(campo: campo, onTap: () => _setCampoSelect(campo.id));
+                },
+              ),
+            ),
+          ),
+          if (_isCampoSeleccionadoInitialized) ...[
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Tee de Salida:',
+                style: kTextStyleBlancoNuevaFuente20,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Container(
+                padding: const EdgeInsets.all(8),
                 height: 100,
                 decoration: BoxDecoration(
                   gradient: kPrimaryGradientColor,
-                  borderRadius: BorderRadius.circular(10.0), // Radio de los bordes redondeados
-                  // Puedes agregar más propiedades de estilo si lo necesitas
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CupertinoPicker(
-                    magnification: 1.2,
-                    diameterRatio: 1.1,
-                    backgroundColor: Colors.white,
-                    itemExtent: 32.0,
-                    onSelectedItemChanged: (int index) {
-                      setState(() {
-                        _seleccionado = campoSeleccionado.tees[index].color;
-                      });
-                    },
-                    children: campoSeleccionado.tees.map((Tee tee) {
-                      return Center(
-                        child: Text(tee.color), // Solo se muestra el nombre del color
-                      );
-                    }).toList(),
-                  ),
+                child: CupertinoPicker(
+                  magnification: 1.2,
+                  diameterRatio: 1.1,
+                  backgroundColor: Colors.white,
+                  itemExtent: 32.0,
+                  onSelectedItemChanged: (int index) {
+                    setState(() {
+                      _seleccionado = campoSeleccionado.tees[index].color;
+                    });
+                  },
+                  children: campoSeleccionado.tees.map((Tee tee) {
+                    return Center(
+                      child: Text(tee.color),
+                    );
+                  }).toList(),
                 ),
               ),
-           ) : Container( decoration: const BoxDecoration(gradient: kPrimaryGradientColor), ),
-      
-          const SizedBox(height: 5,),
-       _isCampoSeleccionadoInitialized ?   DefaultButton(
-            text: const Text('Iniciar Ronda', style: kTextStyleBlancoNuevaFuente20, textAlign: TextAlign.center ,),
-             press: () => goRonda(),
-             gradient: kSecondaryGradient,
-             color: kPrimaryColor,
-             
-            ) :Container( decoration: const BoxDecoration(gradient: kPrimaryGradientColor), ),
-               const SizedBox(height: 5,),
-         
+            ),
+            const SizedBox(height: 5),
+            Center(
+              child: DefaultButton(
+                text: const Text(
+                  'Iniciar Ronda',
+                  style: kTextStyleBlancoNuevaFuente20,
+                  textAlign: TextAlign.center,
+                ),
+                press: () => goRonda(),
+                gradient: kPrimaryGradientColor,
+                color: kPrimaryColor,
+              ),
+            ),
+            const SizedBox(height: 5),
+          ],
         ],
       ),
     );
   }
+
+
   
  Future<void> goRonda() async {
 
-    // if(campoIdSelected == 0) {
-    //   mostrarSnackBar(context, '¡Seleccione un Campo!');
-    //   return;
-    // }
-
-    // await getCampoSeleccuinado(campoIdSelected);
+ 
  
       Tarjeta tarjeta = Tarjeta(
         id: 0, 
@@ -319,11 +345,12 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
       ronda.tarjetas.add(tarjeta);
 
       if(mounted){
-        Navigator.push(
-        context, 
-        MaterialPageRoute(
-          builder: (context) =>  MiRonda(ronda: ronda,)
-          ),
+        Navigator.pushAndRemoveUntil(
+           context, 
+          MaterialPageRoute(
+            builder: (context) => MiRonda(ronda: ronda),
+          ), 
+          (Route<dynamic> route) => false, // Esto elimina todas las rutas anteriores
         );
       }
      
@@ -339,84 +366,6 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
   
-  // goCampo() async {
-
-  //    if(campoIdSelected == 0) {
-  //     mostrarSnackBar(context, '¡Seleccione un Campo!');
-  //     return;
-  //   }
-
-    
-  //   await getCampoSeleccuinado(campoIdSelected);
-
-  //   campoSeleccionado.id=0;
-  //   for (Hoyo hoyo in campoSeleccionado.hoyos){
-  //     hoyo.campoId=0;
-  //     hoyo.id=0;
-  //     hoyo.frenteGreen!.id=0;
-  //     hoyo.centroGreen!.id=0;
-  //     hoyo.fondoGreen!.id=0;
-  //     hoyo.centroHoyo!.id=0;
-     
-  //   }
-
-  //    Map<String, dynamic> request = campoSeleccionado.toJson();
-
-  //   var url = Uri.parse('http://200.91.130.215:9095/api/Campos/');
-  //   var response = await http.post(
-  //     url,
-  //     headers: {
-  //       'content-type' : 'application/json',
-  //       'accept' : 'application/json',       
-  //     },
-  //     body: jsonEncode(request)
-  //   );    
-
-  //   if(response.statusCode >= 400){
-     
-  //       if (mounted) {       
-  //         showDialog(
-  //           context: context,
-  //           builder: (BuildContext context) {
-  //             return AlertDialog(
-  //               title: const Text('Error'),
-  //               content:  const Text('Paila'),
-  //               actions: <Widget>[
-  //                 TextButton(
-  //                   child: const Text('Aceptar'),
-  //                   onPressed: () {
-  //                     Navigator.of(context).pop();
-  //                   },
-  //                 ),
-  //               ],
-  //             );
-  //           },
-  //         );
-  //       }  
-  //      return;
-     
-  //   }     
-  //    if (mounted) {       
-  //         showDialog(
-  //           context: context,
-  //           builder: (BuildContext context) {
-  //             return AlertDialog(
-  //               title: const Text('Error'),
-  //               content:  const Text('Todo Good'),
-  //               actions: <Widget>[
-  //                 TextButton(
-  //                   child: const Text('Aceptar'),
-  //                   onPressed: () {
-  //                     Navigator.of(context).pop();
-  //                   },
-  //                 ),
-  //               ],
-  //             );
-  //           },
-  //         );
-  //       }  
-
-  // }
-
+  
   
 }

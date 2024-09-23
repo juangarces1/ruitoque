@@ -18,7 +18,7 @@ class MyCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.backgroundColor,
     this.elevation,
-    this.automaticallyImplyLeading = true,
+    required this.automaticallyImplyLeading,
     this.shadowColor,
     this.foreColor,
     this.bottom,
@@ -27,7 +27,15 @@ class MyCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(title, style: kTextStyleBlancoNuevaFuente20),
+      flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/fondoHome.webp'), // Aquí va la imagen que quieres
+                fit: BoxFit.cover, // Ajusta la imagen para que cubra todo el AppBar
+              ),
+            ),
+          ),
+      title: Text(title, style: kTextStyleNegroRobotoSize20),
       actions: actions,
       leading: automaticallyImplyLeading && Navigator.canPop(context)
           ? Padding(

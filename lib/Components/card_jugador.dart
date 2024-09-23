@@ -8,23 +8,24 @@ class CardJugador extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color.fromARGB(255, 242, 239, 239),
+      color: const Color(0xC3F2EFEF),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
       ),
-      elevation: 10,
+      elevation: 8,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ExpansionTile(
-          title: Text(jugador.nombre, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        child: Column(
+         
           children: <Widget>[
+             Text('Hola!! ${jugador.nombre}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ListTile(
               title: const Text('Handicap', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold)),
               subtitle: Text(
                 jugador.handicap.toString(),
                 style: const TextStyle(color: Colors.black, fontSize: 16),
               ),
-              trailing: const Icon(Icons.golf_course, color: Colors.green),
+              trailing: const Icon(Icons.edit, color: Colors.amber),
             ),
             // Aquí puedes agregar más ListTile si tienes más información para mostrar
           ],

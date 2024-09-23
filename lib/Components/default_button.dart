@@ -23,19 +23,19 @@ class DefaultButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+     
       height: 50.0,
       margin: const EdgeInsets.all(10),
       child: ElevatedButton(
+        
         onPressed:  press as void Function()?,
-        style: ElevatedButton.styleFrom(
-            primary: color,
-            onPrimary: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              
-            ),
-            padding: const EdgeInsets.all(8)
+        style: ElevatedButton.styleFrom(          
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
+          padding: const EdgeInsets.all(3),
+          backgroundColor: color,
+        ),
       
         child: Ink(
           decoration: BoxDecoration(

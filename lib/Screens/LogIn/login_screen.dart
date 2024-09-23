@@ -5,7 +5,7 @@ import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Preferences/jugadorpreferences.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/response.dart';
-import 'package:ruitoque/Screens/Temporales/my_home_pag.dart';
+import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:ruitoque/sizeconfig.dart';
 
@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
      Navigator.pushReplacement(
       context, 
       MaterialPageRoute(
-        builder: (context) =>  const MyHomePage(title: 'Ruitoque' )
+        builder: (context) =>  const MyHomePage()
       )
     );
   }

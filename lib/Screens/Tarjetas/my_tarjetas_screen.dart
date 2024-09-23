@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 import 'package:flutter/material.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/loader_component.dart';

@@ -47,8 +47,7 @@ class EstadisticaHoyo {
   }
 
    void calcularNetoPorHoyo(Hoyo hoyo, double handicap) {
-    // int golpesDeHandicapParaHoyo = _calcularGolpesDeHandicapParaHoyo(hoyo);
-    // return golpes - golpesDeHandicapParaHoyo;
+ 
     int descuento = 0;
     if (hoyo.handicap! <= handicap) {
      

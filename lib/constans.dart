@@ -8,19 +8,43 @@ const kBogeyColor = Colors.blue;
 const kEagleColor = Colors.green;
 const kDoubleBogueColor = Colors.deepPurple;
 
-
-const kPrimaryColor =Color(0xFF0033A0);
-const kSecondaryColor = Color(0xFFCE1126);
+const Color kAmarilloColombia = Color.fromARGB(255, 252, 209, 22);
+const kPrimaryColor =Color.fromARGB(255, 12, 200, 125);
+const kSecondaryColor = Color.fromARGB(255, 3, 72, 43);
 const kTextColorBlanco = Color(0xFFF5F5F5);
 const kAzulCielo =Color(0xFF81D4FA);
 const kOroMetalico = Color.fromARGB(174, 135, 118, 25);
 
+const kAzulBanderaColombia = Color(0xFF0033A0);
+const kRojoBanderaColombia = Color(0xFFCE1126);
 const kPrimaryLightColor = Color(0xFFFFECDF);
 const kTextColorBlack = Colors.black87;
 const kTextColorWhite= Color.fromARGB(204, 236, 231, 231);
 const kColorMenu= Color.fromARGB(251, 251, 245, 245);
 const kGradientHome = LinearGradient(colors: [kPrimaryColor, kBlueColorLogo ]);
 const kGradientHomeReverse = LinearGradient(colors: [kBlueColorLogo, kPrimaryColor ]);
+const kGradiantBandera = LinearGradient(
+  colors: [
+     
+      
+    kAzulBanderaColombia, 
+     kRojoBanderaColombia,
+    kAmarilloColombia,
+  ],
+  stops: [
+    0.4,  // El primer color ocupa el 50% del gradiente
+    0.6, // El segundo color comienza desde el 50% hasta el 75%
+    1.0,  // El tercer color ocupa del 75% al 100%
+  ],
+  begin: Alignment.topLeft,  // Punto de inicio del gradiente
+  end: Alignment.bottomRight, // Punto final del gradiente
+);
+
+const kFondoGradient = LinearGradient(
+              colors: [Color.fromARGB(255, 26, 92, 63), Color.fromARGB(255, 1, 25, 13)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            );
 
 const kTextStyleBlancoNuevaFuente = TextStyle(
                       fontFamily: 'RobotoCondensed',
