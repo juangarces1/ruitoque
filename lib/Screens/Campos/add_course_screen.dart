@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
@@ -56,7 +57,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
         child: MyCustomAppBar(
           title: widget.campo == null ? 'Agregar Campo' : 'Editar Campo', // Cambiar el título
           automaticallyImplyLeading: true,
-          backgroundColor: kPrimaryColor,
+          backgroundColor: kPprimaryColor,
           elevation: 8.0,
           shadowColor: const Color.fromARGB(255, 244, 244, 245),
           foreColor: Colors.white,
@@ -120,11 +121,11 @@ class AddCourseScreenState extends State<AddCourseScreen> {
         
                 
                        Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 90),
                         child: ElevatedButton(
                             onPressed: () => _navegarAgregarCoodenadaInicial(context),
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(
@@ -132,7 +133,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                                 fontWeight: FontWeight.bold,
                               ), // Estilo del texto
                             ),
-                            child: const Text('Set Cordenada Inicial'),
+                            child: const Text('Set Coordenada'),
                           ),
                       ),
                      
@@ -142,7 +143,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                         child: ElevatedButton(
                             onPressed: () => _navegarAddTee(context),
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(
@@ -153,8 +154,12 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                             child: const Text('Agregar Tee'),
                           ),
                       ),
-                      SizedBox(
+                      Container(
                         height: 100,
+                       decoration: BoxDecoration(
+                        color: kPverdeBienOscuto,
+                        borderRadius: BorderRadius.circular(10)
+                       ),
                         child: TeesListWidget(
                           tees: _tees,
                            onTeeDelete: _deleteTee,
@@ -167,7 +172,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                         child: ElevatedButton(
                             onPressed:  () => _navegarYAgregarHoyos(context),
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(
@@ -178,10 +183,13 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                             child: const Text('Agregar Hoyo'),
                           ),
                       ),
-                      SizedBox(
-                        height: 200,
-                        child: HoyosListWidget(
-                         
+                      Container(
+                        height: 200,                        
+                          decoration: BoxDecoration(
+                          color: kPverdeBienOscuto,
+                          borderRadius: BorderRadius.circular(10)),
+                      
+                         child: HoyosListWidget(                         
                           onDelete: (Hoyo hoyo) {
                             setState(() {
                               _hoyos.removeWhere((mihoyo) => mihoyo.nombre == hoyo.nombre);
@@ -198,7 +206,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                         child: ElevatedButton(
                             onPressed:  _goSave,
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(
@@ -428,7 +436,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               padding: const EdgeInsets.all(2), // Eliminamos el padding adicional
-              backgroundColor: kSecondaryColor,
+              backgroundColor: kPsecondaryColor,
             ),
              child: Ink(
               decoration: BoxDecoration(

@@ -14,6 +14,7 @@ class EstadisticaHoyo {
    bool falloFairwayDerecha;
    int? neto;
    List<Shot>? shots;
+   int? handicapPlayer;
 
 
   EstadisticaHoyo({
@@ -29,7 +30,7 @@ class EstadisticaHoyo {
     required this.falloFairwayDerecha,
     this.neto,
     this.shots,
-    
+    this.handicapPlayer,
   });
 
   bool get acertoGreen {
@@ -49,9 +50,15 @@ class EstadisticaHoyo {
    void calcularNetoPorHoyo(Hoyo hoyo, double handicap) {
  
     int descuento = 0;
+    int aux = handicapPlayer! - hoyo.handicap!;
     if (hoyo.handicap! <= handicap) {
      
-      descuento = 1;
+     if (aux > 0 && aux < 18){
+       descuento=1;
+     } 
+     if(aux >= 18){
+        descuento=2;
+     }
     }
     neto = golpes - descuento;
   }

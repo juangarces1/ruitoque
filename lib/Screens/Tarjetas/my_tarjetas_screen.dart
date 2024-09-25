@@ -42,7 +42,7 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
           shadowColor: Colors.white,
           automaticallyImplyLeading: true,
           foreColor: Colors.white,
-          backgroundColor: kPrimaryColor,
+          backgroundColor: kPprimaryColor,
           actions: <Widget>[
             Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -52,7 +52,7 @@ class EditarCoordenadaScreenState extends State<EditarCoordenadaScreen> {
                     child:MyCustomAppBar(
                         title: widget.titulo != null ? widget.titulo! : 'Establecer Coordenada',
                           automaticallyImplyLeading: true,   
-                          backgroundColor: kPrimaryColor,
+                          backgroundColor: kPprimaryColor,
                           elevation: 8.0,
                           shadowColor: const Color.fromARGB(255, 244, 244, 245),
                           foreColor: Colors.white,
@@ -114,7 +114,7 @@ class EditarCoordenadaScreenState extends State<EditarCoordenadaScreen> {
                                   Navigator.pop(context);
                                 },
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(

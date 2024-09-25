@@ -402,6 +402,8 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
           key: _mapKey,
             mapType: MapType.satellite,
               onMapCreated: _onMapCreated,
+              zoomControlsEnabled: false,
+              mapToolbarEnabled: false,
             initialCameraPosition: CameraPosition(
             bearing: bearing,
               target: makerA,
@@ -599,7 +601,7 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
             onPressed: () => grabasGolpe(),
             
             shape: const CircleBorder(),
-            backgroundColor: kPrimaryColor,
+            backgroundColor: kPprimaryColor,
             elevation: 8,
             // Usamos un Container para personalizar el botón
             child: Container(

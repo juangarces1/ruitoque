@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
@@ -81,7 +80,7 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
         child: MyCustomAppBar(
           title: widget.hoyo == null ? 'Agregar Hoyo' : 'Editar Hoyo',
           automaticallyImplyLeading: true,
-          backgroundColor: kPrimaryColor,
+          backgroundColor: kPprimaryColor,
           elevation: 8.0,
           shadowColor: const Color.fromARGB(255, 38, 38, 75),
           foreColor: Colors.white,
@@ -190,7 +189,7 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
                 child: ElevatedButton(
                     onPressed:   () => _navegarYAgregarHoyoTee(context, cordenadaProvider),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimaryColor, // Color de fondo del botón
+                        backgroundColor: kPprimaryColor, // Color de fondo del botón
                       foregroundColor: Colors.white, // Color del texto y iconos del botón
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                       textStyle: const TextStyle(
@@ -268,7 +267,7 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
                                 }
                               },
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Preferences/jugadorpreferences.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
@@ -34,8 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Material(
           child: Stack(
             children: [
-              Container(
-                color: Colors.black,
+              Container(                
+                decoration: const BoxDecoration(
+                       image: DecorationImage(
+                        image: AssetImage('assets/fondoHome.webp'),
+                        fit: BoxFit.fill, // Ajusta la imagen para que cubra el área de 4:3
+                      ),),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -43,12 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                      
-                        const Text(
-                        'Bienvenido',
-                        textAlign: TextAlign.center,
-                        style: kTextStyleBlancoNuevaFuente
-                      ),
-                       const SizedBox(height: 10.0),
                   SizedBox(
                       width: 150.0, // Ajusta el ancho según tus necesidades
                       height: 150.0, // Ajusta la altura según tus necesidades
@@ -70,14 +69,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           text: const Text('Ingresar', style: kTextStyleBlancoNuevaFuente20, textAlign: TextAlign.center ,),
                           press: () => goLogIn(),
                           gradient: kSecondaryGradient,
-                          color: kPrimaryColor,
+                          color: kPOcre,
                           
                           ),
                     ],
                   ),
                 ),
               ),
-              _showLoader ? const Center(child: CircularProgressIndicator()) : Container(),
+              _showLoader ? const MyLoader(opacity: 0.8, text: 'Cargando..',) : Container(),
             ],
           ),
         ),
@@ -91,12 +90,29 @@ class _LoginScreenState extends State<LoginScreen> {
         keyboardType: TextInputType.number,
         style:  const TextStyle(color: Colors.white ),  
         obscureText: !_passwordShow,
-        
+        cursorColor: Colors.white,
         decoration: InputDecoration(
-           labelStyle: const TextStyle(color: Colors.white ),
-          hintStyle: const TextStyle(color: Colors.white ),
-          errorStyle: const TextStyle(color: Colors.white ),
-          suffixStyle:  const TextStyle(color: Colors.white ),
+        
+            iconColor: Colors.white,
+            filled: true,
+            fillColor: Colors.black,
+            labelStyle: kTextStyleBlancoNuevaFuente20,
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.white54),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.white),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.redAccent),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.redAccent),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
           hintText: 'Ingresa tu Pin...',
           labelText: 'Pin',
           errorText: _passwordShowError ? _passwordError : null,
@@ -109,10 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
               });
             }, 
           ),
-           enabledBorder:  OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10), 
-              borderSide: const BorderSide(color: Colors.white, width: 1.0),
-          ),  
+         
         ),
         onChanged: (value) {
           _password = value;
@@ -125,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Padding(
       padding: const EdgeInsets.only(left: 30, right: 30, bottom: 5),
       child: CheckboxListTile(
-        title: const Text('Recuerdame', style:  TextStyle(color: Colors.white ),),
+        title:   Text('Recuerdame', style: myHeadingStyleBlack ),
         value: _rememberme,
         onChanged: (value) {  
           setState(() {

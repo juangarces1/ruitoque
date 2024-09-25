@@ -46,6 +46,8 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.3.10
   flutter_spinkit: ^5.2.1
+  fluttertoast: ^8.2.8
+  curved_navigation_bar: ^1.0.6
   
 
 flutter_icons:

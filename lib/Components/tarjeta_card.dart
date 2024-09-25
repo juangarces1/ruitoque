@@ -140,7 +140,7 @@ Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
           // Encabezado de hoyos
         TableRow(
                     decoration: const BoxDecoration(
-            color: kSecondaryColor, // Color de fondo para toda la fila
+            color: kPsecondaryColor, // Color de fondo para toda la fila
             // Aquí puedes agregar más estilos como bordes, sombras, etc.
           ),
           children: <Widget>[

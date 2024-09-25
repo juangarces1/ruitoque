@@ -1,18 +1,13 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_jugador.dart';
-import 'package:ruitoque/Components/loader_component.dart';
 import 'package:ruitoque/Components/my_loader.dart';
-import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
-import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
 import 'package:ruitoque/Screens/Campos/sekect_campo_scree.dart';
 import 'package:ruitoque/Screens/Home/Components/menu_item.dart';
@@ -45,11 +40,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);  
+
+    double posJugar =  SizeConfig.screenWidth / 2 - 40;
     return SafeArea(
       child: Scaffold(     
                
         body:  Stack(
           children: [
+            
           Container(
             decoration: const BoxDecoration(
               gradient: kGradiantBandera
@@ -146,6 +144,28 @@ class _MyHomePageState extends State<MyHomePage> {
                             CardJugador(jugador: jugador,),
                           ],
                         )),
+
+                         Positioned(
+                            bottom: 3, // Ubicar al fondo
+                            left: posJugar, // Inicia en el borde izquierdo
+                            // Extiende hasta el borde derecho
+                            child: GestureDetector(
+                              onTap:  gointroRonda,
+                              child: ClipOval(
+                                child: Container(
+                                  width: 80,
+                                  height: 80,
+                                  padding: const EdgeInsets.symmetric(vertical: 22), // Ajuste del padding para que el texto quede dentro del círculo
+                                  color:kPcontrastMoradoColor,
+                                  child: const Text(
+                                    'Jugar', 
+                                    style: TextStyle(fontSize: 23, color: Colors.white, fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center, // Centrar el texto dentro del círculo
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         showLoader ? const Center(child: MyLoader(text: 'Cargando...',opacity: 0.7,),) : const SizedBox.shrink(),
                       ],
                     ),
@@ -173,6 +193,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ),     
          ],
         ),
+       
+      
+     
       ),
     );
     
@@ -192,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
       leading: const CircleAvatar(
         radius: 12,
         backgroundImage: AssetImage('assets/marker.png'),
-        backgroundColor: kPrimaryColor,
+        backgroundColor: kPprimaryColor,
       ),
       onTap: () {
         Navigator.push(
@@ -287,99 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
     },
   );
 }
-
-
-  Future<String> readJsonFromFile() async {
-  try {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/ruitoque .json');
-
-    // Verifica si el archivo existe antes de intentar leerlo
-    if (await file.exists()) {
-      String jsonString = await file.readAsString();
-      // Decodifica el string JSON a un objeto Map
-     // Map<String, dynamic> jsonObject = jsonDecode(jsonString);
-      return jsonString;
-    } else {
-     
-      return '{}';
-    }
-  } catch (e) {
-   
-    return '{};';
-  }
-}
   
-  Future<List<String>> listJsonFiles() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final List<String> jsonFiles = [];
-
-    // Listar todos los archivos en el directorio.
-    final fileList = directory.listSync();
-    for (var file in fileList) {
-        // Verificar si el archivo es un .json
-        if (file.path.endsWith('.json')) {
-            jsonFiles.add(file.path.split('/').last);
-        }
-    }
-    return jsonFiles;
-}
-
-Future<void> _goSave() async {
-    
-    setState(() {
-     showLoader = true;
-   });
-
-   Response response = await ApiHelper.post('api/Campos/', campo.toJson());
- 
-    setState(() {
-      showLoader = false;
-    });
-
-     if (!response.isSuccess) {
-      if(mounted) {
-          showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content:  Text(response.message),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Aceptar'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-        return;
-       }
-     }
-      if(mounted) {
-          showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Todo Good'),
-              content:  Text(response.message),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Aceptar'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-  
-  }
   
   gointroRonda() {
      Navigator.push(

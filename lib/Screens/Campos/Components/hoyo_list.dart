@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ruitoque/Models/cordenada.dart';
 import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Models/tee.dart';
 import 'package:ruitoque/Screens/Campos/agregar_hoyos_screen.dart';

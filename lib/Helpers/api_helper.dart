@@ -7,6 +7,36 @@ import 'package:ruitoque/Models/response.dart';
 import 'package:http/http.dart' as http;
 
 class ApiHelper {
+
+ static Future<Response> updateHandicap(int id, int handicap) async {
+  
+  var url = Uri.parse('${Constans.getAPIUrl()}/api/Players/UpdateHandicap/$id');
+
+  try {
+    final response = await http.put(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json', // Especificamos que el contenido es JSON
+        'Accept': 'application/json',
+      },
+      body: json.encode(handicap), // Codificamos el handicap como JSON
+    );
+
+   if (response.statusCode == 200) {
+          return Response(isSuccess: true);
+    } else if (response.statusCode == 404) {
+      // Jugador no encontrado
+        return Response(isSuccess: false, message: 'Jugador No Encontrado', result: response.body);
+    } else {
+      // Otros errores
+     Response(isSuccess: false, message: 'Error al actualizar el handicap: ${response.reasonPhrase}',result: response.body);
+    }
+       return Response(isSuccess: false);
+  } catch (e) {
+    // En caso de error, muestra el error
+     return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+  }
+}
   
  static Future<Response> post(String controller, Map<String, dynamic> request) async {        
     var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
@@ -115,7 +145,7 @@ class ApiHelper {
 
       } catch (e) {
         // Catch any other errors, like JSON parsing errors
-         print(e.toString());
+       
         return Response(isSuccess: false, message: "Exception: ${e.toString()}");
       }
     

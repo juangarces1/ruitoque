@@ -13,10 +13,10 @@ class CrearCordenadaScreen extends StatefulWidget {
   const CrearCordenadaScreen({super.key, this.cordenada, });
 
   @override
-  _CrearCordenadaScreenState createState() => _CrearCordenadaScreenState();
+  CrearCordenadaScreenState createState() => CrearCordenadaScreenState();
 }
 
-class _CrearCordenadaScreenState extends State<CrearCordenadaScreen> {
+class CrearCordenadaScreenState extends State<CrearCordenadaScreen> {
   final _formKey = GlobalKey<FormState>();
   Cordenada cordenadaActual = Cordenada(id: 0, latitud: 0, longitud: 0);
 
@@ -67,7 +67,7 @@ class _CrearCordenadaScreenState extends State<CrearCordenadaScreen> {
         child: MyCustomAppBar(
           title: 'Crear Coordenada Inicial',
           automaticallyImplyLeading: true,
-          backgroundColor: kPrimaryColor,
+          backgroundColor: kPprimaryColor,
           elevation: 8.0,
           shadowColor: const Color.fromARGB(255, 244, 244, 245),
           foreColor: Colors.white,
@@ -115,7 +115,7 @@ class _CrearCordenadaScreenState extends State<CrearCordenadaScreen> {
               child: ElevatedButton(
                   onPressed:  () => _goBack(cordenadaProvider),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: kPrimaryColor, // Color de fondo del botón
+                      backgroundColor: kPprimaryColor, // Color de fondo del botón
                     foregroundColor: Colors.white, // Color del texto y iconos del botón
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                     textStyle: const TextStyle(
@@ -141,7 +141,7 @@ class _CrearCordenadaScreenState extends State<CrearCordenadaScreen> {
 
                   },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: kPrimaryColor, // Color de fondo del botón
+                      backgroundColor: kPprimaryColor, // Color de fondo del botón
                     foregroundColor: Colors.white, // Color del texto y iconos del botón
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                     textStyle: const TextStyle(

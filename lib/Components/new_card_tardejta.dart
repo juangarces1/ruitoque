@@ -1,17 +1,14 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
-
 import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Screens/Estadisticas/golf_score_screen.dart';
 import 'package:ruitoque/constans.dart';
 
 class NewTarjetaCard extends StatefulWidget {
   final Tarjeta tarjeta;
-  const NewTarjetaCard({super.key, required this.tarjeta});
+  final Future<void> Function() onSave;
+   final Future<void> Function() onBack;
+  const NewTarjetaCard({super.key, required this.tarjeta, required this.onSave, required this.onBack});
 
   @override
   State<NewTarjetaCard> createState() => _NewTarjetaCardState();
@@ -117,13 +114,13 @@ Widget _crearCuerpoEstadisticas() {
 
     return Column(
       children: [
-        _crearTablaEstadisticas('Ida', idaHoyos),
-        _crearTablaEstadisticas('Vuelta', vueltaHoyos),
+        _crearTablaEstadisticas('Ida', idaHoyos, 0),
+        _crearTablaEstadisticas('Vuelta', vueltaHoyos, vueltaHoyos.length),
       ],
     );
   }
 
- Widget _crearTablaEstadisticas(String titulo, List<EstadisticaHoyo> hoyos) {
+ Widget _crearTablaEstadisticas(String titulo, List<EstadisticaHoyo> hoyos, int cantHoyos) {
     double espacio = 24;
     TextStyle styleFirstRow = const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
     TextStyle styleScore = const TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold);
@@ -148,7 +145,7 @@ Widget _crearCuerpoEstadisticas() {
               children: <Widget>[
                 Center(child: Text('Hoyo', style: styleFirstRow)),
                 ...List<Widget>.generate(hoyos.length, (index) {
-                  return Center(child: Text('${index + 1}', style: styleFirstRow));
+                  return Center(child: Text('${index + 1 + cantHoyos}', style: styleFirstRow));
                 }),
                 Center(child: Text(titulo, style: styleFirstRow)),
               ],
@@ -357,7 +354,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Text('Par ${widget.tarjeta.campo!.par.toString()} ', style: textStyle,),
-               Text('Tee ${widget.tarjeta.teeSalida!.substring(3)} ', style: textStyle,),
+               Text('Tee ${widget.tarjeta.teeSalida!.toString()} ', style: textStyle,),
               Text(' ${widget.tarjeta.puntuacionTotal.toString()}/${widget.tarjeta.totalNeto.toString()}', style: textStyle,),
             ],
          ),
@@ -372,7 +369,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
                 child: IconButton(
                   icon: const Icon(Icons.save),
                   color: Colors.green,
-                  onPressed: () => writeJsonToFile(),
+                  onPressed:   widget.onSave,
                 ),
               ),
               // Botón 'Comentar' con fondo circular
@@ -381,16 +378,16 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
                 child: IconButton(
                   icon: const Icon(Icons.comment),
                   color: Colors.blue,
-                  onPressed: () => getTarjeta(),
+                  onPressed: (){},
                 ),
               ),
               // Botón 'Estadísticas' con fondo circular
               CircleAvatar(
                 backgroundColor: Colors.white,
                 child: IconButton(
-                  icon: const Icon(Icons.bar_chart),
-                  color: Colors.purple,
-                  onPressed: () => goEstadisticas(),
+                  icon: const Icon(Icons.arrow_back, weight: 20,),
+                  color: kPcontrastMoradoColor,
+                  onPressed: widget.onBack,
                         ),
             ),
           ],
@@ -410,40 +407,9 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
    );
   }
 
-  Future<void> writeJsonToFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-     String fechaSinEspacios = DateTime.now().toString().replaceAll(" ", "");
-    
-      final file = File('${directory.path}/mitarjeta_$fechaSinEspacios.json');
-      Map<String, dynamic> objeto = widget.tarjeta.toJson();
-      String jsonString = jsonEncode(objeto);
-      file.writeAsString(jsonString);
-   if(mounted){
-       Navigator.pop(context);
-   }
-    
-}
 
-  Future<Map<String, dynamic>> readJsonFromFile() async {
-  try {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/mitarjeta.json');
 
-    // Verifica si el archivo existe antes de intentar leerlo
-    if (await file.exists()) {
-      String jsonString = await file.readAsString();
-      // Decodifica el string JSON a un objeto Map
-      Map<String, dynamic> jsonObject = jsonDecode(jsonString);
-      return jsonObject;
-    } else {
-    
-      return {};
-    }
-  } catch (e) {
-   
-    return {};
-  }
-}
+ 
 
 getTarjeta() {
   

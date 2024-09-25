@@ -213,7 +213,7 @@ class _EstadisticaHoyoDialogState extends State<EstadisticaHoyoDialog> {
             width: 35,
             decoration:  const BoxDecoration(
               shape: BoxShape.circle,
-              color: kSecondaryColor,
+              color: kPprimaryColor,
             ),
             child: Center(
               child: IconButton(
@@ -231,7 +231,7 @@ class _EstadisticaHoyoDialogState extends State<EstadisticaHoyoDialog> {
             width: 35,
             decoration:  const BoxDecoration(
               shape: BoxShape.circle,
-              color: kSecondaryColor,
+              color: kPsecondaryColor,
             ),
             child: Center(
               child: IconButton(

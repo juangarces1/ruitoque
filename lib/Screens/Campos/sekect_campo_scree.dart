@@ -45,7 +45,7 @@ class _SelectCampoScreenState extends State<SelectCampoScreen> {
         appBar: MyCustomAppBar(
         title: 'Seleccione El Campo',
         automaticallyImplyLeading: true,   
-        backgroundColor: kPrimaryColor,
+        backgroundColor: kPprimaryColor,
         elevation: 8.0,
         shadowColor: const Color.fromARGB(255, 207, 214, 218),
         foreColor: Colors.white,
@@ -238,7 +238,7 @@ class _SelectCampoScreenState extends State<SelectCampoScreen> {
                 ),
                 press: () => goEditCampo(),
                 gradient: kPrimaryGradientColor,
-                color: kPrimaryColor,
+                color: kPprimaryColor,
               ),
             ),
             const SizedBox(height: 5),

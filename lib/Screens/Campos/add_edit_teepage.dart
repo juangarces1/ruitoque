@@ -55,7 +55,7 @@ class AddEditTeePageState extends State<AddEditTeePage> {
       appBar: MyCustomAppBar(
         title: widget.tee == null ? 'Agregar Tee' : 'Editar Tees',
         automaticallyImplyLeading: true,   
-        backgroundColor: kPrimaryColor,
+        backgroundColor: kPprimaryColor,
         elevation: 8.0,
         shadowColor: const Color.fromARGB(255, 207, 214, 218),
         foreColor: Colors.white,
@@ -75,6 +75,8 @@ class AddEditTeePageState extends State<AddEditTeePage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: TextFormField(
+                    style: const TextStyle(color: Colors.white),
+                        cursorColor: Colors.white,
                   controller: _colorController,
                   decoration: buildInputDecoration('Color del Tee'),
                   validator: (value) {
@@ -92,7 +94,7 @@ class AddEditTeePageState extends State<AddEditTeePage> {
                 child: ElevatedButton(
                     onPressed:  _saveTee,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimaryColor, // Color de fondo del botón
+                        backgroundColor: kPprimaryColor, // Color de fondo del botón
                       foregroundColor: Colors.white, // Color del texto y iconos del botón
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                       textStyle: const TextStyle(

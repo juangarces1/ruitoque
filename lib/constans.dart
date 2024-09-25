@@ -9,8 +9,17 @@ const kEagleColor = Colors.green;
 const kDoubleBogueColor = Colors.deepPurple;
 
 const Color kAmarilloColombia = Color.fromARGB(255, 252, 209, 22);
-const kPrimaryColor =Color.fromARGB(255, 12, 200, 125);
-const kSecondaryColor = Color.fromARGB(255, 3, 72, 43);
+const kPprimaryColor =Color.fromRGBO(54, 118, 100,1);
+const kPsecondaryColor = Color(0xFF363b76);
+const kPcontrastAzulColor = Color(0xFF363b76);
+const kPcontrastMoradoColor = Color(0xFF443676);
+const kPmarronConstrats = Color(0xFF764a36);
+const kPverdeMasClaro = Color(0xFF5dcbac);
+const kPverdeBienOscuto = Color(0xFF0f211c);
+const kPOcre = Color(0xFF763648);
+const kPVerdeMedio = Color(0xFF2b5e50);
+
+
 const kTextColorBlanco = Color(0xFFF5F5F5);
 const kAzulCielo =Color(0xFF81D4FA);
 const kOroMetalico = Color.fromARGB(174, 135, 118, 25);
@@ -21,30 +30,7 @@ const kPrimaryLightColor = Color(0xFFFFECDF);
 const kTextColorBlack = Colors.black87;
 const kTextColorWhite= Color.fromARGB(204, 236, 231, 231);
 const kColorMenu= Color.fromARGB(251, 251, 245, 245);
-const kGradientHome = LinearGradient(colors: [kPrimaryColor, kBlueColorLogo ]);
-const kGradientHomeReverse = LinearGradient(colors: [kBlueColorLogo, kPrimaryColor ]);
-const kGradiantBandera = LinearGradient(
-  colors: [
-     
-      
-    kAzulBanderaColombia, 
-     kRojoBanderaColombia,
-    kAmarilloColombia,
-  ],
-  stops: [
-    0.4,  // El primer color ocupa el 50% del gradiente
-    0.6, // El segundo color comienza desde el 50% hasta el 75%
-    1.0,  // El tercer color ocupa del 75% al 100%
-  ],
-  begin: Alignment.topLeft,  // Punto de inicio del gradiente
-  end: Alignment.bottomRight, // Punto final del gradiente
-);
 
-const kFondoGradient = LinearGradient(
-              colors: [Color.fromARGB(255, 26, 92, 63), Color.fromARGB(255, 1, 25, 13)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            );
 
 const kTextStyleBlancoNuevaFuente = TextStyle(
                       fontFamily: 'RobotoCondensed',
@@ -86,13 +72,36 @@ const kTextStyleNegroRobotoSize20Normal = TextStyle(
     // Para un estilo en cursiva
 );
 
+const kGradientHome = LinearGradient(colors: [kPprimaryColor, kPcontrastMoradoColor ]);
+const kGradientHomeReverse = LinearGradient(colors: [kPcontrastMoradoColor, kPprimaryColor ]);
+const kGradiantBandera = LinearGradient(
+  colors: [    
+    kAzulBanderaColombia, 
+     kRojoBanderaColombia,
+    kAmarilloColombia,
+  ],
+  stops: [
+    0.4,  // El primer color ocupa el 50% del gradiente
+    0.6, // El segundo color comienza desde el 50% hasta el 75%
+    1.0,  // El tercer color ocupa del 75% al 100%
+  ],
+  begin: Alignment.topLeft,  // Punto de inicio del gradiente
+  end: Alignment.bottomRight, // Punto final del gradiente
+);
+
+const kFondoGradient = LinearGradient(
+              colors:[kPverdeBienOscuto ,kPprimaryColor, ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            );
+
 const LinearGradient kPrimaryGradientColor = LinearGradient(
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-  colors: [kPrimaryColor, kSecondaryColor],
+  begin: Alignment.bottomLeft,
+  end: Alignment.topRight,
+  colors: [kPprimaryColor, kPcontrastMoradoColor],
 );
 const LinearGradient kSecondaryGradient =  LinearGradient(
-                 colors: [Color(0xFFCE1126), Color(0xFF0033A0)],
+                 colors: [kPcontrastMoradoColor, kPOcre],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               );
@@ -117,7 +126,7 @@ final myHeadingStyleBlack = TextStyle(
 final myHeadingStylePrymary = TextStyle(
   fontSize: getProportionateScreenWidth(22),
   fontWeight: FontWeight.bold,
-  color: kPrimaryColor,
+  color: kPprimaryColor,
   height: 1.5,
 );
 
@@ -152,7 +161,7 @@ final headingStyle = TextStyle(
 final headingStyleKprimary = TextStyle(
   fontSize: getProportionateScreenWidth(28),
   fontWeight: FontWeight.bold,
-  color: kPrimaryColor,
+  color: kPprimaryColor,
   height: 1.5,
 );
 
@@ -183,6 +192,6 @@ final otpInputDecoration = InputDecoration(
 OutlineInputBorder outlineInputBorderColor() {
   return OutlineInputBorder(
     borderRadius: BorderRadius.circular(getProportionateScreenWidth(15)),
-    borderSide: const BorderSide(color: kPrimaryColor),
+    borderSide: const BorderSide(color: kPprimaryColor),
   );
 }

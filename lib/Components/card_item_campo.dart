@@ -16,7 +16,7 @@ class CardItemCampo extends StatelessWidget {
         ),
         elevation: 8,
       child: ListTile(
-        trailing: const Icon(Icons.golf_course_outlined),
+        trailing: const Icon(Icons.golf_course_outlined, color: kPOcre,),
         title: Text(
           campo.nombre,
           style: kTextStyleNegroRobotoSize20,

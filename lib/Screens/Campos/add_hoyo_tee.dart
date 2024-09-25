@@ -49,7 +49,7 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
       appBar:MyCustomAppBar(
         title: widget.hoyoTee == null ? "Agregar Tee" : "Editar Tee",
         automaticallyImplyLeading: true,   
-        backgroundColor: kPrimaryColor,
+        backgroundColor: kPprimaryColor,
         elevation: 8.0,
         shadowColor: const Color.fromARGB(255, 207, 214, 218),
         foreColor: Colors.white,
@@ -101,7 +101,7 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
                         child: ElevatedButton(
                             onPressed:  () => _editarCoordenada(),
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(
@@ -121,7 +121,7 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
                         child: ElevatedButton(
                             onPressed:  () => _saveHoyoTee(),
                             style: ElevatedButton.styleFrom(
-                               backgroundColor: kPrimaryColor, // Color de fondo del botón
+                               backgroundColor: kPprimaryColor, // Color de fondo del botón
                               foregroundColor: Colors.white, // Color del texto y iconos del botón
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espaciado interno opcional
                               textStyle: const TextStyle(

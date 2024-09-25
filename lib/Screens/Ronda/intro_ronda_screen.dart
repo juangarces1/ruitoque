@@ -51,7 +51,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
         appBar: MyCustomAppBar(
         title: 'Iniciar Ronda',
         automaticallyImplyLeading: true,   
-        backgroundColor: kPrimaryColor,
+        backgroundColor: kPprimaryColor,
         elevation: 8.0,
         shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
@@ -271,7 +271,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
                 ),
                 press: () => goRonda(),
                 gradient: kPrimaryGradientColor,
-                color: kPrimaryColor,
+                color: kPsecondaryColor,
               ),
             ),
             const SizedBox(height: 5),
@@ -315,6 +315,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
                     falloFairwayDerecha: false, 
                     penaltyShots: 0,
                     shots: [],
+                    handicapPlayer: jugador.handicap
                   );
                   tarjeta.hoyos.add(aux);
                   idc+=1;
@@ -335,6 +336,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
              falloFairwayDerecha: false, 
              penaltyShots: 0,
              shots: [],
+              handicapPlayer: jugador.handicap
           );
           tarjeta.hoyos.add(aux);
       }  

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
-import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Components/new_card_tardejta.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
@@ -51,52 +52,42 @@ class _MiRondaState extends State<MiRonda> {
           ],
         
         ),
-        body: Container(
-           decoration: const BoxDecoration(
-            gradient: kFondoGradient
-          ),
-          child: CustomScrollView(
-              slivers: <Widget>[
-                SliverToBoxAdapter(
-                  child:  NewTarjetaCard(tarjeta: widget.ronda.tarjetas[0],),
-                ),
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 280, // Ajusta esta altura según tus necesidades
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: widget.ronda.tarjetas[0].hoyos.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return buildCardEstadistica(widget.ronda.tarjetas[0].hoyos[index]);
-                      },
+        body: Stack(
+          children: [
+            Container(
+               decoration: const BoxDecoration(
+                gradient: kFondoGradient
+              ),
+              child: CustomScrollView(
+                  slivers: <Widget>[
+                    SliverToBoxAdapter(
+                      child:  NewTarjetaCard(tarjeta: widget.ronda.tarjetas[0], onSave:  _confirmSave, onBack:  _confirmBack),
                     ),
-                  ),
-                ),
-                 SliverToBoxAdapter(
-                  child:   Stack(
-                    children: [
-                      Center(
-                        child: DefaultButton(
-                            text: const Text('Guardar Ronda', style: kTextStyleBlancoNuevaFuente20, textAlign: TextAlign.center ,),
-                            press: () => _goSave(),
-                            gradient: kPrimaryGradientColor,
-                            color: kSecondaryColor,
-                            
-                            ),
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 260, // Ajusta esta altura según tus necesidades
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: widget.ronda.tarjetas[0].hoyos.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return buildCardEstadistica(widget.ronda.tarjetas[0].hoyos[index]);
+                          },
+                        ),
                       ),
-                          showLoader ? const Center(child: CircularProgressIndicator()) : Container(),
-                    ],
-                  )
-                ),
-          
-                 SliverToBoxAdapter(
-                  child:   Center(
-                    child: buildGetBark(context),
-                  )
-                ),
+                    ),
+             
               
-              ],
+                    //  SliverToBoxAdapter(
+                    //   child:   Center(
+                    //     child: buildGetBack(context),
+                    //   )
+                    // ),
+                  
+                  ],
+                ),
             ),
+            showLoader ? const MyLoader(opacity: 0.8, text: 'Guardando...',): const SizedBox(),
+          ],
         ),
         
         ),
@@ -163,26 +154,7 @@ class _MiRondaState extends State<MiRonda> {
   }
 
  
-   gridHoyos() {
-     return Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 20),       
-       child: GridView.builder(
-        shrinkWrap: true,        
-        
-         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-           crossAxisCount: 2, // Dos columnas
-           crossAxisSpacing: 5, // Espacio horizontal entre tarjetas
-           mainAxisSpacing: 5, // Espacio vertical entre tarjetas
-           childAspectRatio: 0.75,
-         ),
-         itemCount: widget.ronda.tarjetas[0].hoyos.length,
-         itemBuilder: (context, index) {
-           return buildCardEstadistica(widget.ronda.tarjetas[0].hoyos[index]);
-         },
-       ),
-     );
-
-  }
+ 
 
 Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
   return SizedBox(
@@ -191,7 +163,7 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
     child: Card(
       color: estadistica.golpes == 0
           ? const Color.fromARGB(255, 46, 46, 46)
-          : kSecondaryColor,
+          : kPsecondaryColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
       ),
@@ -231,11 +203,11 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
                 ),
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 3),
             estadistica.shots != null && estadistica.shots!.isNotEmpty
                 ? SizedBox(
                  
-                    height: 60, // Altura ajustada para contener los ShotTile
+                    height: 55, // Altura ajustada para contener los ShotTile
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -286,7 +258,7 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
                     ),
                   )
                 : Container(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
@@ -298,7 +270,7 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
                   child: IconButton(
                     icon: const Icon(
                       Icons.flag,
-                      color: kPrimaryColor,
+                      color: kPprimaryColor,
                       size: 30,
                     ),
                     onPressed: () => goHole(estadistica),
@@ -312,7 +284,7 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
                   child: IconButton(
                     icon: const Icon(
                       Icons.bar_chart,
-                      color: kSecondaryColor,
+                      color: kPsecondaryColor,
                       size: 30,
                     ),
                     onPressed: () => _mostrarDialogoEstadisticaHoyo(estadistica),
@@ -357,6 +329,39 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
   );
 }
 
+ 
+ Future<void> _confirmSave() async {
+  bool? confirm = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirmación'),
+        content: const Text('¿Estás seguro de que deseas guardar esta ronda?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Retorna false
+            },
+          ),
+          TextButton(
+            child: const Text('Aceptar'),
+            onPressed: () {
+              Navigator.of(context).pop(true); // Retorna true
+            },
+          ),
+        ],
+      );
+    },
+  );
+
+  // Si el usuario aceptó, procede con la función _goSave
+  if (confirm == true) {
+    await _goSave();
+  }
+}
+
+ 
   Future<void> _goSave() async {
     
     setState(() {
@@ -397,89 +402,125 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
         return;
        }
      }
-      if(mounted) {
-          showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Todo Good'),
-              content:  Text(response.message),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Aceptar'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }  
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      Fluttertoast.showToast(
+        msg: "La Ronda ha sido guardada exotosamente.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor:kPcontrastMoradoColor,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
+
+     goHome();
+
   }
 
-  buildGetBark(BuildContext context) {
-    return Container(
-      height: 40.0,
-      width: 100,
-      margin: const EdgeInsets.all(10),
-      child: ElevatedButton(
-            onPressed: () async {
-              bool? confirm = await showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text("Confirmación"),
-                    content: const Text("¿Realmente quieres salir?"),
-                    actions: [
-                      TextButton(
-                        child: const Text("Cancelar"),
-                        onPressed: () {
-                          Navigator.of(context).pop(false); // Devuelve "false" si no quieres salir
-                        },
-                      ),
-                      TextButton(
-                        child: const Text("Sí"),
-                        onPressed: () {
-                          Navigator.of(context).pop(true); // Devuelve "true" si quieres salir
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
+   goHome() {
+       Navigator.pushReplacement(
+        context, 
+        MaterialPageRoute(
+          builder: (context) => const MyHomePage(),
+        ),                   
+      );
+    } 
+
+  // buildGetBack(BuildContext context) {
+  //   return Container(
+  //     height: 40.0,
+  //     width: 100,
+  //     margin: const EdgeInsets.all(10),
+  //     child: ElevatedButton(
+  //           onPressed: () async {
+  //             bool? confirm = await showDialog(
+  //               context: context,
+  //               builder: (BuildContext context) {
+  //                 return AlertDialog(
+  //                   title: const Text("Confirmación"),
+  //                   content: const Text("¿Realmente quieres salir?"),
+  //                   actions: [
+  //                     TextButton(
+  //                       child: const Text("Cancelar"),
+  //                       onPressed: () {
+  //                         Navigator.of(context).pop(false); // Devuelve "false" si no quieres salir
+  //                       },
+  //                     ),
+  //                     TextButton(
+  //                       child: const Text("Sí"),
+  //                       onPressed: () {
+  //                         Navigator.of(context).pop(true); // Devuelve "true" si quieres salir
+  //                       },
+  //                     ),
+  //                   ],
+  //                 );
+  //               },
+  //             );
       
-              if (confirm == true) {
-                 Navigator.pushReplacement(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (context) => const MyHomePage(),
-                      ),                   
-                    );
-              }
+  //             if (confirm == true) {
+  //                Navigator.pushReplacement(
+  //                     context, 
+  //                     MaterialPageRoute(
+  //                       builder: (context) => const MyHomePage(),
+  //                     ),                   
+  //                   );
+  //             }
+  //           },
+  //            style: ElevatedButton.styleFrom(
+  //             shape: RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(20),
+  //             ),
+  //             padding: const EdgeInsets.all(2), // Eliminamos el padding adicional
+  //             backgroundColor: kPsecondaryColor,
+  //           ),
+  //            child: Ink(
+  //             decoration: BoxDecoration(
+  //               gradient: kPrimaryGradientColor,
+  //               borderRadius: BorderRadius.circular(20.0),
+  //             ),
+  //             child: const Padding(
+  //               padding: EdgeInsets.symmetric(horizontal: 10.0), // Ajustamos el padding
+  //               child: Align(
+  //                 alignment: Alignment.center,
+  //                 child: Text('Salir',style:kTextStyleBlancoNuevaFuente20,), // El texto se centra mejor
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //   );
+  // }
+
+   Future<void> _confirmBack() async {
+  bool? confirm = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirmación'),
+        content: const Text('¿Estás seguro de que deseas Salir de la ronda?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Retorna false
             },
-             style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.all(2), // Eliminamos el padding adicional
-              backgroundColor: kSecondaryColor,
-            ),
-             child: Ink(
-              decoration: BoxDecoration(
-                gradient: kPrimaryGradientColor,
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10.0), // Ajustamos el padding
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text('Salir',style:kTextStyleBlancoNuevaFuente20,), // El texto se centra mejor
-                ),
-              ),
-            ),
           ),
-    );
+          TextButton(
+            child: const Text('Aceptar'),
+            onPressed: () {
+              Navigator.of(context).pop(true); // Retorna true
+            },
+          ),
+        ],
+      );
+    },
+  );
+
+  // Si el usuario aceptó, procede con la función _goSave
+  if (confirm == true) {
+    await goHome();
   }
+}
 
 }
