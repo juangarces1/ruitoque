@@ -428,69 +428,7 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
       );
     } 
 
-  // buildGetBack(BuildContext context) {
-  //   return Container(
-  //     height: 40.0,
-  //     width: 100,
-  //     margin: const EdgeInsets.all(10),
-  //     child: ElevatedButton(
-  //           onPressed: () async {
-  //             bool? confirm = await showDialog(
-  //               context: context,
-  //               builder: (BuildContext context) {
-  //                 return AlertDialog(
-  //                   title: const Text("Confirmación"),
-  //                   content: const Text("¿Realmente quieres salir?"),
-  //                   actions: [
-  //                     TextButton(
-  //                       child: const Text("Cancelar"),
-  //                       onPressed: () {
-  //                         Navigator.of(context).pop(false); // Devuelve "false" si no quieres salir
-  //                       },
-  //                     ),
-  //                     TextButton(
-  //                       child: const Text("Sí"),
-  //                       onPressed: () {
-  //                         Navigator.of(context).pop(true); // Devuelve "true" si quieres salir
-  //                       },
-  //                     ),
-  //                   ],
-  //                 );
-  //               },
-  //             );
-      
-  //             if (confirm == true) {
-  //                Navigator.pushReplacement(
-  //                     context, 
-  //                     MaterialPageRoute(
-  //                       builder: (context) => const MyHomePage(),
-  //                     ),                   
-  //                   );
-  //             }
-  //           },
-  //            style: ElevatedButton.styleFrom(
-  //             shape: RoundedRectangleBorder(
-  //               borderRadius: BorderRadius.circular(20),
-  //             ),
-  //             padding: const EdgeInsets.all(2), // Eliminamos el padding adicional
-  //             backgroundColor: kPsecondaryColor,
-  //           ),
-  //            child: Ink(
-  //             decoration: BoxDecoration(
-  //               gradient: kPrimaryGradientColor,
-  //               borderRadius: BorderRadius.circular(20.0),
-  //             ),
-  //             child: const Padding(
-  //               padding: EdgeInsets.symmetric(horizontal: 10.0), // Ajustamos el padding
-  //               child: Align(
-  //                 alignment: Alignment.center,
-  //                 child: Text('Salir',style:kTextStyleBlancoNuevaFuente20,), // El texto se centra mejor
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //   );
-  // }
+ 
 
    Future<void> _confirmBack() async {
   bool? confirm = await showDialog<bool>(

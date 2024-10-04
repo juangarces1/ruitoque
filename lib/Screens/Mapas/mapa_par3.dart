@@ -16,7 +16,7 @@ class MiMapaPar3 extends StatefulWidget {
   final String teeSalida;
   final EstadisticaHoyo hoyo;
   final Function(int, Shot) onAgregarShot;
-   final Function(int, Shot) onDeleteShot;
+  final Function(int, Shot) onDeleteShot;
   const MiMapaPar3({
     required this.hoyo,
      required this.onAgregarShot,
@@ -432,9 +432,7 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
             ),
           ),
         ),
-
          
-
          Positioned(
           top: 50, // Ajusta la distancia desde la parte superior
           left: 0, // Ajusta la distancia desde la izquierda
@@ -648,8 +646,8 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
   }
 
   // Obtener la posición actual
-  Position position = await _geolocatorPlatform.getCurrentPosition();
-  LatLng puntoActual = LatLng(position.latitude, position.longitude);
+  
+  LatLng puntoActual = LatLng(miLatitud, miLongitud);
 
   // Calcular la distancia en yardas
   int distancia = calculateDistanceInYards(Position(
