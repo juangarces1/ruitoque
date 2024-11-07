@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
@@ -18,6 +17,7 @@ import 'package:ruitoque/Screens/Home/Components/menu_item.dart';
 import 'package:ruitoque/Screens/Home/Components/ronda_card.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Screens/Ronda/intro_ronda_screen.dart';
+import 'package:ruitoque/Screens/Ronda/mis_rondas_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:ruitoque/sizeconfig.dart';
@@ -287,6 +287,23 @@ class _MyHomePageState extends State<MyHomePage> {
           context,
           MaterialPageRoute(
             builder: (context) => MyTarjetasScreen(jugador: jugador),
+          ),
+        );
+      },
+      textColor: const Color(0xffadb5bd),
+    ),
+
+     MenuItem(
+      title: 'Mis Rondas',
+      leading: const Icon(
+        Icons.scoreboard_sharp,
+        color: Colors.white,
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MisRondasScreen(),
           ),
         );
       },

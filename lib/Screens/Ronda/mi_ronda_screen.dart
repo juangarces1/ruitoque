@@ -13,6 +13,7 @@ import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/shot.dart';
+import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/Screens/Mapas/mapa_par3.dart';
 import 'package:ruitoque/Screens/Mapas/mi_mapa.dart';
@@ -35,8 +36,7 @@ class _MiRondaState extends State<MiRonda> {
   bool showLoader = false;
   late Ronda _ronda;
   late Jugador jugador;
-  bool isCreator = false;
-  
+  bool isCreator = false;  
   get jugadoresSeleccionados => null;
 
   @override
@@ -46,7 +46,6 @@ class _MiRondaState extends State<MiRonda> {
      jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;   
      isCreator = jugador.id == _ronda.creatorId ? true: false;
   }  
-
 
   @override
   Widget build(BuildContext context) { 
@@ -229,7 +228,7 @@ class _MiRondaState extends State<MiRonda> {
    );
   }
 
-   void agregarShotAEstadisticaHoyo(int idEstadisticaHoyo, Shot nuevoShot) {
+  void agregarShotAEstadisticaHoyo(int idEstadisticaHoyo, Shot nuevoShot) {
     setState(() {
       var estadisticaHoyo = _ronda.tarjetas[0].hoyos.firstWhere(
         (est) => est.id == idEstadisticaHoyo,        
@@ -238,7 +237,7 @@ class _MiRondaState extends State<MiRonda> {
     });
   }
 
-   void deleteShot(int idEstadisticaHoyo, Shot shot) {
+  void deleteShot(int idEstadisticaHoyo, Shot shot) {
     setState(() {
       var estadisticaHoyo = _ronda.tarjetas[0].hoyos.firstWhere(
         (est) => est.id == idEstadisticaHoyo,        
@@ -247,8 +246,7 @@ class _MiRondaState extends State<MiRonda> {
     });
   }
  
-
-Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
+  Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
   return SizedBox(
     width: 200,   
 
@@ -391,8 +389,7 @@ Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
   );
 }
 
-
-Widget buildCardSoloHoyos(EstadisticaHoyo estadistica) {
+  Widget buildCardSoloHoyos(EstadisticaHoyo estadistica) {
   return SizedBox(
     width: 180,   
 
@@ -459,9 +456,7 @@ Widget buildCardSoloHoyos(EstadisticaHoyo estadistica) {
   );
 }
 
-
-
-void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
+  void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
   List<EstadisticaHoyo> estadisticasParaHoyo = _ronda.tarjetas.map((tarjeta) {
     return tarjeta.hoyos.firstWhere(
       (hoyo) => hoyo.hoyoId == hoyoId,
@@ -491,10 +486,8 @@ void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
     },
   );
 }
-
-
  
- Future<void> _confirmSave() async {
+  Future<void> _confirmSave() async {
   bool? confirm = await showDialog<bool>(
     context: context,
     builder: (BuildContext context) {
@@ -524,7 +517,6 @@ void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
     await _goSave();
   }
 }
-
  
   Future<void> _goRefresh() async {
     
@@ -585,7 +577,7 @@ void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
 
   }
 
-   Future<void> _goSave() async {
+  Future<void> _goSave() async {
     
     setState(() {
      showLoader = true;
@@ -597,6 +589,10 @@ void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
         hoyo.id = 0;
       }
      }      
+    }
+
+    if(isComplete()){
+      _ronda.isComplete=true;
     }
 
     Map<String, dynamic> ronda = _ronda.toJson();
@@ -666,7 +662,7 @@ void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
 
   }
 
-   goHome() {
+  goHome() {
        Navigator.pushReplacement(
         context, 
         MaterialPageRoute(
@@ -674,8 +670,6 @@ void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
         ),                   
       );
     } 
-
- 
 
   Future<void> _confirmBack() async {
   bool? confirm = await showDialog<bool>(
@@ -708,7 +702,13 @@ void _mostrarDialogoEstadisticaHoyo(int hoyoId) {
   }
 }
 
-
-  void _refresh() {
+  
+ bool isComplete() {  
+  for (var hoyo in _ronda.tarjetas[0].hoyos) {
+    if (hoyo.golpes == 0) {
+      return false;
+    }
   }
+  return true;
+}
 }

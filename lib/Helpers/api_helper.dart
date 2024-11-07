@@ -66,6 +66,20 @@ class ApiHelper {
         return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas');
       }
     }
+
+    
+     static Future<Response> getRondasTerminadas(int id) async {
+      var url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRondaTerminadasByPlayer/$id');
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        List<Ronda> rondas = data.map((json) => Ronda.fromJson(json)).toList();
+        return Response(isSuccess: true, result: rondas);
+      } else {
+        return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas');
+      }
+    }
   
  static Future<Response> post(String controller, Map<String, dynamic> request) async {        
     var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
@@ -231,7 +245,6 @@ class ApiHelper {
         return Response(isSuccess: false, message: "Exception: ${e.toString()}");
       }
  }
-
 
 
    static Future<Response> getRondaById(int id) async {  
