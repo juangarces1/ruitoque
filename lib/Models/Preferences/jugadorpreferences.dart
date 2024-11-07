@@ -1,14 +1,16 @@
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'dart:convert';
-import 'package:ruitoque/Models/jugador.dart'; // Asegúrate de importar tu clase Jugador aquí
+
+import 'package:ruitoque/Models/jugador.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class JugadorPreferences {
   static const String _keyJugador = 'jugador';
   static const String _keyIsRemembered = 'isRemembered';
 
   static Future<void> init() async {
-  final prefs = await SharedPreferences.getInstance();
-}
+       final prefs = await SharedPreferences.getInstance();
+  }
 
 
   static Future<void> guardarJugador(Jugador jugador, bool isRemembered) async {

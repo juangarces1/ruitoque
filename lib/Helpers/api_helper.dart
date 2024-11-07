@@ -5,6 +5,7 @@ import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:http/http.dart' as http;
+import 'package:ruitoque/Models/ronda.dart';
 
 class ApiHelper {
 
@@ -37,6 +38,34 @@ class ApiHelper {
      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
   }
 }
+
+   static Future<Response> getPlayers() async {
+      var url = Uri.parse('${Constans.getAPIUrl()}/api/Players/GetPlayers');
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        List<Jugador> players = data.map((json) => Jugador.fromJson(json)).toList();
+        return Response(isSuccess: true, result: players);
+      } else {
+        return Response(isSuccess: false, message: 'Error fetching players');
+      }
+    }
+
+  
+
+     static Future<Response> getRondasAbiertas(int id) async {
+      var url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRondasAbiertaByPlayer/$id');
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        List<Ronda> rondas = data.map((json) => Ronda.fromJson(json)).toList();
+        return Response(isSuccess: true, result: rondas);
+      } else {
+        return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas');
+      }
+    }
   
  static Future<Response> post(String controller, Map<String, dynamic> request) async {        
     var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
@@ -202,5 +231,41 @@ class ApiHelper {
         return Response(isSuccess: false, message: "Exception: ${e.toString()}");
       }
  }
+
+
+
+   static Future<Response> getRondaById(int id) async {  
+     var url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRonda/$id');
+     try {
+        var response = await http.get(
+          url,
+          headers: {
+            'content-type': 'application/json',
+            'accept': 'application/json',
+          },
+        );
+      
+         // Check for 200 OK response
+           var body = response.body;
+            if (response.statusCode >= 400) {
+              return Response(isSuccess: false, message: body);
+            }
+           
+            var decodedJson = jsonDecode(body);
+             
+            
+             
+               return Response(isSuccess: true, result: Ronda.fromJson(decodedJson));  
+                       
+          
+            
+
+      } catch (e) {
+        // Catch any other errors, like JSON parsing errors
+       
+        return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+      }
+    
+ } 
  
  } 

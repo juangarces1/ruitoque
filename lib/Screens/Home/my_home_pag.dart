@@ -1,16 +1,21 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_jugador.dart';
 import 'package:ruitoque/Components/my_loader.dart';
+import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
+import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
 import 'package:ruitoque/Screens/Campos/sekect_campo_scree.dart';
 import 'package:ruitoque/Screens/Home/Components/menu_item.dart';
+import 'package:ruitoque/Screens/Home/Components/ronda_card.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Screens/Ronda/intro_ronda_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
@@ -30,11 +35,44 @@ class _MyHomePageState extends State<MyHomePage> {
   double? value = 0;
   Campo campo = Campo(id: 0, nombre: '', ubicacion: '', hoyos: [], tees: []);
   late Jugador jugador;
+  List<Ronda> rondasIncompletas = [];
 
   @override
   void initState() {   
     super.initState();
     jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;
+    obtenerRondasIncompletas();
+  }
+
+   Future<void> obtenerRondasIncompletas() async {
+    setState(() {
+      showLoader = true;
+    });
+
+    // Llamar al API para obtener las rondas incompletas del jugador actual
+    final response = await ApiHelper.getRondasAbiertas(jugador.id);
+
+    if (response.isSuccess) {
+      // Parsear las rondas desde la respuesta
+     
+
+      setState(() {
+        rondasIncompletas = response.result;
+      });
+    } else {
+      Fluttertoast.showToast(
+        msg: "Error al obtener las rondas incompletas: ${response.message}",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
+      );
+    }
+
+    setState(() {
+      showLoader = false;
+    });
   }
 
   @override
@@ -135,13 +173,24 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),),
                     child: Stack(
                       children: [
-                        Padding(
+                         Padding(
                           padding: const EdgeInsets.only(top: 10 , right: 10, left: 10),
                           child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             const SizedBox(height: 20,),
-                            CardJugador(jugador: jugador,),
+                            const CardJugador(),
+                           if (rondasIncompletas.isNotEmpty)
+                                    Expanded(
+                                      child: ListView.builder(
+                                        itemCount: rondasIncompletas.length,
+                                        itemBuilder: (context, index) {
+                                          Ronda ronda = rondasIncompletas[index];
+                                          return RondaCard(ronda: ronda);
+                                        },
+                                      ),
+                                    ),
+                            
                           ],
                         )),
 

@@ -353,45 +353,14 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Text('Par ${widget.tarjeta.campo!.par.toString()} ', style: textStyle,),
+              Text('Par  ', style: textStyle,),
                Text('Tee ${widget.tarjeta.teeSalida!.toString()} ', style: textStyle,),
               Text(' ${widget.tarjeta.puntuacionTotal.toString()}/${widget.tarjeta.totalNeto.toString()}', style: textStyle,),
             ],
          ),
                          const Divider(thickness: 2,),
                        
-         Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              // Botón 'Me gusta' con fondo circular
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  icon: const Icon(Icons.save),
-                  color: Colors.green,
-                  onPressed:   widget.onSave,
-                ),
-              ),
-              // Botón 'Comentar' con fondo circular
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  icon: const Icon(Icons.comment),
-                  color: Colors.blue,
-                  onPressed: (){},
-                ),
-              ),
-              // Botón 'Estadísticas' con fondo circular
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, weight: 20,),
-                  color: kPcontrastMoradoColor,
-                  onPressed: widget.onBack,
-                        ),
-            ),
-          ],
-        ),
+       
 
         ],
       ),

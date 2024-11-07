@@ -32,15 +32,61 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
   String _seleccionado =''; 
   late Campo campoSeleccionado;
   late Jugador jugador;
-   bool _isCampoSeleccionadoInitialized = false;
+  bool _isCampoSeleccionadoInitialized = false;
+  List<Jugador> jugadores = [];
+  List<Jugador> jugadoresSeleccionados = [];
+  bool isJugadoresLoaded = false; 
 
   @override
   void initState() {
    
     super.initState();
     getCampos();
+     getJugadores();
     jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;
+     jugadoresSeleccionados.add(jugador); 
   }
+
+  Future<void> getJugadores() async {
+  setState(() {
+    showLoader = true;
+  });
+
+  Response response = await ApiHelper.getPlayers();
+
+  setState(() {
+    showLoader = false;
+  });
+
+  if (!response.isSuccess) {
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Text(response.message),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Aceptar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+    return;
+  }
+
+  setState(() {
+    jugadores = response.result;
+     jugadores.removeWhere((j) => j.id == jugador.id);
+    isJugadoresLoaded = true;
+  });
+}
 
  
 
@@ -261,6 +307,49 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
                 ),
               ),
             ),
+             const SizedBox(height: 5),
+             const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Seleccione Jugadores:',
+                style: kTextStyleBlancoNuevaFuente20,
+              ),
+            ),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                color: const Color.fromARGB(255, 55, 53, 61),
+                child: isJugadoresLoaded
+                    ? ListView.builder(
+                        itemCount: jugadores.length,
+                        itemBuilder: (context, index) {
+                          Jugador jugadorItem = jugadores[index];
+                          bool isSelected = jugadoresSeleccionados.contains(jugadorItem);
+
+                          return CheckboxListTile(
+                            title: Text(
+                              jugadorItem.nombre, // Adjust according to your Jugador model
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            value: isSelected,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value != null && value) {
+                                  jugadoresSeleccionados.add(jugadorItem);
+                                } else {
+                                  jugadoresSeleccionados.remove(jugadorItem);
+                                }
+                              });
+                            },
+                            activeColor: kPprimaryColor,
+                            checkColor: Colors.white,
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        },
+                      )
+                    : const Center(child: CircularProgressIndicator()),
+              ),
+            ),
             const SizedBox(height: 5),
             Center(
               child: DefaultButton(
@@ -284,79 +373,96 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
 
   
  Future<void> goRonda() async {
+  if (jugadoresSeleccionados.isEmpty) {
+    mostrarSnackBar(context, 'Por favor, seleccione al menos un jugador.');
+    return;
+  }
 
- 
- 
-      Tarjeta tarjeta = Tarjeta(
-        id: 0, 
-        jugadorId: jugador.id, 
-        rondaId: 0, 
-        jugador: jugador,  
-        hoyos: [], 
-        campo: campoSeleccionado, 
-        teeSalida: _seleccionado.toString(),
-      );
+  Ronda ronda = Ronda(
+    id: 0,
+    fecha: DateTime.now(),
+    tarjetas: [],
+    campo: campoSeleccionado,
+    campoId: campoSeleccionado.id,
+    isComplete: false,
+    creatorId: jugador.id,
+  );
 
-      Ronda ronda = Ronda(id: 0, fecha: DateTime.now(), tarjetas: [], campo: campoSeleccionado, campoId: campoSeleccionado.id, isComplete: false);
+  int idc = 1; // Counter for EstadisticaHoyo IDs
 
-      if (campoSeleccionado.hoyos.length == 6){
-        int idc = 1;
-          for (int i = 1; i <= 3; i++) {
-               for (Hoyo hoyo in campoSeleccionado.hoyos) {
-                  EstadisticaHoyo aux = EstadisticaHoyo(
-                    id: idc,
-                    hoyo: hoyo,
-                    hoyoId: hoyo.id, 
-                    golpes: 0, 
-                    putts: 0, 
-                    bunkerShots: 0, 
-                    acertoFairway: false, 
-                    falloFairwayIzquierda: false, 
-                    falloFairwayDerecha: false, 
-                    penaltyShots: 0,
-                    shots: [],
-                    handicapPlayer: jugador.handicap
-                  );
-                  tarjeta.hoyos.add(aux);
-                  idc+=1;
-                }
-           }
-      }
-      else {
+  // Loop through each selected player
+  for (Jugador jugadorItem in jugadoresSeleccionados) {
+    Tarjeta tarjeta = Tarjeta(
+      id: 0,
+      jugadorId: jugadorItem.id,
+      rondaId: 0,
+      jugador: jugadorItem,
+      hoyos: [],
+      campo: campoSeleccionado,
+      teeSalida: _seleccionado.toString(),
+    );
+
+    // Create EstadisticaHoyo for each hole
+    if (campoSeleccionado.hoyos.length == 6) {
+      for (int i = 1; i <= 3; i++) {
         for (Hoyo hoyo in campoSeleccionado.hoyos) {
           EstadisticaHoyo aux = EstadisticaHoyo(
-             id: hoyo.id,
-             hoyo: hoyo,
-             hoyoId: hoyo.id, 
-             golpes: 0, 
-             putts: 0, 
-             bunkerShots: 0, 
-             acertoFairway: false, 
-             falloFairwayIzquierda: false, 
-             falloFairwayDerecha: false, 
-             penaltyShots: 0,
-             shots: [],
-              handicapPlayer: jugador.handicap
+            id: idc,
+            hoyo: hoyo,
+            hoyoId: hoyo.id,
+            golpes: 0,
+            putts: 0,
+            bunkerShots: 0,
+            acertoFairway: false,
+            falloFairwayIzquierda: false,
+            falloFairwayDerecha: false,
+            penaltyShots: 0,
+            shots: [],
+            handicapPlayer: jugadorItem.handicap,
+            nombreJugador: jugadorItem.nombre,
+            isMain: jugadorItem.id==jugador.id ? true : false,
           );
           tarjeta.hoyos.add(aux);
-      }  
+          idc += 1;
+        }
       }
-
-      
-
-      ronda.tarjetas.add(tarjeta);
-
-      if(mounted){
-        Navigator.pushAndRemoveUntil(
-           context, 
-          MaterialPageRoute(
-            builder: (context) => MiRonda(ronda: ronda),
-          ), 
-          (Route<dynamic> route) => false, // Esto elimina todas las rutas anteriores
+    } else {
+      for (Hoyo hoyo in campoSeleccionado.hoyos) {
+        EstadisticaHoyo aux = EstadisticaHoyo(
+          id: idc,
+          hoyo: hoyo,
+          hoyoId: hoyo.id,
+          golpes: 0,
+          putts: 0,
+          bunkerShots: 0,
+          acertoFairway: false,
+          falloFairwayIzquierda: false,
+          falloFairwayDerecha: false,
+          penaltyShots: 0,
+          shots: [],
+          handicapPlayer: jugadorItem.handicap,
+           nombreJugador: jugadorItem.nombre,
+          isMain: jugadorItem.id==jugador.id ? true : false,
         );
+        tarjeta.hoyos.add(aux);
+        idc += 1;
       }
-     
+    }
+
+    ronda.tarjetas.add(tarjeta);
   }
+
+  if (mounted) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MiRonda(ronda: ronda),
+      ),
+      (Route<dynamic> route) => false, // This removes all previous routes
+    );
+  }
+}
+
 
   void mostrarSnackBar(BuildContext context, String mensaje) {
     final snackBar = SnackBar(

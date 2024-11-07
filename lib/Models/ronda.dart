@@ -8,6 +8,7 @@ class Ronda {
   final Campo campo; // Asegúrate de que tienes una clase 'Campo' definida en Dart.
   final int? campoId;
   final bool isComplete;
+  final int? creatorId;
 
   Ronda({
     required this.id,
@@ -16,6 +17,7 @@ class Ronda {
     required this.campo,
     this.campoId,
     required this.isComplete,
+    this.creatorId
   });
 
   factory Ronda.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Ronda {
       campo: Campo.fromJson(json['campo']),
       campoId: json['campoId'],
       isComplete: json['isComplete'],
+       creatorId: json['creatorId'],
     );
   }
 
@@ -36,5 +39,6 @@ class Ronda {
        // 'campo': campo.toJson(),
         'campoId': campoId,
         'isComplete': isComplete,
+         'creatorId': creatorId,
       };
 }

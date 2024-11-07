@@ -34,4 +34,13 @@ class Jugador {
         'pin': pin,
       //  'tarjetas': tarjetas!.map((tarjeta) => tarjeta.toJson()).toList(),
       };
+
+  Jugador copyWith({int? id, String? nombre, int? handicap}) {
+    return Jugador(
+      id: id ?? this.id,
+      nombre: nombre ?? this.nombre,
+      handicap: handicap ?? this.handicap,
+      pin: pin
+    );
+  }  
 }

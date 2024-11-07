@@ -15,6 +15,8 @@ class EstadisticaHoyo {
    int? neto;
    List<Shot>? shots;
    int? handicapPlayer;
+   String? nombreJugador;
+   bool? isMain;
 
 
   EstadisticaHoyo({
@@ -31,6 +33,8 @@ class EstadisticaHoyo {
     this.neto,
     this.shots,
     this.handicapPlayer,
+    this.nombreJugador,
+    this.isMain,
   });
 
   bool get acertoGreen {
@@ -82,6 +86,9 @@ class EstadisticaHoyo {
       shots: json['shots'] != null 
         ? (json['shots'] as List).map((item) => Shot.fromJson(item)).toList() 
         : [], // Li
+        handicapPlayer: json['handicapPlayer'] ?? 0  ,
+      nombreJugador: json['nombreJugador'],
+      isMain: json['isMain'],  
     );
   }
 
@@ -99,6 +106,9 @@ class EstadisticaHoyo {
       'falloFairwayDerecha': falloFairwayDerecha,
       'neto': neto,
       'shots': shots?.map((x) => x.toJson()).toList(),
+      'handicapPlayer' : handicapPlayer,
+      'nombreJugador' : nombreJugador,
+      'isMain' : isMain,
     };
   }
 }

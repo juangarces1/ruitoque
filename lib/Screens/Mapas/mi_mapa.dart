@@ -62,6 +62,8 @@ class _MiMapaState extends State<MiMapa> {
    Offset offsetAMedio = const Offset(0, 0);
    Offset offsetMedioB = const Offset(0, 0);
 
+   bool isEnterScreen= true;
+
    final GlobalKey _mapKey = GlobalKey();
 
   @override
@@ -155,6 +157,46 @@ class _MiMapaState extends State<MiMapa> {
      setState(() {}); 
   }
 
+   void afterGrabarGolpe (Position position)  {
+    
+     puntoA = LatLng(position.latitude, position.longitude);   
+     //el puntoB o de fin es la cordenada del centro del hoyo al que vamos  
+     puntoB = LatLng(widget.hoyo.hoyo.centroGreen!.latitud, widget.hoyo.hoyo.centroGreen!.longitud);
+     //ek punto medio es la cordenada del centro del hoyo
+     puntoMedio = LatLng(widget.hoyo.hoyo.centroHoyo!.latitud, widget.hoyo.hoyo.centroHoyo!.longitud);
+
+     //Calculamos los puntos de los makers
+     makerA = calcularPuntoMedio(puntoA, puntoB);
+   
+     _polylines.clear();
+     _markers.clear();
+    
+
+    
+       
+      //agregamos la polyline con sus cordenadas
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('mi_polyline'),
+        points: [puntoA,  puntoB],
+        width: 2,
+        color: Colors.white,
+      ),
+    );
+
+      //creamos el marcador
+      _crearMarcadorPersonalizado();
+
+     //Calculamos las Distancias de las lineas es decir la distancia del puntaA al pMedio y del PMedio a puntoB
+     _calculateDistancesLinea(position);
+
+     //aqui calculamos las distancias de nuestra posicion al frente centre y fondo del green
+     _calculateDistances();   
+
+
+     setState(() {}); 
+  }
+
   Future<Offset> getScreenPosition(LatLng punto) async {
   ScreenCoordinate screenCoordinate = await mapController.getScreenCoordinate(punto);
   double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
@@ -168,14 +210,16 @@ class _MiMapaState extends State<MiMapa> {
       BitmapDescriptor iconoPersonalizado = await BitmapDescriptor.fromAssetImage(
           const ImageConfiguration(), 'assets/newMarker.png');
 
-      Marker markerPersonalizado = Marker(
+     
+
+      Marker markerPersonalizado =  Marker(
         markerId: const MarkerId('puntoMedio'),
-        position: puntoMedio, // Asegúrate de tener definida esta variable
+        position: isEnterScreen ? puntoMedio : puntoB, // Asegúrate de tener definida esta variable
         draggable: true,
         icon: iconoPersonalizado,
         anchor: const Offset(0.5, 0.5),
         onDragEnd: (newPosition) {
-          _updatePolyline(puntoA, newPosition, puntoB);
+          isEnterScreen ?_updatePolyline(puntoA, newPosition, puntoB) : _updatePolyline(puntoMedio, puntoMedio, newPosition);
         },
       );
 
@@ -202,34 +246,77 @@ class _MiMapaState extends State<MiMapa> {
 
   void _updatePolyline(LatLng inicio, LatLng medio, LatLng fin) {
       // Crea una nueva lista de puntos para la polilínea
-      
-      List<LatLng> points = [inicio, medio, fin];
-       Position auxMedio = Position(
-          longitude: medio.longitude, 
-          latitude: medio.latitude, 
-          timestamp: DateTime.now(), 
-          accuracy: 1, 
-          altitude: 0, 
-          altitudeAccuracy: 10, 
-          heading: 0.0, 
-          headingAccuracy: 0.0, 
-          speed: 0.0, 
-          speedAccuracy: 0.0);
+      if (isEnterScreen) {
+            List<LatLng> points = [inicio, medio, fin];
+            Position auxMedio = Position(
+                longitude: medio.longitude, 
+                latitude: medio.latitude, 
+                timestamp: DateTime.now(), 
+                accuracy: 1, 
+                altitude: 0, 
+                altitudeAccuracy: 10, 
+                heading: 0.0, 
+                headingAccuracy: 0.0, 
+                speed: 0.0, 
+                speedAccuracy: 0.0);
 
-      _calculateDistancesLinea(auxMedio);   
-     
+            _calculateDistancesLinea(auxMedio);   
+          
 
-      // Actualiza la polilínea
-      Polyline polyline = _polylines.firstWhere((p) => p.polylineId == const PolylineId('mi_polyline'));
-      _polylines.remove(polyline);
-      _polylines.add(polyline.copyWith(pointsParam: points));
-     
-      makerA = calcularPuntoMedio(puntoA, medio);
-      makerB= calcularPuntoMedio(medio, puntoB);
-      updateScreenCoordinates();
+            // Actualiza la polilínea
+            Polyline polyline = _polylines.firstWhere((p) => p.polylineId == const PolylineId('mi_polyline'));
+            _polylines.remove(polyline);
+            _polylines.add(polyline.copyWith(pointsParam: points));
+          
+            makerA = calcularPuntoMedio(puntoA, medio);
+            makerB= calcularPuntoMedio(medio, puntoB);
+            updateScreenCoordinates();
 
-      setState(() {}); // Actualiza el estado para reflejar los cambios en el mapa
+            setState(() {}); // Actualiza el estado para reflejar los cambios en el mapa
+      }
+      else {
+            List<LatLng> points = [inicio,  fin];
+            Position auxFin = Position(
+                longitude: fin.longitude, 
+                latitude: fin.latitude, 
+                timestamp: DateTime.now(), 
+                accuracy: 1, 
+                altitude: 0, 
+                altitudeAccuracy: 10, 
+                heading: 0.0, 
+                headingAccuracy: 0.0, 
+                speed: 0.0, 
+                speedAccuracy: 0.0);
+
+               Position auxInicio = Position(
+                longitude: inicio.longitude, 
+                latitude: inicio.latitude, 
+                timestamp: DateTime.now(), 
+                accuracy: 1, 
+                altitude: 0, 
+                altitudeAccuracy: 10, 
+                heading: 0.0, 
+                headingAccuracy: 0.0, 
+                speed: 0.0, 
+                speedAccuracy: 0.0);   
+
+            _calculateDistancesLineaAfterGolpe(auxInicio,auxFin); 
+          
+
+            // Actualiza la polilínea
+             Polyline polyline = _polylines.firstWhere((p) => p.polylineId == const PolylineId('mi_polyline'));
+            _polylines.remove(polyline);
+            _polylines.add(polyline.copyWith(pointsParam: points));
+          
+            makerA = calcularPuntoMedio(puntoA, fin);           
+            updateScreenCoordinates();
+
+            setState(() {}); // Actualiza el estado para reflejar los cambios en el mapa
+      }
+    
     }
+
+ 
 
   Future<Offset> getMarkerScreenPosition(LatLng latLng, GoogleMapController mapController) async {
   // Obtener las coordenadas de pantalla del marcador
@@ -318,37 +405,59 @@ class _MiMapaState extends State<MiMapa> {
         
   }
 
-  Future<void> _calculateDistancesLinea(Position medio) async {
+
+
+  Future<void> _calculateDistancesLinea(Position medio,) async {
    
     final hasPermission = await _handlePermission();
     if (!hasPermission) {
       return;
     }     
 
-    Position puntoBCentroGreen = Position(
-      longitude: widget.hoyo.hoyo.centroGreen!.longitud, 
-      latitude: widget.hoyo.hoyo.centroGreen!.latitud, 
-      timestamp: DateTime.now(), 
-      accuracy: 1, 
-      altitude: 0, 
-      altitudeAccuracy: 10, 
-      heading: 0.0, 
-      headingAccuracy: 0.0, 
-      speed: 0.0, 
-      speedAccuracy: 0.0);
+   
+       Position puntoBCentroGreen = Position(
+        longitude: widget.hoyo.hoyo.centroGreen!.longitud, 
+        latitude: widget.hoyo.hoyo.centroGreen!.latitud, 
+        timestamp: DateTime.now(), 
+        accuracy: 1, 
+        altitude: 0, 
+        altitudeAccuracy: 10, 
+        heading: 0.0, 
+        headingAccuracy: 0.0, 
+        speed: 0.0, 
+        speedAccuracy: 0.0);
        
    
-    if(mounted){
-        setState(() {
-          dSalidaMedio = calculateDistanceInYards(salida, medio);
-          dMedioGreen= calculateDistanceInYards(medio, puntoBCentroGreen);         
-         
-        });
+        if(mounted){
+            setState(() {
+              dSalidaMedio = calculateDistanceInYards(salida, medio);
+              dMedioGreen= calculateDistanceInYards(medio, puntoBCentroGreen);         
+            
+            });
+        }
+   
     }
-    
-         
-        
-  }
+
+     Future<void> _calculateDistancesLineaAfterGolpe(Position inicio, Position fin) async {
+   
+    final hasPermission = await _handlePermission();
+    if (!hasPermission) {
+      return;
+    }       
+     
+       
+   
+        if(mounted){
+            setState(() {
+              dSalidaMedio = calculateDistanceInYards(inicio, fin);                  
+            
+            });
+        }
+   
+    }
+
+
+
 
   void _updatePositionList(PositionItemType type, String displayValue) {
     _positionItems.add(PositionItem(type, displayValue));
@@ -460,7 +569,7 @@ class _MiMapaState extends State<MiMapa> {
           ),
         ),
 
-          Positioned(
+      isEnterScreen ?    Positioned(
           left: offsetMedioB.dx - 20, // Ajuste para centrar mejor el círculo
           top: offsetMedioB.dy - 20,  // Ajuste para centrar mejor el círculo
           child: ClipOval(
@@ -476,7 +585,7 @@ class _MiMapaState extends State<MiMapa> {
               ),
             ),
           ),
-        ),
+        ) : Container(),
 
          Positioned(
           top: 50, // Ajusta la distancia desde la parte superior
@@ -677,6 +786,8 @@ class _MiMapaState extends State<MiMapa> {
   }
 
  void grabasGolpe() async {
+  
+
   await _calculateDistances(); // Asegúrate de tener la posición actualizada
 
   LatLng puntoAnterior;
@@ -691,7 +802,20 @@ class _MiMapaState extends State<MiMapa> {
   }
 
   // Obtener la posición actual
-  Position position = await _geolocatorPlatform.getCurrentPosition();
+ // Position position = await _geolocatorPlatform.getCurrentPosition();
+ Position position = Position(
+    latitude: puntoMedio.latitude,
+    longitude: puntoMedio.longitude,
+    timestamp: DateTime.now(),
+    accuracy: 1,
+    altitude: 0,
+    altitudeAccuracy: 10,
+    heading: 0.0,
+    headingAccuracy: 0.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
+  );
+
   LatLng puntoActual = LatLng(position.latitude, position.longitude);
 
   // Calcular la distancia en yardas
@@ -730,7 +854,12 @@ class _MiMapaState extends State<MiMapa> {
   widget.onAgregarShot(widget.hoyo.id, nuevoShot);
  // widget.hoyo.shots = [...?widget.hoyo.shots, nuevoShot];
 
-  setState(() {});
+  setState(() {
+    isEnterScreen=false;
+  });
+
+  afterGrabarGolpe(position);
+  
 }
 
  double calcularBearing(LatLng start, LatLng end) {

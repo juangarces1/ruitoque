@@ -88,37 +88,19 @@ class _LoginScreenState extends State<LoginScreen> {
      padding: const EdgeInsets.only(left: 30, right: 30, bottom: 10),
       child: TextField(
         keyboardType: TextInputType.number,
-        style:  const TextStyle(color: Colors.white ),  
-        obscureText: !_passwordShow,
-        cursorColor: Colors.white,
-        decoration: InputDecoration(
         
-            iconColor: Colors.white,
-            filled: true,
-            fillColor: Colors.black,
-            labelStyle: kTextStyleBlancoNuevaFuente20,
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.white54),
-              borderRadius: BorderRadius.circular(8.0),
+        decoration: InputDecoration(
+              border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30.0),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.white),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.redAccent),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.redAccent),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
+        
+          
           hintText: 'Ingresa tu Pin...',
-          labelText: 'Pin',
+        
           errorText: _passwordShowError ? _passwordError : null,
-          prefixIcon: const Icon(Icons.lock,  color: Colors.white,),
+          prefixIcon: const Icon(Icons.lock,  color: Colors.black,),
           suffixIcon: IconButton(
-            icon: _passwordShow ? const Icon(Icons.visibility,  color: Colors.white,) : const Icon(Icons.visibility_off,  color: Colors.white,),
+            icon: _passwordShow ? const Icon(Icons.visibility,  color: Colors.black,) : const Icon(Icons.visibility_off,  color: Colors.black,),
             onPressed: () {
               setState(() {
                 _passwordShow = !_passwordShow;

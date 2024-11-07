@@ -1,143 +1,283 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
+import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/constans.dart';
 
 class CardJugador extends StatefulWidget {
-  final Jugador jugador;
-  const CardJugador({super.key, required this.jugador});
+  
+  const CardJugador({super.key,});
 
   @override
   State<CardJugador> createState() => _CardJugadorState();
 }
 
 class _CardJugadorState extends State<CardJugador> {
-  bool  showLoader = false;
+  bool showLoader = false;
+
   @override
   Widget build(BuildContext context) {
-   
+    final jugadorProvider = Provider.of<JugadorProvider>(context);
+    final jugador = jugadorProvider.jugador;
     return Stack(
       children: [
         Card(
-          color: const Color(0xC3F2EFEF),
+          color: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
           elevation: 8,
+          shadowColor: kPprimaryColor,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-             
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                 Text('Hola!! ${widget.jugador.nombre}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ListTile(
-                  title: const Text('Handicap', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold)),
-                  subtitle: Text(
-                    widget.jugador.handicap.toString(),
-                    style: const TextStyle(color: Colors.black, fontSize: 16),
-                  ),
-                  trailing:  IconButton(
-                        icon: const Icon(Icons.edit, color: kPverdeBienOscuto, ),
-                        onPressed: () => mostrarEditarDialog(context),
-                        tooltip: 'Editar Caja Chica',
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: kPprimaryColor,
+                      radius: 25,
+                      child: Text(
+                        jugador.nombre[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Text(
+                        jugador.nombre,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: kPprimaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                // Aquí puedes agregar más ListTile si tienes más información para mostrar
+                const SizedBox(height: 20),
+                _buildHandicapTile(jugador),
+                const SizedBox(height: 10),
+                
               ],
             ),
           ),
         ),
-        showLoader ? const MyLoader(opacity: 1, text: 'Actualizando...',) : Container(),
+        if (showLoader)
+          const MyLoader(
+            opacity: 1,
+            text: 'Actualizando...',
+          ),
       ],
     );
   }
 
-  Future<void> mostrarEditarDialog(BuildContext context,) async {
-  TextEditingController controller = TextEditingController(text: widget.jugador.handicap.toString());
-
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: const Text('Editar Handicap'),
-        content: TextField(
-          controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true), // Teclado numérico con opción decimal
-          // Puedes añadir más configuraciones aquí
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Cancelar'),
-            onPressed: () {
-              Navigator.of(dialogContext).pop(); // Cierra el diálogo sin guardar cambios
-            },
+  Widget _buildHandicapTile(Jugador jugador) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF3F5),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Handicap',
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          TextButton(
-            child: const Text('Guardar'),
-            onPressed: () {
-              // Intenta convertir el texto a double y actualizar cajaChica
-              int? valorActualizado = int.tryParse(controller.text);
-              if (valorActualizado != null) {
-               goUpdate(valorActualizado);              
-              }
-              Navigator.of(dialogContext).pop();
-            },
+          Row(
+            children: [
+              Text(
+                jugador.handicap.toString(),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.edit,
+                  color: Color.fromARGB(255, 22, 88, 48),
+                ),
+                onPressed: () => mostrarEditarDialog(context, jugador),
+                tooltip: 'Editar Handicap',
+              ),
+            ],
           ),
         ],
-      );
-    },
-  );
-}
+      ),
+    );
+  }
+
+
+
+
+  Future<void> mostrarEditarDialog(BuildContext context, Jugador jugador) async {
+    int updatedHandicap = jugador.handicap!;
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Row(
+                children: [
+                  Icon(
+                    Icons.edit,
+                    color: kPprimaryColor,
+                  ),
+                  SizedBox(width: 10),
+                  Text('Editar Handicap'),
+                ],
+              ),
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle, color: Colors.red, size: 28,),
+                    onPressed: () {
+                      setState(() {
+                        if (updatedHandicap > 0) {
+                          updatedHandicap--;
+                        }
+                      });
+                    },
+                  ),
+                  Text(
+                    '$updatedHandicap',
+                    style: const TextStyle(
+                      fontSize: 33,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle, color: kBlueColorLogo, size: 28,),
+                    onPressed: () {
+                      setState(() {
+                        updatedHandicap++;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.grey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Cancelar'),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: kPprimaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Guardar'),
+                  onPressed: () {
+                    goUpdate(updatedHandicap);
+                    Navigator.of(dialogContext).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   Future<void> goUpdate(int valorActualizado) async {
-     setState(() {
+    setState(() {
       showLoader = true;
     });
-    
-    Response response = await ApiHelper.updateHandicap(widget.jugador.id, valorActualizado);   
-   
+
+     final jugadorProvider = Provider.of<JugadorProvider>(context, listen: false);
+
+    jugadorProvider.setJugador(
+      jugadorProvider.jugador.copyWith(handicap: -1), // Un valor temporal para el estado de carga, indica que está actualizando
+    );
+
+    Response response = await ApiHelper.updateHandicap(
+            jugadorProvider.jugador.id, valorActualizado);
+
     setState(() {
       showLoader = false;
     });
 
-     if (!response.isSuccess) {
-        if (mounted) {         
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Error'),
-                content:  Text(response.message),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('Aceptar'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        }        
-        return;
-     }   
-   
-     Fluttertoast.showToast(
-        msg: "Handicap Actualizado exotosamente.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor:kPcontrastMoradoColor,
-        textColor: Colors.white,
-        fontSize: 16.0
+    if (!response.isSuccess) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text('Error'),
+              content: Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+      
+      jugadorProvider.setJugador(
+        jugadorProvider.jugador.copyWith(handicap: jugadorProvider.jugador.handicap),
+      );
+      return;
+    
+    }
+
+    Fluttertoast.showToast(
+      msg: "Handicap actualizado exitosamente.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: kPcontrastMoradoColor,
+      textColor: Colors.white,
+      fontSize: 16.0,
     );
-    setState(() {
-      widget.jugador.handicap=valorActualizado;
-    });
+
+    jugadorProvider.setJugador(
+      jugadorProvider.jugador.copyWith(handicap: valorActualizado),
+    );
   }
 }

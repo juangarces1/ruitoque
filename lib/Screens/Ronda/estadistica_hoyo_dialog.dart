@@ -3,15 +3,13 @@ import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/constans.dart';
 
 class EstadisticaHoyoDialog extends StatefulWidget {
-  final EstadisticaHoyo estadisticaHoyo;
-
-  final Function(EstadisticaHoyo) onGuardar;
+  final List<EstadisticaHoyo> estadisticasHoyo;
+  final Function(List<EstadisticaHoyo>) onGuardar;
 
   const EstadisticaHoyoDialog({
     Key? key,
-    required this.estadisticaHoyo,
+    required this.estadisticasHoyo,
     required this.onGuardar,
-   
   }) : super(key: key);
 
   @override
@@ -19,127 +17,195 @@ class EstadisticaHoyoDialog extends StatefulWidget {
 }
 
 class _EstadisticaHoyoDialogState extends State<EstadisticaHoyoDialog> {
-   late EstadisticaHoyo estadisticaHoyo;
-    TextStyle txtHeader = const TextStyle(color: Color.fromARGB(255, 1, 61, 22), fontSize: 18, fontWeight: FontWeight.bold);
+  late List<EstadisticaHoyo> estadisticasHoyo;
+  TextStyle txtHeader = const TextStyle(color: Color.fromARGB(255, 1, 61, 22), fontSize: 18, fontWeight: FontWeight.bold);
 
   @override
   void initState() {
     super.initState();
-    estadisticaHoyo = widget.estadisticaHoyo;
+    estadisticasHoyo = List.from(widget.estadisticasHoyo);
   }
 
-  void _cambiarEstadoFairway(String direccion) {
-    setState(() {
-      estadisticaHoyo.acertoFairway = direccion == 'centro';
-      estadisticaHoyo.falloFairwayIzquierda = direccion == 'izquierda';
-      estadisticaHoyo.falloFairwayDerecha = direccion == 'derecha';
-    });
-  }
-
-
-  void _incrementarCampo(String campo) {
+  void _incrementarCampo(EstadisticaHoyo estadistica, String campo) {
     setState(() {
       if (campo == 'golpes') {
-        widget.estadisticaHoyo.golpes++;
-      } else if (campo == 'putts'){
-          widget.estadisticaHoyo.putts++;
-      } 
-      else if (campo == 'bunkerShots'){
-        widget.estadisticaHoyo.bunkerShots++;
-      }  else if (campo == 'penaltyShots'){
-        widget.estadisticaHoyo.penaltyShots++;
-      } 
+        estadistica.golpes++;
+      } else if (campo == 'putts') {
+        estadistica.putts++;
+      } else if (campo == 'bunkerShots') {
+        estadistica.bunkerShots++;
+      } else if (campo == 'penaltyShots') {
+        estadistica.penaltyShots++;
+      }
     });
   }
 
-  void _decrementarCampo(String campo) {
+  void _decrementarCampo(EstadisticaHoyo estadistica, String campo) {
     setState(() {
-      if (campo == 'golpes' && widget.estadisticaHoyo.golpes > 0) {
-        widget.estadisticaHoyo.golpes--;
-
-      } else if (campo == 'putts' && widget.estadisticaHoyo.putts > 0) 
-       {
-        widget.estadisticaHoyo.putts--;
-       }
-      else if (campo == 'bunkerShots' && widget.estadisticaHoyo.bunkerShots > 0) {
-        widget.estadisticaHoyo.bunkerShots--;
-
-      } else if (campo == 'penaltyShots' && widget.estadisticaHoyo.penaltyShots > 0) {
-        widget.estadisticaHoyo.bunkerShots--;
-
+      if (campo == 'golpes' && estadistica.golpes > 0) {
+        estadistica.golpes--;
+      } else if (campo == 'putts' && estadistica.putts > 0) {
+        estadistica.putts--;
+      } else if (campo == 'bunkerShots' && estadistica.bunkerShots > 0) {
+        estadistica.bunkerShots--;
+      } else if (campo == 'penaltyShots' && estadistica.penaltyShots > 0) {
+        estadistica.penaltyShots--;
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-   
-
     return AlertDialog(
-      
-      title:   Padding(
-        padding: const EdgeInsets.only(left: 40, right: 40),
+        title:   Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
         child: ListTile(
-                title:  Text('Hoyo ${widget.estadisticaHoyo.hoyo.numero.toString()}', style: txtHeader ),
+                title:  Text('Hoyo ${widget.estadisticasHoyo[0].hoyo.numero.toString()}', style: txtHeader ),
                 subtitle: Text(
-              'Par ${widget.estadisticaHoyo.hoyo.par.toString()}',  style: txtHeader, ),
+              'Par ${widget.estadisticasHoyo[0].hoyo.par.toString()}',  style: txtHeader, ),
                 trailing: const Icon(Icons.flag_circle, color:  Colors.green, size: 36,),
                
                            ),
       ),
       content: SingleChildScrollView(
-        child: ListBody(
-          children: <Widget>[
-             const Center(child: Text('Fairway:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),)),
-               const SizedBox(height: 4,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Column(
+          children: estadisticasHoyo.map((estadistica) {
+             estadistica.golpes == 0 ? estadistica.golpes = estadistica.hoyo.par : estadistica.golpes;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _botonFairway('Izquierda', widget.estadisticaHoyo.falloFairwayIzquierda),
-                _botonFairway('Centro', widget.estadisticaHoyo.acertoFairway),
-                _botonFairway('Derecha', widget.estadisticaHoyo.falloFairwayDerecha),
-              ],
-            ),
-              const SizedBox(height: 15,),
-            _contador('Golpes', widget.estadisticaHoyo.golpes, 'golpes'),
-            const SizedBox(height: 10,),
-            _contador('Putts', widget.estadisticaHoyo.putts, 'putts'),
-             const SizedBox(height: 10,),
-            _contador('Bunker', widget.estadisticaHoyo.bunkerShots, 'bunkerShots'),
-             const SizedBox(height: 10,),
-            _contador('Castigo', widget.estadisticaHoyo.penaltyShots, 'penaltyShots'),
-             const SizedBox(height: 10,),
-        
-          ],
+                 Center(
+                   child: Text(
+                   ' ${estadistica.nombreJugador}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                   ),
+                 ),
+               const SizedBox(height: 5,),
+               estadistica.isMain! ?  const Center(child: Text('Fairway:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),)) : const SizedBox(),
+                 estadistica.isMain! ?  const SizedBox(height: 4,) : const SizedBox(),
+                estadistica.isMain! ?    Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _botonFairway('Izquierda', estadistica.falloFairwayIzquierda,estadistica),
+                    _botonFairway('Centro', estadistica.acertoFairway,estadistica),
+                    _botonFairway('Derecha', estadistica.falloFairwayDerecha,estadistica),
+                  ],
+                ): const SizedBox(),
+                  const SizedBox(height: 15), 
+                _contador('Golpes', estadistica.golpes, 'golpes', estadistica),
+                  estadistica.isMain! ?  const SizedBox(height: 10,) : const SizedBox(),
+                  estadistica.isMain! ?  _contador('Putts', estadistica.putts, 'putts', estadistica): const SizedBox(),
+                  estadistica.isMain! ?  const SizedBox(height: 10,): const SizedBox(),
+                  estadistica.isMain! ?  _contador('Bunker', estadistica.bunkerShots, 'bunkerShots', estadistica): const SizedBox(),
+                  estadistica.isMain! ?  const SizedBox(height: 10,): const SizedBox(),
+                  estadistica.isMain! ?  _contador('Castigo', estadistica.penaltyShots, 'penaltyShots', estadistica): const SizedBox(),
+                  estadistica.isMain! ?  const SizedBox(height: 10,): const SizedBox(),
+                  ],
+            );
+          }).toList(),
         ),
       ),
       actions: <Widget>[
         ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white, backgroundColor: Colors.deepPurple, // Color del texto
-            elevation: 5, // Sombra del botón
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10), // Bordes redondeados
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Padding
-          ),
           onPressed: () {
-            widget.onGuardar(widget.estadisticaHoyo);
+            widget.onGuardar(estadisticasHoyo);
             Navigator.of(context).pop();
           },
-          child: const Text(
-            'Guardar',
-            style: TextStyle(
-              fontSize: 16, // Tamaño del texto
-              fontWeight: FontWeight.bold, // Grosor del texto
-            ),
-          ),
-        )
+          child: const Text('Guardar'),
+        ),
       ],
     );
   }
 
-   Widget _botonFairway(String texto, bool estado) {
+  // Widget _contador(String titulo, int valor, String campo, EstadisticaHoyo estadistica) {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //     children: [
+  //       Text(
+  //         titulo,
+  //         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //       ),
+  //       Row(
+  //         children: [
+  //           IconButton(
+  //             icon: const Icon(Icons.remove, color: Colors.red),
+  //             onPressed: () => _decrementarCampo(estadistica, campo),
+  //           ),
+  //           Text(
+  //             '$valor',
+  //             style: const TextStyle(fontSize: 16),
+  //           ),
+  //           IconButton(
+  //             icon: const Icon(Icons.add, color: Colors.green),
+  //             onPressed: () => _incrementarCampo(estadistica, campo),
+  //           ),
+  //         ],
+  //       ),
+  //     ],
+  //   );
+  // }
+
+  
+ Widget _contador(String titulo, int valor, String campo, EstadisticaHoyo estadistica) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(
+            titulo,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Container(
+            height: 35,
+            width: 35,
+            decoration:  const BoxDecoration(
+              shape: BoxShape.circle,
+              color: kPprimaryColor,
+            ),
+            child: Center(
+              child: IconButton(
+                icon: const Icon(Icons.remove, color: kTextColorBlanco, size: 20,),
+                onPressed: () => _decrementarCampo(estadistica, campo),
+              ),
+            ),
+          ),
+          Text(
+            '$valor',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          Container(
+            height: 35,
+            width: 35,
+            decoration:  const BoxDecoration(
+              shape: BoxShape.circle,
+              color: kPsecondaryColor,
+            ),
+            child: Center(
+              child: IconButton(
+                icon: const Icon(Icons.add, color: kTextColorBlanco, size: 20,),
+                onPressed: () => _incrementarCampo(estadistica,campo),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _botonFairway(String texto, bool estado, EstadisticaHoyo estadistica) {
   IconData iconData;
   Color botonColor;
   double elevation;
@@ -178,70 +244,20 @@ class _EstadisticaHoyoDialogState extends State<EstadisticaHoyoDialog> {
         shape: const CircleBorder(),
         padding: const EdgeInsets.all(15),
       ),
-      onPressed: () => _cambiarEstadoFairway(texto.toLowerCase()),
+      onPressed: () => _cambiarEstadoFairway(texto.toLowerCase(), estadistica),
       child: Icon(iconData, color: botonColor),
     ),
   );
 }
 
-
-
- Widget _contador(String titulo, int valor, String campo) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 4,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(
-            titulo,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Container(
-            height: 35,
-            width: 35,
-            decoration:  const BoxDecoration(
-              shape: BoxShape.circle,
-              color: kPprimaryColor,
-            ),
-            child: Center(
-              child: IconButton(
-                icon: const Icon(Icons.remove, color: kTextColorBlanco, size: 20,),
-                onPressed: () => _decrementarCampo(campo),
-              ),
-            ),
-          ),
-          Text(
-            '$valor',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
-          Container(
-            height: 35,
-            width: 35,
-            decoration:  const BoxDecoration(
-              shape: BoxShape.circle,
-              color: kPsecondaryColor,
-            ),
-            child: Center(
-              child: IconButton(
-                icon: const Icon(Icons.add, color: kTextColorBlanco, size: 20,),
-                onPressed: () => _incrementarCampo(campo),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  void _cambiarEstadoFairway(String direccion, EstadisticaHoyo estadisticaHoyo) {
+    setState(() {
+      estadisticaHoyo.acertoFairway = direccion == 'centro';
+      estadisticaHoyo.falloFairwayIzquierda = direccion == 'izquierda';
+      estadisticaHoyo.falloFairwayDerecha = direccion == 'derecha';
+    });
   }
+
+
+  
 }

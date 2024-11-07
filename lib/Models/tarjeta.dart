@@ -125,7 +125,7 @@ class Tarjeta {
       id: json['id'],
       jugadorId: json['jugadorId'],
       rondaId: json['rondaId'],
-     // jugador:  json['tarjetas'] != null ? Jugador.fromJson(json['jugador']) : null,
+      jugador:  json['jugador'] != null ? Jugador.fromJson(json['jugador']) : null,
       fecha: json['fecha'],
       campoNombre:  json['campoNombre'],
       hoyos: (json['hoyos'] as List).map((h) => EstadisticaHoyo.fromJson(h)).toList(),

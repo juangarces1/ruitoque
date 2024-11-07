@@ -53,13 +53,10 @@ const kTextStyleBlancoNuevaFuente20 = TextStyle(
 );
 
 const kTextStyleNegroRobotoSize20 = TextStyle(
-  fontFamily: 'RobotoCondensed',
-  // Puedes especificar el peso y el estilo si es necesario
+  fontFamily: 'RobotoCondensed', 
   fontWeight: FontWeight.bold,
   fontSize: 20,
-  color: Colors.black,
-    // Para un estilo en negrita
-    // Para un estilo en cursiva
+  color: Colors.black,  
 );
 
 const kTextStyleNegroRobotoSize20Normal = TextStyle(
