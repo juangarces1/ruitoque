@@ -10,7 +10,7 @@ class CardItemCampo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return  Card(
-        color: const Color(0xC3F2EFEF),
+        color: const Color.fromARGB(255, 242, 239, 239),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0),
         ),

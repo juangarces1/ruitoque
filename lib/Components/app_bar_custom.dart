@@ -45,13 +45,13 @@ class MyCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(60),
                   ),
-                  backgroundColor: Colors.white,
+                  backgroundColor: kPcontrastAzulColor,
                   padding: EdgeInsets.zero,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Icon(
                   Icons.arrow_back,
-                  color: Colors.black, // Change this color as needed
+                  color: Colors.white, // Change this color as needed
                   size: 24.0, // Adjust size as needed
                 ),
               ),

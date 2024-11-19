@@ -71,6 +71,7 @@ class _EstadisticaHoyoDialogState extends State<EstadisticaHoyoDialog> {
         child: Column(
           children: estadisticasHoyo.map((estadistica) {
              estadistica.golpes == 0 ? estadistica.golpes = estadistica.hoyo.par : estadistica.golpes;
+             estadistica.putts == 0 ? estadistica.putts=2 : estadistica.putts;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -81,8 +82,10 @@ class _EstadisticaHoyoDialogState extends State<EstadisticaHoyoDialog> {
                                    ),
                  ),
                const SizedBox(height: 5,),
-               estadistica.isMain! ?  const Center(child: Text('Fairway:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),)) : const SizedBox(),
-                 estadistica.isMain! ?  const SizedBox(height: 4,) : const SizedBox(),
+              estadistica.hoyo.par != 3 ?
+               estadistica.isMain! ?  const Center(child: Text('Fairway:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),)) : const SizedBox(): const SizedBox(),
+               estadistica.hoyo.par != 3 ?   estadistica.isMain! ?  const SizedBox(height: 4,) : const SizedBox(): const SizedBox(),
+                estadistica.hoyo.par != 3 ?
                 estadistica.isMain! ?    Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -90,7 +93,7 @@ class _EstadisticaHoyoDialogState extends State<EstadisticaHoyoDialog> {
                     _botonFairway('Centro', estadistica.acertoFairway,estadistica),
                     _botonFairway('Derecha', estadistica.falloFairwayDerecha,estadistica),
                   ],
-                ): const SizedBox(),
+                ): const SizedBox(): const SizedBox(),
                   const SizedBox(height: 15), 
                 _contador('Golpes', estadistica.golpes, 'golpes', estadistica),
                   estadistica.isMain! ?  const SizedBox(height: 10,) : const SizedBox(),

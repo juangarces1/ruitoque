@@ -388,11 +388,12 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
     creatorId: jugador.id,
   );
 
-  int idc = 1; // Counter for EstadisticaHoyo IDs
+ 
 
   // Loop through each selected player
   for (Jugador jugadorItem in jugadoresSeleccionados) {
     Tarjeta tarjeta = Tarjeta(
+      handicapPlayer: jugadorItem.handicap!,
       id: 0,
       jugadorId: jugadorItem.id,
       rondaId: 0,
@@ -407,7 +408,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
       for (int i = 1; i <= 3; i++) {
         for (Hoyo hoyo in campoSeleccionado.hoyos) {
           EstadisticaHoyo aux = EstadisticaHoyo(
-            id: idc,
+            id: 0,
             hoyo: hoyo,
             hoyoId: hoyo.id,
             golpes: 0,
@@ -423,13 +424,13 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
             isMain: jugadorItem.id==jugador.id ? true : false,
           );
           tarjeta.hoyos.add(aux);
-          idc += 1;
+         
         }
       }
     } else {
       for (Hoyo hoyo in campoSeleccionado.hoyos) {
         EstadisticaHoyo aux = EstadisticaHoyo(
-          id: idc,
+          id: 0,
           hoyo: hoyo,
           hoyoId: hoyo.id,
           golpes: 0,
@@ -445,7 +446,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
           isMain: jugadorItem.id==jugador.id ? true : false,
         );
         tarjeta.hoyos.add(aux);
-        idc += 1;
+       
       }
     }
 

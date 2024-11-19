@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/Models/jugador.dart';
-
 import 'package:ruitoque/Models/tarjeta.dart';
-import 'package:ruitoque/Screens/Estadisticas/golf_score_screen.dart';
+import 'package:ruitoque/Screens/Tarjetas/stats_card.dart';
 import 'package:ruitoque/constans.dart';
 
 class TarjetaPlayer extends StatefulWidget {
@@ -76,7 +75,7 @@ class _TarjetaPlayerState extends State<TarjetaPlayer> {
                  
                   Row(
                     children: [
-                     widget.tarjeta.jugador != null ? Text('HCP ${widget.tarjeta.jugador!.handicap}', style : textStyle) : Text('HCP ${widget.jugador!.handicap}', style : textStyle),
+                     widget.tarjeta.jugador != null ? Text('HCP ${widget.tarjeta.handicapPlayer}', style : textStyle) : Text('HCP ${widget.jugador!.handicap}', style : textStyle),
                     ],
           
                   ),
@@ -419,7 +418,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
     Navigator.push(
     context, 
     MaterialPageRoute(
-      builder: (context) =>  GolfScoreScreen(tarjeta: widget.tarjeta,)
+      builder: (context) =>  TarjetaStatsWidget(tarjeta: widget.tarjeta,)
     )
    );
   }

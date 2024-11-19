@@ -67,6 +67,17 @@ class EstadisticaHoyo {
     neto = golpes - descuento;
   }
 
+  bool get salvoElPar {
+    return golpes <= hoyo.par;
+  }
+
+  bool get alcanzoGreenEnRegulacion {
+    int golpesAlGreen = golpes - putts;
+    int golpesEsperados = hoyo.par - 2;
+    return golpesAlGreen <= golpesEsperados;
+  }
+
+
 
 
   factory EstadisticaHoyo.fromJson(Map<String, dynamic> json) {

@@ -271,9 +271,12 @@ class AddCourseScreenState extends State<AddCourseScreen> {
 
   void  onUpdateHoyo (nuevoHoyo) {
       setState(() {
+
           int index = _hoyos.indexWhere((hoyo) => hoyo.id == nuevoHoyo.id);
           if (index != -1) {
-            widget.campo!.hoyos[index] = nuevoHoyo; // Actualizar el Tee en la lista
+           widget.campo != null ? 
+            widget.campo!.hoyos[index] = nuevoHoyo
+            : _hoyos[index]=nuevoHoyo; // Actualizar el Tee en la lista
           }
       });
     }

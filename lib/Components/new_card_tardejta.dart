@@ -26,7 +26,7 @@ class _NewTarjetaCardState extends State<NewTarjetaCard> {
    @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.all(12.0),
+      margin:  const EdgeInsets.symmetric(horizontal: 12, vertical: 3 ),
       elevation: 4.0,
       child: ExpansionTile(
         title: _crearHeader(),
@@ -59,7 +59,7 @@ class _NewTarjetaCardState extends State<NewTarjetaCard> {
               ),
               Row(
                 children: [
-                  Text('HCP ${widget.tarjeta.jugador!.handicap}', style : textStyle),
+                  Text('HCP ${widget.tarjeta.handicapPlayer}', style : textStyle),
                 ],
       
               ),

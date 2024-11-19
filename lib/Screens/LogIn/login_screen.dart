@@ -76,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              _showLoader ? const MyLoader(opacity: 0.8, text: 'Cargando..',) : Container(),
+              _showLoader ? const MyLoader(opacity: 1, text: 'Cargando..',) : Container(),
             ],
           ),
         ),
@@ -92,9 +92,11 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: InputDecoration(
               border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(30.0),
+    
             ),
         
-          
+                    filled: true, // Habilita el color de fondo
+        fillColor: Colors.white, // Establece el color de fondo a blanco
           hintText: 'Ingresa tu Pin...',
         
           errorText: _passwordShowError ? _passwordError : null,

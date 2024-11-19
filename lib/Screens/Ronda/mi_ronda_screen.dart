@@ -25,8 +25,8 @@ import 'package:ruitoque/constans.dart';
 
 class MiRonda extends StatefulWidget {
   final Ronda ronda;
-  
-  const MiRonda({super.key, required this.ronda });
+ 
+  const MiRonda({super.key, required this.ronda, });
 
   @override
   State<MiRonda> createState() => _MiRondaState();
@@ -36,15 +36,19 @@ class _MiRondaState extends State<MiRonda> {
   bool showLoader = false;
   late Ronda _ronda;
   late Jugador jugador;
+  late Tarjeta myTarjeta;
   bool isCreator = false;  
   get jugadoresSeleccionados => null;
 
   @override
   void initState() {
     super.initState();
-     _ronda = widget.ronda;
+      _ronda=widget.ronda;
+    _ronda.id ==0 ? _goSave() : _goRefresh();
      jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;   
      isCreator = jugador.id == _ronda.creatorId ? true: false;
+     myTarjeta =  _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);
+     _ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
   }  
 
   @override
@@ -112,6 +116,8 @@ class _MiRondaState extends State<MiRonda> {
                   ],
                 ),
             ),
+          const SizedBox(height: 12,),
+         
             Expanded(
               child: Stack(
                 children: [
@@ -152,7 +158,7 @@ class _MiRondaState extends State<MiRonda> {
                                 scrollDirection: Axis.horizontal,
                                 itemCount: _ronda.tarjetas[0].hoyos.length,
                                 itemBuilder: (BuildContext context, int index) {
-                                  return buildCardEstadistica(_ronda.tarjetas[0].hoyos[index]);
+                                  return buildCardEstadistica(myTarjeta.hoyos[index]);
                                 },
                               ),
                             ),
@@ -162,9 +168,9 @@ class _MiRondaState extends State<MiRonda> {
                               height: segundaParteAltura,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: _ronda.tarjetas[0].hoyos.length,
+                                itemCount: myTarjeta.hoyos.length,
                                 itemBuilder: (BuildContext context, int index) {
-                                  return buildCardSoloHoyos(_ronda.tarjetas[0].hoyos[index]);
+                                  return buildCardSoloHoyos(myTarjeta.hoyos[index]);
                                 },
                               ),
                             ),
@@ -177,7 +183,7 @@ class _MiRondaState extends State<MiRonda> {
                   // Loader
                   if (showLoader)
                     const Positioned.fill(
-                      child: MyLoader(opacity: 0.8, text: 'Guardando...'),
+                      child: MyLoader(opacity: 1, text: ''),
                     ),
                 ],
               ),
@@ -230,7 +236,7 @@ class _MiRondaState extends State<MiRonda> {
 
   void agregarShotAEstadisticaHoyo(int idEstadisticaHoyo, Shot nuevoShot) {
     setState(() {
-      var estadisticaHoyo = _ronda.tarjetas[0].hoyos.firstWhere(
+      var estadisticaHoyo = myTarjeta.hoyos.firstWhere(
         (est) => est.id == idEstadisticaHoyo,        
       );       
         estadisticaHoyo.shots!.add(nuevoShot);     
@@ -239,7 +245,7 @@ class _MiRondaState extends State<MiRonda> {
 
   void deleteShot(int idEstadisticaHoyo, Shot shot) {
     setState(() {
-      var estadisticaHoyo = _ronda.tarjetas[0].hoyos.firstWhere(
+      var estadisticaHoyo = myTarjeta.hoyos.firstWhere(
         (est) => est.id == idEstadisticaHoyo,        
       );       
         estadisticaHoyo.shots!.remove(shot);     
@@ -480,7 +486,10 @@ class _MiRondaState extends State<MiRonda> {
                 return hoyo;
               }).toList();
             }
+             _ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
+            
           });
+           _goUpdateRonda();
         },
       );
     },
@@ -514,7 +523,7 @@ class _MiRondaState extends State<MiRonda> {
 
   // Si el usuario aceptó, procede con la función _goSave
   if (confirm == true) {
-    await _goSave();
+    await _goUpdateRonda();
   }
 }
  
@@ -554,23 +563,11 @@ class _MiRondaState extends State<MiRonda> {
        }
      }
 
-     
-
-      Fluttertoast.showToast(
-        msg: "Actualizada Correctamente.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor:kPcontrastMoradoColor,
-        textColor: Colors.white,
-        fontSize: 20.0
-    );
-
-   
-
       if (mounted) {
         setState(() {
           _ronda = response.result;
+           myTarjeta =  _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);
+            _ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
         });
       }
     
@@ -582,34 +579,12 @@ class _MiRondaState extends State<MiRonda> {
     setState(() {
      showLoader = true;
    });
-
-    if (_ronda.id == 0) {
-     for (var tarjeta in _ronda.tarjetas){
-       for (var hoyo in tarjeta.hoyos) {
-        hoyo.id = 0;
-      }
-     }      
-    }
-
-    if(isComplete()){
-      _ronda.isComplete=true;
-    }
-
+   
     Map<String, dynamic> ronda = _ronda.toJson();
 
-    Response response;
+    Response response = await ApiHelper.post('api/Rondas/', ronda);   
 
-    bool isPut = false;
-
-    // Elegir entre POST o PUT según el ID de la ronda
-    if (_ronda.id == 0) {
-      response = await ApiHelper.post('api/Rondas/', ronda);
-    } else {
-      response = await ApiHelper.put('api/Rondas/${_ronda.id}', ronda);
-      isPut=true;
-    }
-
-     setState(() {
+    setState(() {
       showLoader=false;
     });
 
@@ -640,7 +615,7 @@ class _MiRondaState extends State<MiRonda> {
      
 
       Fluttertoast.showToast(
-        msg: "La Ronda ha sido guardada.",
+        msg: "Ronda Iniciada.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
         timeInSecForIosWeb: 1,
@@ -649,17 +624,72 @@ class _MiRondaState extends State<MiRonda> {
         fontSize: 20.0
     );
 
-     if(!isPut){
+    
        var decodedJson = jsonDecode(response.result);
        var newRonda = Ronda.fromJson(decodedJson);
-
+        
       if (mounted) {
         setState(() {
           _ronda = newRonda;
         });
       }
+   
+
+  }
+
+   Future<void> _goUpdateRonda() async {   
+    setState(() {
+      showLoader=true;
+    });
+  
+    if(isComplete()){
+      _ronda.isComplete=true;
     }
 
+    Map<String, dynamic> ronda = _ronda.toJson();
+
+    Response response = await ApiHelper.put('api/Rondas/${_ronda.id}', ronda);
+   
+    setState(() {
+        showLoader=false;
+      });
+  
+   
+     if (!response.isSuccess) {
+      if(mounted) {
+          showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content:  Text(response.message),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
+       }
+     }
+
+      if(isComplete()){
+          Fluttertoast.showToast(
+            msg: "La Ronda ha Finalizado.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor:kPcontrastMoradoColor,
+            textColor: Colors.white,
+            fontSize: 20.0
+        );
+      }
+  
   }
 
   goHome() {

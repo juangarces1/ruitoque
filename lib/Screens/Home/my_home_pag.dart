@@ -12,12 +12,13 @@ import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
-import 'package:ruitoque/Screens/Campos/sekect_campo_scree.dart';
+import 'package:ruitoque/Screens/Campos/sekect_edit_campo.dart';
+import 'package:ruitoque/Screens/Home/Components/card_join.dart';
 import 'package:ruitoque/Screens/Home/Components/menu_item.dart';
 import 'package:ruitoque/Screens/Home/Components/ronda_card.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
-import 'package:ruitoque/Screens/Ronda/intro_ronda_screen.dart';
 import 'package:ruitoque/Screens/Ronda/mis_rondas_screen.dart';
+import 'package:ruitoque/Screens/Ronda/select_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:ruitoque/sizeconfig.dart';
@@ -51,15 +52,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Llamar al API para obtener las rondas incompletas del jugador actual
     final response = await ApiHelper.getRondasAbiertas(jugador.id);
-
-    if (response.isSuccess) {
+  
+    setState(() {
+      showLoader = false;
+    });
+   
+    if (!response.isSuccess) {
       // Parsear las rondas desde la respuesta
-     
-
-      setState(() {
-        rondasIncompletas = response.result;
-      });
-    } else {
       Fluttertoast.showToast(
         msg: "Error al obtener las rondas incompletas: ${response.message}",
         toastLength: Toast.LENGTH_LONG,
@@ -68,11 +67,13 @@ class _MyHomePageState extends State<MyHomePage> {
         textColor: Colors.white,
         fontSize: 16.0
       );
+      return;
+     
     }
 
     setState(() {
-      showLoader = false;
-    });
+        rondasIncompletas = response.result;
+      });
   }
 
   @override
@@ -180,7 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             const SizedBox(height: 20,),
                             const CardJugador(),
-                           if (rondasIncompletas.isNotEmpty)
+                           rondasIncompletas.isNotEmpty? 
                                     Expanded(
                                       child: ListView.builder(
                                         itemCount: rondasIncompletas.length,
@@ -189,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           return RondaCard(ronda: ronda);
                                         },
                                       ),
-                                    ),
+                                    ) : UnirseARondaCard(onTap:  obtenerRondasIncompletas),
                             
                           ],
                         )),
@@ -215,7 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                           ),
-                        showLoader ? const Center(child: MyLoader(text: 'Cargando...',opacity: 0.7,),) : const SizedBox.shrink(),
+                        showLoader ? const Center(child: MyLoader(text: 'Cargando...',opacity: 1,),) : const SizedBox.shrink(),
                       ],
                     ),
                   ),
@@ -259,23 +260,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Definir los ítems del menú
   final List<MenuItem> menuItems = [
-    MenuItem(
-      title: 'Iniciar Ronda',
-      leading: const CircleAvatar(
-        radius: 12,
-        backgroundImage: AssetImage('assets/marker.png'),
-        backgroundColor: kPprimaryColor,
-      ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const IntroRondaScreen(),
-          ),
-        );
-      },
-      textColor: const Color(0xffadb5bd),
-    ),
+    // MenuItem(
+    //   title: 'Iniciar Ronda',
+    //   leading: const CircleAvatar(
+    //     radius: 12,
+    //     backgroundImage: AssetImage('assets/marker.png'),
+    //     backgroundColor: kPprimaryColor,
+    //   ),
+    //   onTap: () {
+    //     Navigator.push(
+    //       context,
+    //       MaterialPageRoute(
+    //         builder: (context) => const IntroRondaScreen(),
+    //       ),
+    //     );
+    //   },
+    //   textColor: const Color(0xffadb5bd),
+    // ),
     MenuItem(
       title: 'Mis Tarjetas',
       leading: const Icon(
@@ -335,7 +336,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const SelectCampoScreen(),
+            builder: (context) => const SelectEditCampo(),
           ),
         );
       },
@@ -375,19 +376,14 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     },
   );
-}
-  
+}  
   
   gointroRonda() {
      Navigator.push(
         context, 
         MaterialPageRoute(
-          builder: (context) =>  const IntroRondaScreen()
+          builder: (context) =>  const SelectCampoScreen()
         ),
       );
-
-  }
-
-
- 
+  } 
 }

@@ -13,14 +13,14 @@ import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
 import 'package:ruitoque/constans.dart';
 
-class SelectCampoScreen extends StatefulWidget {
-  const SelectCampoScreen({super.key});
+class SelectEditCampo extends StatefulWidget {
+  const SelectEditCampo({super.key});
 
   @override
-  State<SelectCampoScreen> createState() => _SelectCampoScreenState();
+  State<SelectEditCampo> createState() => _SelectEditCampoState();
 }
 
-class _SelectCampoScreenState extends State<SelectCampoScreen> {
+class _SelectEditCampoState extends State<SelectEditCampo> {
   bool showLoader = false;
   List<Campo>? campos = [];
   int campoIdSelected = 0; 
@@ -43,7 +43,7 @@ class _SelectCampoScreenState extends State<SelectCampoScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: MyCustomAppBar(
-        title: 'Seleccione El Campo',
+        title: 'Editar Campo',
         automaticallyImplyLeading: true,   
         backgroundColor: kPprimaryColor,
         elevation: 8.0,
@@ -189,7 +189,7 @@ class _SelectCampoScreenState extends State<SelectCampoScreen> {
    Widget _getBody() {
     return Container(
       decoration: const BoxDecoration(
-        gradient: kFondoGradient
+        gradient: kPrimaryGradientColor
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:ruitoque/Components/default_button.dart';
 import 'package:ruitoque/Components/new_card_tardejta.dart';
 import 'package:ruitoque/Models/fede_amigos.dart';
 import 'package:ruitoque/Models/jugador.dart';
@@ -22,12 +21,13 @@ class _CardRondaState extends State<CardRonda> {
   bool stablefordCalculado = false;
   bool fedeAmigosCalculado = false;
 
-   bool mostrarSkins = false;
+  bool mostrarSkins = false;
   bool mostrarStableford = false;
-   bool mostrarfedeAmigos = false;
+  bool mostrarfedeAmigos = false;
 
   @override
   Widget build(BuildContext context) {
+    widget.ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
     return Card(
       shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
@@ -318,7 +318,7 @@ class _CardRondaState extends State<CardRonda> {
                 child: Text(entry.key.nombre[0],style: kTextStyleBlancoNuevaFuente20, ),
               ),
               title: Text(entry.key.nombre,style: kTextStyleNegroRobotoSize20, ),
-              trailing: Text('Puntos: ${entry.value}',style: kTextStyleNegroRobotoSize20, ),
+              trailing: Text('Puntos: ${entry.value.toStringAsFixed(2)}',style: kTextStyleNegroRobotoSize20, ),
             );
           }).toList(),
           const SizedBox(height: 8),

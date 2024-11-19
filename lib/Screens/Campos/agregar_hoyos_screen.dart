@@ -288,43 +288,47 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
 
   void _editarCoordenada(TipoCoordenada tipo, String titulo, CordenadaProvider cordenadaProvider) async {
     Cordenada? coordenadaInicial;
-  if(widget.hoyo == null){
-     switch (tipo) {
-      case TipoCoordenada.frenteGreen:
-        coordenadaInicial = cordenadaProvider.cordenada;
-        break;
-      case TipoCoordenada.centroGreen:
-        coordenadaInicial = cordenadaProvider.cordenada;
-        break;
-      case TipoCoordenada.fondoGreen:
-        coordenadaInicial = cordenadaProvider.cordenada;
-        break;
-      case TipoCoordenada.centroHoyo:
-        coordenadaInicial = cordenadaProvider.cordenada;
-        break;
-      default:
-        break;
-    }}
-    else {
-       switch (tipo) {
-      case TipoCoordenada.frenteGreen:
-        coordenadaInicial = widget.hoyo!.frenteGreen;
-        break;
-      case TipoCoordenada.centroGreen:
-        coordenadaInicial = widget.hoyo!.centroGreen;
-        break;
-      case TipoCoordenada.fondoGreen:
-        coordenadaInicial = widget.hoyo!.fondoGreen;
-        break;
-      case TipoCoordenada.centroHoyo:
-        coordenadaInicial = widget.hoyo!.centroHoyo;
-        break;
-      default:
-        break;
-    }
-    }
+   if(widget.hoyo == null){
+      switch (tipo) {
+       case TipoCoordenada.frenteGreen:
+         coordenadaInicial = cordenadaProvider.cordenada;
+         break;
+       case TipoCoordenada.centroGreen:
+         coordenadaInicial = cordenadaProvider.cordenada;
+         break;
+       case TipoCoordenada.fondoGreen:
+         coordenadaInicial = cordenadaProvider.cordenada;
+         break;
+       case TipoCoordenada.centroHoyo:
+         coordenadaInicial = cordenadaProvider.cordenada;
+         break;
+       default:
+         break;
+     }}
+     else {
+        switch (tipo) {
+          case TipoCoordenada.frenteGreen:
+            coordenadaInicial =  widget.hoyo!.frenteGreen!.latitud != 0.0 ? widget.hoyo!.frenteGreen : cordenadaProvider.cordenada;
+            break;
+          case TipoCoordenada.centroGreen:
+            coordenadaInicial =  widget.hoyo!.centroGreen!.latitud != 0.0 ? widget.hoyo!.centroGreen : cordenadaProvider.cordenada;
+            break;
+          case TipoCoordenada.fondoGreen:
+            coordenadaInicial = widget.hoyo!.fondoGreen!.latitud != 0.0 ? widget.hoyo!.fondoGreen : cordenadaProvider.cordenada;
+            break;
+          case TipoCoordenada.centroHoyo:
+            coordenadaInicial = widget.hoyo!.centroHoyo!.latitud != 0.0 ? widget.hoyo!.centroHoyo : cordenadaProvider.cordenada;
+            break;
+       default:
+         break;
+     }
+     }
   
-   
+     switch (tipo) {
+      
+       default:
+         break;
+     }
 
     await Navigator.push(
       context,

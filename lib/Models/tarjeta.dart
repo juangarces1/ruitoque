@@ -10,6 +10,7 @@ class Tarjeta {
    Jugador? jugador; 
    Campo? campo;
    int? porcentajeHandicap;
+   int handicapPlayer;
    List<EstadisticaHoyo> hoyos; 
    String? teeSalida;
    String? fecha;
@@ -24,6 +25,7 @@ class Tarjeta {
     required this.hoyos,
     this.campo,
     this.porcentajeHandicap,
+    required this.handicapPlayer,
     this.teeSalida,
     this.fecha,
     this.campoNombre,
@@ -106,9 +108,43 @@ class Tarjeta {
     return hoyos.length > mitad ? hoyos.skip(mitad).fold(0, (sum, hoyo) => sum + hoyo.golpes) : 0;
   }
 
-  // int get scoreIda  => hoyos.take(9).fold(0, (total, h) => total + h.golpes);
+  int get totalFairwaysHit => hoyos.where((h) => h.acertoFairway).length;
+  
+  // Total de fallos a la izquierda
+  int get totalFalloFairwayIzquierda => hoyos.where((h) => h.falloFairwayIzquierda).length;
 
+  // Total de fallos a la derecha
+  int get totalFalloFairwayDerecha => hoyos.where((h) => h.falloFairwayDerecha).length;
+  // int get scoreIda  => hoyos.take(9).fold(0, (total, h) => total + h.golpes);
+  int get hoyosConMasDeDosPutts => hoyos.where((h) => h.putts > 2).length;
   // int get scoreVuelta => hoyos.skip(hoyos.length - 9).fold(0, (sum, hoyo) => sum + hoyo.golpes);
+
+   // Número total de greens en regulación
+  int get totalGreensEnRegulacion => hoyos.where((h) => h.alcanzoGreenEnRegulacion).length;
+
+  // Porcentaje de greens en regulación
+  double get porcentajeGreensEnRegulacion {
+    if (hoyos.isEmpty) return 0.0;
+    return (totalGreensEnRegulacion / hoyos.length) * 100;
+  }
+
+   double get promedioPuttsPorHoyo {
+    if (hoyos.isEmpty) return 0.0; // Evitar división por cero
+    return totalPutts / hoyos.length;
+  }
+
+  // Número de veces que se falló el GIR
+  int get fallosEnGIR => hoyos.where((h) => !h.alcanzoGreenEnRegulacion).length;
+
+  // Número de veces que se salvó el par tras fallar el GIR
+  int get salvadasTrasFalloGIR => hoyos.where((h) => !h.alcanzoGreenEnRegulacion && h.salvoElPar).length;
+
+  // Porcentaje de Scrambling
+  double get porcentajeScrambling {
+    if (fallosEnGIR == 0) return 0.0; // Evitar división por cero
+    return (salvadasTrasFalloGIR / fallosEnGIR) * 100;
+  }
+
 
   String get porcentajeAciertoFairway {
     if (hoyos.isEmpty) return '0%';
@@ -116,6 +152,20 @@ class Tarjeta {
     int totalAciertos = hoyos.where((h) => h.acertoFairway).length;
     double porcentaje = (totalAciertos / hoyos.length) * 100;
     return '${porcentaje.toStringAsFixed(0)}%';
+  }
+
+    int get longestShotDistance {
+    int maxDistance = 0;
+    for (var hoyo in hoyos) {
+      if (hoyo.shots != null) {
+        for (var shot in hoyo.shots!) {
+          if (shot.distancia > maxDistance) {
+            maxDistance = shot.distancia;
+          }
+        }
+      }
+    }
+    return maxDistance;
   }
 
  
@@ -130,6 +180,7 @@ class Tarjeta {
       campoNombre:  json['campoNombre'],
       hoyos: (json['hoyos'] as List).map((h) => EstadisticaHoyo.fromJson(h)).toList(),
       teeSalida:  json['teeSalida'],
+      handicapPlayer: json['handicapPlayer']
     );
   }
 
@@ -140,5 +191,6 @@ class Tarjeta {
       //  'jugador': jugador.toJson(),
         'teeSalida' : teeSalida,
         'hoyos': hoyos.map((hoyo) => hoyo.toJson()).toList(),
+        'handicapPlayer' : handicapPlayer
       };
 }
