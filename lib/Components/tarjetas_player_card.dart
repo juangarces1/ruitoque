@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
+import 'package:ruitoque/Models/hoyo_tee.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/tarjeta.dart';
+import 'package:ruitoque/Screens/Tarjetas/mapa_golpes.dart';
 import 'package:ruitoque/Screens/Tarjetas/stats_card.dart';
 import 'package:ruitoque/constans.dart';
 
@@ -41,10 +43,24 @@ class _TarjetaPlayerState extends State<TarjetaPlayer> {
           _crearCuerpoEstadisticas(),
           const Divider(),
           _crearFooter(),
+          //   const Divider(),
+          //  Container(
+          //    padding: const EdgeInsets.symmetric(vertical: 3),
+          //    height: 100,
+          //    child: ListView.builder(
+          //      scrollDirection: Axis.horizontal,
+          //      itemCount: widget.tarjeta.hoyos.length,
+          //      itemBuilder: (BuildContext context, int index) {
+          //        return buildCardShotsMap(widget.tarjeta.hoyos[index], widget.tarjeta.teeSalida!);
+          //      },
+          //    ),
+          //  ),  
         ],
       ),
     );
   }
+
+
 
   Widget _crearHeader() {
     // Header de la tarjeta con el nombre y el handicap
@@ -217,6 +233,30 @@ Widget _crearTablaEstadisticas(String titulo, int inicioHoyo, int finHoyo) {
                    : widget.tarjeta.netoVuelta.toString() ))  , // Título al inicio de la fila
             ],
           ),
+
+          TableRow(
+              children: <Widget>[
+                 Center(child: Text('Mapa', style: styleScore)), // Encabezado de la columna de los botones
+                ...List<Widget>.generate(mitad, (index) {
+                  // Generar botones para cada hoyo
+                  EstadisticaHoyo hoyo = inicioHoyo == 1
+                      ? widget.tarjeta.hoyos[index]
+                      : widget.tarjeta.hoyos[index + mitad];
+                  return Center(
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.golf_course,
+                         color:kPprimaryColor,
+                         size:20,
+                         ),
+                      tooltip: 'Ver mapa del hoyo',
+                      onPressed: () => goHole(hoyo),
+                    ),
+                  );
+                }),
+                const Center(child: Text('')), // Última celda vacía para el total
+              ],
+            ),
 
       
           // Las siguientes filas para handicap, par, score, y neto
@@ -458,9 +498,25 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo){
   }
 }
 
-getTarjeta() {
-  
-
-  
+getTarjeta() { 
 }
+
+  goHole(EstadisticaHoyo estadistica) {
+    HoyoTee? hoyoTee = _encontrarHoyoTeePorColor(estadistica.hoyo.hoyotees!, widget.tarjeta.teeSalida!);
+     Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => MapaGolpes(estadisticaHoyo: estadistica, teeSalida: hoyoTee!,),
+    ),
+  );
+  }
+
+  HoyoTee? _encontrarHoyoTeePorColor(List<HoyoTee> hoyos, String color) {
+    for (var hoyotee in hoyos) {
+      if (hoyotee.color.toLowerCase() == color.toLowerCase()) {
+        return hoyotee;
+      }
+    }
+    return null; // Retorna null si no encuentra ninguna coincidencia
+  }
 }
