@@ -3,5 +3,5 @@
   teeAzules,
   teeBlancas,
   teeAmarillas,
-  teeRojas,
+  teeRojas, 
 }

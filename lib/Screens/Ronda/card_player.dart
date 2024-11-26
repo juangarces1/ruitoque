@@ -36,7 +36,7 @@ class _PlayerCardState extends State<PlayerCard> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
-          elevation: 4,
+          elevation: 5,
           shadowColor: kPprimaryColor,
           child: InkWell(
             onTap: () => widget.onSelected(!widget.isSelected),
