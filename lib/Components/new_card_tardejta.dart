@@ -261,7 +261,7 @@ Widget _crearCuerpoEstadisticas() {
               ),
               TableRow(
                 children: <Widget>[
-                  const Center(child: Text('Handicap')),
+                  const Center(child: Text('Hcp')),
                   ...hoyos.map((hoyo) => Center(child: Text('${hoyo.hoyo.handicap}'))).toList(),
                   const Center(child: Text('')),
                 ],

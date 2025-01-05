@@ -82,7 +82,7 @@ class _MiRondaState extends State<MiRonda> {
                   LayoutBuilder(
                     builder: (BuildContext context, BoxConstraints constraints) {
                       double totalHeight = constraints.maxHeight;
-                      double segundaParteAltura = 210.0;
+                      double segundaParteAltura = 230.0;
                       double primeraParteAltura = totalHeight - segundaParteAltura ;
 
                       return CustomScrollView(
@@ -211,7 +211,7 @@ class _MiRondaState extends State<MiRonda> {
  
   Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
   return SizedBox(
-    width: 180,   
+    width: 200,   
 
     child: Card(
       color: estadistica.golpes == 0

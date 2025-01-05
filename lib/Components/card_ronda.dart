@@ -300,16 +300,56 @@ class _CardRondaState extends State<CardRonda> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'FedeAmigos',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+            Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent, // Fondo del texto
+                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Sombra suave
+                      blurRadius: 8,
+                      offset: const Offset(0, 4), // Desplazamiento de la sombra
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'FedeAmigos',
+                    style: TextStyle(
+                      fontSize: 18, // Tamaño de fuente un poco mayor
+                      fontWeight: FontWeight.bold, // Fuente en negrita
+                      color: Colors.white, // Texto en color blanco para contraste
+                    ),
+                  ),
+                ),
+              ),
           const SizedBox(height: 8),
           // Mostrar puntos por jugador
-          const Text(
-            'Puntos por Jugador',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+             Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color:Colors.purple,
+                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Sombra suave
+                      blurRadius: 8,
+                      offset: const Offset(0, 4), // Desplazamiento de la sombra
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'Puntos por Jugador',
+                    style: TextStyle(
+                      fontSize: 18, // Tamaño de fuente un poco mayor
+                      fontWeight: FontWeight.bold, // Fuente en negrita
+                      color: Colors.white, // Texto en color blanco para contraste
+                    ),
+                  ),
+                ),
+              ),
           ...result.puntosPorJugador.entries.map((entry) {
             return ListTile(
               leading: CircleAvatar(
@@ -323,12 +363,30 @@ class _CardRondaState extends State<CardRonda> {
           }).toList(),
           const SizedBox(height: 8),
           // Mostrar hoyos ganados
-          const Center(
-            child: Text(
-              'Hoyos Ganados',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
+            Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color:Colors.green,
+                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Sombra suave
+                      blurRadius: 8,
+                      offset: const Offset(0, 4), // Desplazamiento de la sombra
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'Hoyos Ganados',
+                    style: TextStyle(
+                      fontSize: 18, // Tamaño de fuente un poco mayor
+                      fontWeight: FontWeight.bold, // Fuente en negrita
+                      color: Colors.white, // Texto en color blanco para contraste
+                    ),
+                  ),
+                ),
+              ),
           ...result.hoyosGanados.map((hoyoGanado) {
             return ListTile(
               leading: CircleAvatar(
@@ -341,24 +399,84 @@ class _CardRondaState extends State<CardRonda> {
             );
           }).toList(),
              const SizedBox(height: 8),
-              const Text(
-              'Posiciones - Ida',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color:Colors.orange,
+                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Sombra suave
+                      blurRadius: 8,
+                      offset: const Offset(0, 4), // Desplazamiento de la sombra
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'Medal - Ida',
+                    style: TextStyle(
+                      fontSize: 18, // Tamaño de fuente un poco mayor
+                      fontWeight: FontWeight.bold, // Fuente en negrita
+                      color: Colors.white, // Texto en color blanco para contraste
+                    ),
+                  ),
+                ),
+              ),
             _crearListaPosiciones(result.posicionesIda),
 
             // Mostrar posiciones de la Vuelta
-            const Text(
-              'Posiciones - Vuelta',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+             Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Sombra suave
+                      blurRadius: 8,
+                      offset: const Offset(0, 4), // Desplazamiento de la sombra
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'Medal - Vuelta',
+                    style: TextStyle(
+                      fontSize: 18, // Tamaño de fuente un poco mayor
+                      fontWeight: FontWeight.bold, // Fuente en negrita
+                      color: Colors.white, // Texto en color blanco para contraste
+                    ),
+                  ),
+                ),
+              ),
             _crearListaPosiciones(result.posicionesVuelta),
 
             // Mostrar posiciones del Total Neto
-            const Text(
-              'Posiciones - Total Neto',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+               Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color:Colors.orange,
+                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // Sombra suave
+                      blurRadius: 8,
+                      offset: const Offset(0, 4), // Desplazamiento de la sombra
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'Medal - Total',
+                    style: TextStyle(
+                      fontSize: 18, // Tamaño de fuente un poco mayor
+                      fontWeight: FontWeight.bold, // Fuente en negrita
+                      color: Colors.white, // Texto en color blanco para contraste
+                    ),
+                  ),
+                ),
+              ),
             _crearListaPosiciones(result.posicionesTotal),
             ],
       ),
