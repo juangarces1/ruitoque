@@ -12,12 +12,12 @@ class EstadisticaHoyo {
    bool acertoFairway;
    bool falloFairwayIzquierda;
    bool falloFairwayDerecha;
-   int? neto;
+  
    List<Shot>? shots;
    int? handicapPlayer;
    String? nombreJugador;
    bool? isMain;
-
+   int? handicapPorcentaje;
 
   EstadisticaHoyo({
     required this.id,
@@ -29,12 +29,12 @@ class EstadisticaHoyo {
     required this.penaltyShots,
     required this.acertoFairway,
     required this.falloFairwayIzquierda,
-    required this.falloFairwayDerecha,
-    this.neto,
+    required this.falloFairwayDerecha,   
     this.shots,
     this.handicapPlayer,
     this.nombreJugador,
     this.isMain,
+    this.handicapPorcentaje,
   });
 
   bool get acertoGreen {
@@ -51,21 +51,36 @@ class EstadisticaHoyo {
     return  golpes - hoyo.par;
   }
 
-   void calcularNetoPorHoyo(Hoyo hoyo, double handicap) {
- 
-    int descuento = 0;
-    int aux = handicapPlayer! - hoyo.handicap!;
-    if (hoyo.handicap! <= handicap) {
-     
-     if (aux > 0 && aux < 18){
-       descuento=1;
-     } 
-     if(aux >= 18){
-        descuento=2;
-     }
+  //make a get field nema handicapAplicado que sea el handicap del jugador multiplicado por el handicapPorcentaje
+  int? get handicapAplicado {
+    if (handicapPlayer != null && handicapPorcentaje != null) {
+      return (handicapPlayer! * handicapPorcentaje!/100).round();
     }
-    neto = golpes - descuento;
+    return null;
   }
+
+   int get neto {
+    // Si no hay handicapAplicado o el hoyo no tiene handicap, devolvemos golpes
+    if (handicapAplicado == null || hoyo.handicap == null) {
+      return golpes;
+    }
+
+    int descuento = 0;
+    int aux = handicapAplicado! - hoyo.handicap!;
+
+    // Si el hoyo entra dentro de los golpes "cubiertos" por el handicap
+    if (hoyo.handicap! <= handicapAplicado!) {
+      if (aux >= 0 && aux < 18) {
+        descuento = 1;
+      } else if (aux >= 18) {
+        descuento = 2;
+      }
+    }
+    return golpes - descuento;
+  }
+
+
+  
 
   bool get salvoElPar {
     return golpes <= hoyo.par;
@@ -92,14 +107,14 @@ class EstadisticaHoyo {
       penaltyShots: json['penaltyShots'],
       acertoFairway: json['acertoFairway'],
       falloFairwayIzquierda: json['falloFairwayIzquierda'],
-      falloFairwayDerecha: json['falloFairwayDerecha'],
-      neto: json['neto'],
+      falloFairwayDerecha: json['falloFairwayDerecha'],     
       shots: json['shots'] != null 
         ? (json['shots'] as List).map((item) => Shot.fromJson(item)).toList() 
         : [], // Li
         handicapPlayer: json['handicapPlayer'] ?? 0  ,
       nombreJugador: json['nombreJugador'],
       isMain: json['isMain'],  
+      handicapPorcentaje: json['handicapPorcentaje'] ?? 0.0,
     );
   }
 
@@ -120,6 +135,7 @@ class EstadisticaHoyo {
       'handicapPlayer' : handicapPlayer,
       'nombreJugador' : nombreJugador,
       'isMain' : isMain,
+      'handicapPorcentaje' : handicapPorcentaje,
     };
   }
 }

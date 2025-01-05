@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:ruitoque/Components/custom_header.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Components/new_card_tardejta.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
@@ -41,14 +42,18 @@ class _MiRondaState extends State<MiRonda> {
   get jugadoresSeleccionados => null;
 
   @override
+
+
   void initState() {
     super.initState();
       _ronda=widget.ronda;
     _ronda.id ==0 ? _goSave() : _goRefresh();
      jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;   
      isCreator = jugador.id == _ronda.creatorId ? true: false;
-     myTarjeta =  _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);
-     _ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
+     myTarjeta =  _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);    
+      setState(() {
+      _ronda.calcularYAsignarPosiciones();
+     });
   }  
 
   @override
@@ -61,61 +66,13 @@ class _MiRondaState extends State<MiRonda> {
         child: Column(
           children: [
             // Barra superior personalizada
-            Container(
-              height: 60,
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-                decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/fondoHome.webp'), // Aquí va la imagen que quieres
-                fit: BoxFit.cover, // Ajusta la imagen para que cubra todo el AppBar
-              ),),
-              child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center, // Alineación vertical
-                  children: [
-                    // Botón de Regresar
-                    CircleAvatar(
-                      backgroundColor:kPcontrastMoradoColor,
-                      radius: 20, // Define un radio fijo
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color:  Colors.white),
-                        onPressed: _confirmBack,
-                        iconSize: 20, // Tamaño del icono
-                      ),
-                    ),
-                    const SizedBox(width: 10), // Espacio entre los botones y el texto
-                    // Texto Expandido
-                    Expanded(
-                      child: Text(
-                        _ronda.campo.nombre,
-                        style: kTextStyleNegroRobotoSize20,
-                        overflow: TextOverflow.ellipsis, // Muestra puntos suspensivos si el texto es muy largo
-                        maxLines: 1, // Limita el texto a una línea
-                        softWrap: false, // Evita el salto de línea
-                      ),
-                    ),
-                    const SizedBox(width: 10), // Espacio entre el texto y el botón de guardar
-                    // Botón de Guardar
-                 isCreator ?   CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 20,
-                      child: IconButton(
-                        icon: const Icon(Icons.save, color:kPcontrastMoradoColor),
-                        onPressed: _confirmSave,
-                        iconSize: 20,
-                      ),
-                    ) :
-                     CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 20,
-                      child: IconButton(
-                        icon: const Icon(Icons.refresh, color:kPcontrastMoradoColor),
-                        onPressed: _goRefresh,
-                        iconSize: 20,
-                      ),
-                    ) ,
-                  ],
-                ),
-            ),
+          CustomHeader(
+            title: _ronda.campo.nombre,
+            onBack: _confirmBack,
+            onSave: _confirmSave,
+            onRefresh: _goRefresh,
+            isCreator: isCreator,
+          ),
           const SizedBox(height: 12,),
          
             Expanded(
@@ -125,7 +82,7 @@ class _MiRondaState extends State<MiRonda> {
                   LayoutBuilder(
                     builder: (BuildContext context, BoxConstraints constraints) {
                       double totalHeight = constraints.maxHeight;
-                      double segundaParteAltura = 260.0;
+                      double segundaParteAltura = 210.0;
                       double primeraParteAltura = totalHeight - segundaParteAltura ;
 
                       return CustomScrollView(
@@ -254,7 +211,7 @@ class _MiRondaState extends State<MiRonda> {
  
   Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
   return SizedBox(
-    width: 200,   
+    width: 180,   
 
     child: Card(
       color: estadistica.golpes == 0
@@ -274,31 +231,16 @@ class _MiRondaState extends State<MiRonda> {
               title: Text(
                 'Hoyo: ${estadistica.hoyo.numero.toString()}',
                 style: const TextStyle(
-                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+               subtitle: Text(
+                'Par: ${estadistica.hoyo.par.toString()}',
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
               ),
               trailing: const Icon(Icons.golf_course, color: Colors.white),
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: SizedBox(
-                child: Text(
-                  'Par: ${estadistica.hoyo.par.toString()}  --  Golpes: ${estadistica.golpes.toString()}',
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-           
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: SizedBox(
-                child: Text(
-                  'Putts: ${estadistica.putts.toString()}',
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
+          
             const SizedBox(height: 3),
             estadistica.shots != null && estadistica.shots!.isNotEmpty
                 ? SizedBox(
@@ -337,10 +279,7 @@ class _MiRondaState extends State<MiRonda> {
                                           deleteShot(estadistica.id, shot);
                                           Navigator.of(context).pop(); // Cerrar el diálogo
                                           // Opcional: Mostrar un SnackBar de confirmación
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(
-                                                content: Text('Golpe eliminado.')),
-                                          );
+                                          
                                         },
                                       ),
                                     ],
@@ -478,7 +417,7 @@ class _MiRondaState extends State<MiRonda> {
         onGuardar: (List<EstadisticaHoyo> estadisticasGuardadas) {
           setState(() {
             for (int i = 0; i < _ronda.tarjetas.length; i++) {
-               estadisticasGuardadas[i].calcularNetoPorHoyo(estadisticasGuardadas[i].hoyo, _ronda.tarjetas[i].jugador!.handicap!*1);
+             //  estadisticasGuardadas[i].calcularNetoPorHoyo(estadisticasGuardadas[i].hoyo, _ronda.tarjetas[i].jugador!.handicap!*1);
               _ronda.tarjetas[i].hoyos = _ronda.tarjetas[i].hoyos.map((hoyo) {
                 if (hoyo.hoyoId == hoyoId) {
                   return estadisticasGuardadas[i];
@@ -486,7 +425,9 @@ class _MiRondaState extends State<MiRonda> {
                 return hoyo;
               }).toList();
             }
-             _ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
+             _ronda.calcularYAsignarPosiciones();
+
+              myTarjeta = _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);
             
           });
            _goUpdateRonda();
@@ -567,7 +508,7 @@ class _MiRondaState extends State<MiRonda> {
         setState(() {
           _ronda = response.result;
            myTarjeta =  _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);
-            _ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
+            _ronda.calcularYAsignarPosiciones();
         });
       }
     

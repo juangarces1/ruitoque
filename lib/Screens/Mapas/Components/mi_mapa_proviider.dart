@@ -155,23 +155,85 @@ class MiMapaProvider extends ChangeNotifier {
     return Offset(adjustedX, adjustedY);
   }
 
-  Future<void> _crearMarcadorPersonalizado() async {
-    BitmapDescriptor iconoPersonalizado = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(), 'assets/newMarker.png');
+ Future<void> _crearMarcadorPersonalizado() async {
+  BitmapDescriptor iconoPersonalizado = await BitmapDescriptor.fromAssetImage(
+    const ImageConfiguration(), 
+    'assets/newMarker.png'
+  );
 
-    Marker markerPersonalizado = Marker(
-      markerId: const MarkerId('puntoMedio'),
-      position: isEnterScreen ? puntoMedio : puntoB,
-      draggable: true,
-      icon: iconoPersonalizado,
-      anchor: const Offset(0.5, 0.5),
-      onDragEnd: (newPosition) {
-        isEnterScreen
-            ? _updatePolyline(puntoA, newPosition, puntoB)
-            : _updatePolyline(puntoA, puntoMedio, newPosition);
+  // Si isEnterScreen = true, el marcador va en el puntoMedio, 
+  // si es false, va en puntoB (centro del green).
+  LatLng markerPosition = isEnterScreen ? puntoMedio : puntoB;
+
+  Marker markerPersonalizado = Marker(
+    markerId: const MarkerId('marcadorPrincipal'),
+    position: markerPosition,
+    draggable: true, // Siempre draggable, sin importar si esEnterScreen
+    icon: iconoPersonalizado,
+    anchor: const Offset(0.5, 0.5),
+    onDragEnd: (newPosition) {
+      // Si esEnterScreen es true, el marcador representa el punto medio original
+      // y la polyline es entre A, medio, B:
+        if (isEnterScreen) {
+          _updatePolyline(puntoA, newPosition, puntoB);
+        } else {
+          // Si esEnterScreen es false, ya estamos en la fase donde solo hay una línea 
+          // de A (tu posición) a B (centro green). Aquí, al arrastrar el marcador 
+          // cambias la posición de puntoB al nuevo punto arrastrado.
+          puntoB = newPosition;
+
+          // Actualizamos la polilínea para que sea desde puntoA a este newPosition
+          polylines.clear();
+          polylines.add(
+            Polyline(
+              polylineId: const PolylineId('mi_polyline'),
+              points: [puntoA, puntoB],
+              width: 2,
+              color: Colors.white,
+            ),
+          );
+           makerA = _calcularPuntoMedio(puntoA, puntoB);
+          // Recalculamos las distancias con la nueva posición del marcador
+          Position nuevaPosicion = Position(
+            longitude: puntoB.longitude,
+            latitude: puntoB.latitude,
+            timestamp: DateTime.now(),
+            accuracy: 1,
+            altitude: 0,
+            heading: 0.0,
+            speed: 0.0,
+            altitudeAccuracy: 10, 
+            headingAccuracy: 0.0, 
+            speedAccuracy: 0.0
+          );
+
+          // Recalcular distancias de línea (puntoA a puntoB)
+          _calculateDistancesLineaAfterGolpe(
+            Position(
+              longitude: puntoA.longitude,
+              latitude: puntoA.latitude,
+              timestamp: DateTime.now(),
+              accuracy: 1,
+              altitude: 0,
+              heading: 0.0,
+              speed: 0.0,
+              altitudeAccuracy: 10, 
+              headingAccuracy: 0.0, 
+              speedAccuracy: 0.0
+            ),
+            nuevaPosicion
+          );
+
+          // Recalcular distancias a frente, centro y fondo del green 
+          // en base a la ubicación actual del usuario
+          calculateDistances();
+          
+          notifyListeners();
+        }
       },
     );
 
+    markers.clear();
     markers.add(markerPersonalizado);
     notifyListeners();
   }
@@ -213,9 +275,9 @@ class MiMapaProvider extends ChangeNotifier {
         altitude: 0,
         heading: 0.0,
         speed: 0.0,
-         altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+        altitudeAccuracy: 10, 
+        headingAccuracy: 0.0, 
+        speedAccuracy: 0.0
       );
 
       _calculateDistancesLinea(auxMedio);
@@ -266,6 +328,7 @@ class MiMapaProvider extends ChangeNotifier {
       _calculateDistancesLineaAfterGolpe(auxInicio, auxFin);
 
       // Actualiza la polilínea
+      markers.clear();
       polylines.clear();
       polylines.add(
         Polyline(
@@ -489,7 +552,22 @@ class MiMapaProvider extends ChangeNotifier {
     }
 
     // Obtener la posición actual
-    Position position = await _geolocatorPlatform.getCurrentPosition();
+      Position position = await _geolocatorPlatform.getCurrentPosition();
+
+   //     7.025030, -73.084319
+
+    // Position position = Position(
+    //   latitude: 7.025030,
+    //     longitude: -73.084319,
+    //     timestamp: DateTime.now(),
+    //     accuracy: 1,
+    //     altitude: 0,
+    //     heading: 0.0,
+    //     speed: 0.0,
+    //      altitudeAccuracy: 10, 
+    //   headingAccuracy: 0.0, 
+    //   speedAccuracy: 0.0
+    // );
 
     LatLng puntoActual = LatLng(position.latitude, position.longitude);
 
@@ -537,16 +615,34 @@ class MiMapaProvider extends ChangeNotifier {
   }
 
   void _afterGrabarGolpe(Position position) {
+     // Actualizamos el puntoA a la nueva posición (donde se realizó el último shot)
     puntoA = LatLng(position.latitude, position.longitude);
     // El puntoB o de fin es la coordenada del centro del green al que vamos
     puntoB = LatLng(
         hoyo.hoyo.centroGreen!.latitud, hoyo.hoyo.centroGreen!.longitud);
     // El punto medio es la coordenada del centro del hoyo
-    puntoMedio = LatLng(
-        hoyo.hoyo.centroHoyo!.latitud, hoyo.hoyo.centroHoyo!.longitud);
+    // puntoMedio = LatLng(
+    //     hoyo.hoyo.centroHoyo!.latitud, hoyo.hoyo.centroHoyo!.longitud);
 
     // Calculamos los puntos de los markers
-    makerA = _calcularPuntoMedio(puntoA, puntoB);
+
+     makerA = _calcularPuntoMedio(puntoA, puntoB);
+    Position fin =  Position(
+      longitude: hoyo.hoyo.centroGreen!.longitud,
+      latitude: hoyo.hoyo.centroGreen!.latitud,
+      timestamp: DateTime.now(),
+      accuracy: 1,
+      altitude: 0,
+      heading: 0.0,
+      speed: 0.0,
+      altitudeAccuracy: 10, 
+      headingAccuracy: 0.0, 
+      speedAccuracy: 0.0
+    );
+
+    _calculateDistancesLineaAfterGolpe(position,fin );
+   
+     
 
     polylines.clear();
     markers.clear();
@@ -561,11 +657,13 @@ class MiMapaProvider extends ChangeNotifier {
       ),
     );
 
+     isEnterScreen = false; 
+
     // Creamos el marcador
     _crearMarcadorPersonalizado();
 
     // Calculamos las distancias de las líneas
-    _calculateDistancesLinea(position);
+   
 
     // Calculamos las distancias a frente, centro y fondo del green
     calculateDistances();

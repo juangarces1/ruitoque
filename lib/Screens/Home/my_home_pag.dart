@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_jugador.dart';
+import 'package:ruitoque/Components/golf_score_card.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
@@ -191,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         },
                                       ),
                                     ) : UnirseARondaCard(onTap:  obtenerRondasIncompletas),
-                            
+                          
                           ],
                         )),
 

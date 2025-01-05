@@ -121,6 +121,9 @@ class _MisRondasScreenState extends State<MisRondasScreen> {
   
       setState(() {
        rondas = response.result;
+       for (var i = 0; i < rondas.length; i++) {
+        rondas[i].calcularYAsignarPosiciones();
+       }
      });
     
 

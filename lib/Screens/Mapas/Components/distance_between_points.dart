@@ -1,5 +1,3 @@
-// distance_between_points_widget.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Screens/Mapas/Components/mi_mapa_proviider.dart';
@@ -56,3 +54,6 @@ class DistanceBetweenPointsWidget extends StatelessWidget {
     );
   }
 }
+
+
+

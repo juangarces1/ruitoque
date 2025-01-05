@@ -27,6 +27,7 @@ class SelectCampoScreenState extends State<SelectCampoScreen> {
   String _seleccionado = '';
   late Campo campoSeleccionado;
   bool _isCampoSeleccionadoInitialized = false;
+  int handicapPorcentaje = 0;
 
   @override
   void initState() {
@@ -183,9 +184,11 @@ class SelectCampoScreenState extends State<SelectCampoScreen> {
             const SizedBox(height: 20),
             const Padding(
               padding: EdgeInsets.all(8.0),
-              child: Text(
-                'Tee de Salida:',
-                style: kTextStyleBlancoNuevaFuente20,
+              child: Center(
+                child: Text(
+                  'Tee de Salida:',
+                  style: kTextStyleBlancoNuevaFuente20,
+                ),
               ),
             ),
             Padding(
@@ -216,6 +219,44 @@ class SelectCampoScreenState extends State<SelectCampoScreen> {
                 ),
               ),
             ),
+            //crea un campo control para el porcentaje de handicap que sea algo mas facil de manejar que un textbox 
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Center(
+                child: Text(
+                  'Porcentaje de Handicap:',
+                  style: kTextStyleBlancoNuevaFuente20,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Container(
+              padding: const EdgeInsets.all(8),
+              height: 100,
+              decoration: BoxDecoration(
+                gradient: kPrimaryGradientColor,
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: CupertinoPicker(
+                magnification: 1.2,
+                diameterRatio: 1.1,
+                backgroundColor: Colors.white,
+                itemExtent: 32.0,
+                onSelectedItemChanged: (int index) {
+                setState(() {
+                  handicapPorcentaje = 100 - (index * 5);
+                });
+                },
+                children: List<Widget>.generate(21, (int index) {
+                return Center(
+                  child: Text('${100 - (index * 5)}%'),
+                );
+                }),
+              ),
+              ),
+            ),
             const SizedBox(height: 5),
             Center(
               child: DefaultButton(
@@ -225,11 +266,16 @@ class SelectCampoScreenState extends State<SelectCampoScreen> {
                   textAlign: TextAlign.center,
                 ),
                 press: () {
+                  if(handicapPorcentaje == 0){
+                    mostrarSnackBar(context, 'Por favor, seleccione el porcentaje de Handicap.');
+                    return;
+                  }
                   if (_isCampoSeleccionadoInitialized) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => SelectPlayersScreen(
+                          porcentajeHandicap: handicapPorcentaje,
                           campoSeleccionado: campoSeleccionado,
                           teeSeleccionado: _seleccionado,
                         ),

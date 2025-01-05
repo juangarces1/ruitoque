@@ -13,6 +13,7 @@ class Ronda {
    DateTime fecha;
    List<Tarjeta> tarjetas; // Asegúrate de que tienes una clase 'Tarjeta' definida en Dart.
    Campo campo; // Asegúrate de que tienes una clase 'Campo' definida en Dart.
+   int? handicapPorcentaje;
    int? campoId;
    bool isComplete;
    int? creatorId;
@@ -25,12 +26,14 @@ class Ronda {
     required this.fecha,
     required this.tarjetas,
     required this.campo,
+    required this.handicapPorcentaje,
     this.campoId,
     required this.isComplete,
     this.creatorId,
     this.skins,
     this.stablefordResult,
     this.fedeAmigosResult,
+    
   });
 
   factory Ronda.fromJson(Map<String, dynamic> json) {
@@ -41,7 +44,8 @@ class Ronda {
       campo: Campo.fromJson(json['campo']),
       campoId: json['campoId'],
       isComplete: json['isComplete'],
-       creatorId: json['creatorId'],
+      creatorId: json['creatorId'],
+      handicapPorcentaje: json['handicapPorcentaje'],
     );
   }
 
@@ -52,7 +56,8 @@ class Ronda {
        // 'campo': campo.toJson(),
         'campoId': campoId,
         'isComplete': isComplete,
-         'creatorId': creatorId,
+        'creatorId': creatorId,
+        'handicapPorcentaje': handicapPorcentaje,
       };
 
     void calcularSkins() {     
@@ -83,7 +88,7 @@ class Ronda {
         EstadisticaHoyo estadistica = tarjeta.hoyos[i];
         // Asegurarse de que el jugador y el neto estén disponibles
         if (tarjeta.jugador != null) {
-          int diferencia = estadistica.neto! - estadistica.hoyo.par;
+          int diferencia = estadistica.neto - estadistica.hoyo.par;
           int puntos = _asignarPuntosStableford(diferencia);
           puntosHoyo.add(MapEntry(tarjeta.jugador!, puntos));
 
@@ -151,8 +156,8 @@ class Ronda {
       for (Tarjeta tarjeta in tarjetas) {
         EstadisticaHoyo estadistica = tarjeta.hoyos[i];
         // Asegurarse de que el jugador y el neto estén disponibles
-        if (tarjeta.jugador != null && estadistica.neto != null) {
-          puntajesPorHoyo.add(MapEntry(tarjeta.jugador!, estadistica.neto!));
+        if (tarjeta.jugador != null) {
+          puntajesPorHoyo.add(MapEntry(tarjeta.jugador!, estadistica.neto));
         }
       }
 
@@ -214,13 +219,8 @@ class Ronda {
       for (Tarjeta tarjeta in tarjetas) {
         if (tarjeta.jugador != null) {
           EstadisticaHoyo hoyo = tarjeta.hoyos[i];
-          if (hoyo.neto != null) {
-            netScores[tarjeta.jugador!] = hoyo.neto!;
-          } else {
-            // Si neto es nulo, asignar un puntaje alto para efectos del desempate
-            netScores[tarjeta.jugador!] = 9999;
-          }
-        }
+          netScores[tarjeta.jugador!] = hoyo.neto;
+                }
       }
 
       // Encontrar el puntaje neto mínimo
@@ -276,13 +276,8 @@ class Ronda {
       for (Tarjeta tarjeta in tarjetas) {
         if (tarjeta.jugador != null && tiedPlayers.contains(tarjeta.jugador)) {
           EstadisticaHoyo hoyo = tarjeta.hoyos[nextHoleIndex];
-          if (hoyo.neto != null) {
-            netScoresNextHole[tarjeta.jugador!] = hoyo.neto!;
-          } else {
-            // Asignar un puntaje alto si neto es nulo
-            netScoresNextHole[tarjeta.jugador!] = 9999;
-          }
-        }
+          netScoresNextHole[tarjeta.jugador!] = hoyo.neto;
+                }
       }
 
       // Encontrar el puntaje neto mínimo entre los jugadores empatados
@@ -375,6 +370,25 @@ class Ronda {
     return posiciones;
   }
   
+  void calcularYAsignarPosiciones() {
+  // Ordenar tarjetas por scorePar
+    tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
+
+    int posicionActual = 1;
+
+    for (int i = 0; i < tarjetas.length; i++) {
+      if (i > 0 && tarjetas[i].scorePar == tarjetas[i - 1].scorePar) {
+        // Misma posición para empates
+        tarjetas[i].asignarPosicion(posicionActual);
+      } else {
+        // Nueva posición
+        posicionActual = i + 1;
+        tarjetas[i].asignarPosicion(posicionActual);
+      }
+    }
+  }
+
+
 }
 
   

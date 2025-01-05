@@ -7,8 +7,9 @@ import 'package:ruitoque/constans.dart';
 class NewTarjetaCard extends StatefulWidget {
   final Tarjeta tarjeta;
   final Future<void> Function() onSave;
-   final Future<void> Function() onBack;
-  const NewTarjetaCard({super.key, required this.tarjeta, required this.onSave, required this.onBack});
+  final Future<void> Function() onBack;
+  final VoidCallback? onEnterScores;
+  const NewTarjetaCard({super.key, required this.tarjeta, required this.onSave, required this.onBack,  this.onEnterScores});
 
   @override
   State<NewTarjetaCard> createState() => _NewTarjetaCardState();
@@ -26,14 +27,19 @@ class _NewTarjetaCardState extends State<NewTarjetaCard> {
    @override
   Widget build(BuildContext context) {
     return Card(
+      color: const Color(0xFF1E3A5F), // Un azul oscuro para parecerse al diseño
       margin:  const EdgeInsets.symmetric(horizontal: 12, vertical: 3 ),
       elevation: 4.0,
       child: ExpansionTile(
+        collapsedIconColor: const Color.fromARGB(255, 31, 141, 192),
+         iconColor: Colors.white,
         title: _crearHeader(),
         children: <Widget>[
           const Divider(),
           _crearCuerpoEstadisticas(),
-          const Divider(),
+          Container(
+            color: Colors.white,
+            child: const Divider()),
           _crearFooter(),
         ],
       ),
@@ -41,58 +47,156 @@ class _NewTarjetaCardState extends State<NewTarjetaCard> {
   }
 
   Widget _crearHeader() {
-    // Header de la tarjeta con el nombre y el handicap
-    TextStyle textStyle = const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black);
-    TextStyle textStyleRed = const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red);
-    return  Padding(
-      padding: const EdgeInsets.all(8.0),
+ 
+    return   Container(
+    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+    width: double.infinity,
+    decoration: BoxDecoration(
+     
+      borderRadius: BorderRadius.circular(5.0),
+    ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: [
-                  Text( widget.tarjeta.jugador!.nombre , style: textStyle),
-                ],
+        children: [
+          // Columna izquierda (Hoyo y par/distancia)
+
+           Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                widget.tarjeta.posicion.toString(), // Número de hoyo
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              Row(
-                children: [
-                  Text('HCP ${widget.tarjeta.handicapPlayer}', style : textStyle),
-                ],
-      
-              ),
-      
-      
-      
+              const SizedBox(height: 4),
+               widget.onEnterScores != null ?  IconButton(
+                     icon: const Icon(Icons.score,),
+                     iconSize: 30,
+                     color: Colors.white,
+                     onPressed: widget.onEnterScores,
+                   ) : Container(),
             ],
           ),
-           Column(
-               crossAxisAlignment: CrossAxisAlignment.end,
-             children: [
-               Row(
-                children: <Widget>[
-                  Text('Score: ', style: textStyle,),
-                  Text(widget.tarjeta.puntuacionTotal.toString(), style: textStyle,),
-                  const SizedBox(width: 8),
+      
+          // Columna central (Nombre y jugada)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+               Text(
+                widget.tarjeta.jugador!.nombre,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Línea tipo “1 2 3 4 FOR BIRDIE”
+              Row(
+                children: [
                  
-                  const SizedBox(width: 8),
-                  // Aquí agregarías los botones o iconos para cambiar idioma/pantalla
-                ],
-                         ),
-                          Row(
-                    children: [
-                      Text('Score Par: ', style: textStyle,),
-                      Text(widget.tarjeta.scoreParString, style:  widget.tarjeta.scorePar < 0 ? textStyleRed : textStyle),
-                    ],
+                 
+                   Text(
+                    'HCP ${widget.tarjeta.handicapPlayer}', // Handicap
+                    style: const TextStyle(
+                      color: Colors.lightBlueAccent,
+                      fontSize: 16,
+                    ),
                   ),
-             ],
-           ),
+                ],
+              ),
+            ],
+          ),
+      
+          // Columna derecha (Posición y score)
+           Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const Text(
+                'Par',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.tarjeta.scoreParString, // Score
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          
         ],
       ),
     );
   }
+
+  //  Widget _crearHeader() {
+  //   // Header de la tarjeta con el nombre y el handicap
+  //   TextStyle textStyle = const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black);
+  //   TextStyle textStyleRed = const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red);
+  //   return  Padding(
+  //     padding: const EdgeInsets.all(8.0),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: <Widget>[
+  //         Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: <Widget>[
+  //             Row(
+  //               children: [
+  //                 Text( widget.tarjeta.jugador!.nombre , style: textStyle),
+  //               widget.onEnterScores != null ?  IconButton(
+  //                   icon: const Icon(Icons.score),
+  //                   color: Colors.blueAccent,
+  //                   onPressed: widget.onEnterScores,
+  //                 ) : Container(),
+  //               ],
+  //             ),
+  //             Row(
+  //               children: [
+  //                 Text('HCP ${widget.tarjeta.handicapPlayer}', style : textStyle),
+  //               ],
+      
+  //             ),
+      
+      
+      
+  //           ],
+  //         ),
+  //          Column(
+  //              crossAxisAlignment: CrossAxisAlignment.end,
+  //            children: [
+  //              Row(
+  //               children: <Widget>[
+  //                 Text('Score: ', style: textStyle,),
+  //                 Text(widget.tarjeta.puntuacionTotal.toString(), style: textStyle,),
+  //                 const SizedBox(width: 8),
+                 
+  //                 const SizedBox(width: 8),
+  //                 // Aquí agregarías los botones o iconos para cambiar idioma/pantalla
+  //               ],
+  //                        ),
+  //                         Row(
+  //                   children: [
+  //                     Text('Score Par: ', style: textStyle,),
+  //                     Text(widget.tarjeta.scoreParString, style:  widget.tarjeta.scorePar < 0 ? textStyleRed : textStyle),
+  //                   ],
+  //                 ),
+  //            ],
+  //          ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
 Widget _crearCuerpoEstadisticas() {
     List<EstadisticaHoyo> idaHoyos = [];
@@ -112,11 +216,14 @@ Widget _crearCuerpoEstadisticas() {
       vueltaHoyos = widget.tarjeta.hoyos.sublist(mitad, totalHoyos);
     }
 
-    return Column(
-      children: [
-        _crearTablaEstadisticas('Ida', idaHoyos, 0),
-        _crearTablaEstadisticas('Vuelta', vueltaHoyos, vueltaHoyos.length),
-      ],
+    return Container(
+     color: Colors.white,
+      child: Column(
+        children: [
+          _crearTablaEstadisticas('Ida', idaHoyos, 0),
+          _crearTablaEstadisticas('Vuelta', vueltaHoyos, vueltaHoyos.length),
+        ],
+      ),
     );
   }
 
@@ -133,89 +240,86 @@ Widget _crearCuerpoEstadisticas() {
     }
     columnWidths[hoyos.length + 1] = const FixedColumnWidth(50);
 
-    return Column(
-      children: [
-        Table(
-          columnWidths: columnWidths,
-          children: [
-            TableRow(
-              decoration: const BoxDecoration(
-                color: Colors.green,
-              ),
-              children: <Widget>[
-                Center(child: Text('Hoyo', style: styleFirstRow)),
-                ...List<Widget>.generate(hoyos.length, (index) {
-                  return Center(child: Text('${index + 1 + cantHoyos}', style: styleFirstRow));
-                }),
-                Center(child: Text(titulo, style: styleFirstRow)),
-              ],
-            ),
-            TableRow(
-              children: <Widget>[
-                const Center(child: Text('Handicap')),
-                ...hoyos.map((hoyo) => Center(child: Text('${hoyo.hoyo.handicap}'))).toList(),
-                const Center(child: Text('')),
-              ],
-            ),
-            TableRow(
-              children: <Widget>[
-                const Center(child: Text('Par')),
-                ...hoyos.map((hoyo) => Center(child: Text('${hoyo.hoyo.par}'))).toList(),
-                Center(child: Text(computeTotalPar(hoyos).toString())),
-              ],
-            ),
-            TableRow(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  child: Center(child: Text('Score', style: styleScore)),
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Table(
+            columnWidths: columnWidths,
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(
+                  color: Colors.green,
                 ),
-                ...hoyos.map((hoyo) => celdaTarjeta(hoyo.pontajeVsPar, hoyo.golpes)).toList(),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  child: Center(
-                    child: Text(
-                      computeTotalScore(hoyos) == 0 ? '' : computeTotalScore(hoyos).toString(),
-                      style: styleScore,
+                children: <Widget>[
+                  Center(child: Text('Hoyo', style: styleFirstRow)),
+                  ...List<Widget>.generate(hoyos.length, (index) {
+                    return Center(child: Text('${index + 1 + cantHoyos}', style: styleFirstRow));
+                  }),
+                  Center(child: Text(titulo, style: styleFirstRow)),
+                ],
+              ),
+              TableRow(
+                children: <Widget>[
+                  const Center(child: Text('Handicap')),
+                  ...hoyos.map((hoyo) => Center(child: Text('${hoyo.hoyo.handicap}'))).toList(),
+                  const Center(child: Text('')),
+                ],
+              ),
+              TableRow(
+                children: <Widget>[
+                  const Center(child: Text('Par')),
+                  ...hoyos.map((hoyo) => Center(child: Text('${hoyo.hoyo.par}'))).toList(),
+                  Center(child: Text(
+                    titulo == 'Ida' ? widget.tarjeta.parIda.toString() : widget.tarjeta.parVuelta.toString(),
+                    
+                        style: styleScore,
+                    )),
+                ],
+              ),
+              TableRow(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    child: Center(child: Text('Score', style: styleScore)),
+                  ),
+                  ...hoyos.map((hoyo) => celdaTarjeta(hoyo.pontajeVsPar, hoyo.golpes)).toList(),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    child: Center(
+                      child: Text(
+                      titulo == 'Ida' ? widget.tarjeta.scoreIda == 0 ? '' : widget.tarjeta.scoreIda.toString()
+                      : widget.tarjeta.scoreVuelta == 0 ? '' : widget.tarjeta.scoreVuelta.toString(),
+                        style: styleScore,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            TableRow(
-              children: <Widget>[
-                const Center(child: Text('Neto')),
-                ...hoyos.map((hoyo) => calcularNeto(hoyo)).toList(),
-                Center(
-                  child: Text(
-                    computeTotalNeto(hoyos) == 0 ? '' : computeTotalNeto(hoyos).toString(),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+                ],
+              ),
+              TableRow(
+                children: <Widget>[
+                  const Center(child: Text('Neto')),
+                  ...hoyos.map((hoyo) => calcularNeto(hoyo)).toList(),
+                  Center(
+                    child: Text(
+                    //  computeTotalNeto(hoyos) == 0 ? '' : computeTotalNeto(hoyos).toString(),
+                       titulo == 'Ida' ? widget.tarjeta.netoIda == 0 ? '' : widget.tarjeta.netoIda.toString()
+                      : widget.tarjeta.netoVuelta == 0 ? '' : widget.tarjeta.netoVuelta.toString(),
+                        style: styleScore,
+                      ),
+                    ),
+                  
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-   int computeTotalPar(List<EstadisticaHoyo> hoyos) {
-    return hoyos.fold(0, (sum, estadisticaHoyo) => sum + estadisticaHoyo.hoyo.par);
-  }
-
-  int computeTotalScore(List<EstadisticaHoyo> hoyos) {
-    return hoyos.fold(0, (sum, estadisticaHoyo) => sum + estadisticaHoyo.golpes);
-  }
-
-int computeTotalNeto(List<EstadisticaHoyo> hoyos) {
-  // if (hoyos.contains(null)) {
-  //   hoyos = hoyos.where((hoyo) => hoyo != null).toList();
-  // }
-  return hoyos.fold(0, (sum, estadisticaHoyo) => sum + (estadisticaHoyo.neto ?? 0));
-}
-
 Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
-  if (estadisticaHoyo.golpes == 0 || estadisticaHoyo.neto == null) {
+  if (estadisticaHoyo.golpes == 0) {
     return const Text('');
   }
   return Center(child: Text(estadisticaHoyo.neto.toString()));
@@ -344,9 +448,10 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
   Widget _crearFooter() {
     // Footer de la tarjeta con acciones como 'Me gusta', 'Comentar', 'Estadísticas'
    
-    TextStyle textStyle = const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+    TextStyle textStyle = const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white);
+    return Container(
+       padding: const EdgeInsets.symmetric(vertical: 8.0),
+       color: const Color(0xFF1E3A5F),
       child: Column(
         children: [
          Row(
@@ -361,7 +466,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
                          const Divider(thickness: 2,),
                        
        
-
+            
         ],
       ),
     );
@@ -377,12 +482,7 @@ Widget calcularNeto(EstadisticaHoyo estadisticaHoyo) {
   }
 
 
-
- 
-
 getTarjeta() {
-  
-
-  
+    
 }
 }

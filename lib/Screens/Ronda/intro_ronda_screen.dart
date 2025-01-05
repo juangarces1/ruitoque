@@ -386,6 +386,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
     campoId: campoSeleccionado.id,
     isComplete: false,
     creatorId: jugador.id,
+    handicapPorcentaje: 100,
   );
 
  
