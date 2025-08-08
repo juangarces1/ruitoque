@@ -98,8 +98,8 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
         title: 'Iniciar Ronda',
         automaticallyImplyLeading: true,   
         backgroundColor: kPprimaryColor,
-        elevation: 8.0,
-        shadowColor: const Color.fromARGB(255, 2, 44, 68),
+         elevation: 4.5,
+          shadowColor: Colors.red,
         foreColor: Colors.white,
          actions: [ Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),

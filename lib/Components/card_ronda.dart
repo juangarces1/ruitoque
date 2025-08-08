@@ -1,11 +1,12 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:ruitoque/Components/new_card_tardejta.dart';
 import 'package:ruitoque/Models/fede_amigos.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/skin.dart';
 import 'package:ruitoque/Models/stable_ford_hoyo.dart';
+import 'package:ruitoque/Screens/Ronda/ronda_rapida.dart';
 import 'package:ruitoque/constans.dart';
 
 class CardRonda extends StatefulWidget {
@@ -28,264 +29,231 @@ class _CardRondaState extends State<CardRonda> {
   @override
   Widget build(BuildContext context) {
     widget.ronda.tarjetas.sort((a, b) => a.scorePar.compareTo(b.scorePar));
+
     return Card(
-      shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+      color: const Color.fromARGB(255, 32, 32, 32),
       margin: const EdgeInsets.all(12.0),
       elevation: 4.0,
-      child: Column(
-        children: <Widget>[
-          _crearHeader(),
-          const Divider(),
-          // Remove Expanded and LayoutBuilder
-          // Directly include ListView.builder with proper constraints
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: widget.ronda.tarjetas.length,
-            itemBuilder: (BuildContext context, int index) {
-              return NewTarjetaCard(
-                tarjeta: widget.ronda.tarjetas[index],
-                onSave: _confirmBack,
-                onBack: _confirmBack,
-              );
-            },
+      child: Stack(
+        children: [
+          // CONTENIDO
+          Padding(
+            padding: const EdgeInsets.only(bottom: 76), // espacio para el SpeedDial
+            child: Column(
+              children: <Widget>[
+                _crearHeader(),
+                const SizedBox(height: 8),
+
+                // Tarjetas
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: widget.ronda.tarjetas.length,
+                  itemBuilder: (_, index) {
+                    return NewTarjetaCard(
+                      tarjeta: widget.ronda.tarjetas[index],
+                      onSave: _confirmBack,
+                      onBack: _confirmBack,
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 8),
+
+                // Secciones dinámicas
+                if (mostrarSkins) _crearSkinsSection(),
+                if (mostrarStableford) _crearStablefordSection(),
+                if (mostrarfedeAmigos) _crearFedeAmigosSection(),
+
+                
+              ],
+            ),
           ),
-  
-         
-            const SizedBox(height: 8),
-          
-            _crearBotonesCalculo(),
-            const SizedBox(height: 8),
-            if (mostrarSkins) _crearSkinsSection(),
-            if (mostrarStableford) _crearStablefordSection(),
-            if (mostrarfedeAmigos) _crearFedeAmigosSection(),
+
+          // SPEED DIAL (posicionado sobre el Card)
+          Positioned(
+            right: 18,
+            bottom: 12,
+            child: _buildSpeedDial(context),
+          ),
         ],
       ),
     );
   }
 
-
-   Widget _crearBotonesCalculo() {
-    return Column(
+  // ---------- SpeedDial dentro del Card ----------
+  Widget _buildSpeedDial(BuildContext context) {
+    return SpeedDial(
+      heroTag: 'sd_ronda_${widget.ronda.id}', // único por si hay varios Cards
+      icon: Icons.menu,
+      activeIcon: Icons.close,
+      backgroundColor: kPprimaryColor,
+      foregroundColor: Colors.white,
+      animationDuration: const Duration(milliseconds: 220),
+      overlayOpacity: 0.0, // sin overlay para no ensuciar el card
+      spacing: 6,
+      childPadding: const EdgeInsets.all(6),
+      shape: const StadiumBorder(),
+      direction: SpeedDialDirection.up,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Botón para Skins
-            ElevatedButton(
-              onPressed: _toggleSkins,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: mostrarSkins ? Colors.red : Colors.blue,
-              ),
-              child: Text(mostrarSkins ? 'Hide Skins' : 'Show Skins', style: kTextStyleBlancoNuevaFuente20,),
-            ),
-            // Botón para Stableford
-            ElevatedButton(
-              onPressed: _toggleStableford,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: mostrarStableford ? Colors.red : Colors.green,
-              ),
-              child: Text(mostrarStableford ? 'Hide Stableford' : 'Show Stableford',  style: kTextStyleBlancoNuevaFuente20,),
-            ),
-        
-          
-          ],
+        // Skins
+        SpeedDialChild(
+          label: mostrarSkins ? 'Ocultar Skins' : 'Ver Skins',
+          child: Icon(mostrarSkins ? Icons.visibility_off : Icons.visibility),
+          backgroundColor: Colors.blueAccent,
+          onTap: _toggleSkins,
         ),
-         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Botón para Skins
-          
-             ElevatedButton(
-               style: ElevatedButton.styleFrom(
-                backgroundColor: mostrarfedeAmigos ? Colors.red : const Color.fromARGB(255, 62, 14, 129),
-              ),
-              onPressed: _toggleFedeAmigos,
-              child: Text(mostrarfedeAmigos ? 'Hide FedeAmigos' : 'Show FedeAmigos', style: kTextStyleBlancoNuevaFuente20,),
-            ),
-          ],
+        // Stableford
+        SpeedDialChild(
+          label: mostrarStableford ? 'Ocultar Stableford' : 'Ver Stableford',
+          child: Icon(mostrarStableford ? Icons.visibility_off : Icons.visibility),
+          backgroundColor: Colors.teal,
+          onTap: _toggleStableford,
+        ),
+        // FedeAmigos
+        SpeedDialChild(
+          label: mostrarfedeAmigos ? 'Ocultar FedeAmigos' : 'Ver FedeAmigos',
+          child: Icon(mostrarfedeAmigos ? Icons.visibility_off : Icons.visibility),
+          backgroundColor: Colors.purple,
+          onTap: _toggleFedeAmigos,
+        ),
+        // Detalle (navegación)
+        SpeedDialChild(
+          label: 'Detalle de Ronda',
+          child: const Icon(Icons.info_outline ),
+          backgroundColor: Colors.amber,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => RondaRapida(
+                ronda: widget.ronda
+                , ruta: 'MisRondas',
+                )),
+            );
+          },
         ),
       ],
     );
   }
 
-   void _toggleFedeAmigos() {
-    if (!mostrarfedeAmigos) {
-      // Si las skins no se han calculado aún, calcular primero
-      if (!fedeAmigosCalculado) {
-        widget.ronda.calcularFedeAmigos();
-        fedeAmigosCalculado = true;
-      }
-      setState(() {
-        mostrarfedeAmigos = true;
-      });
-    } else {
-      // Ocultar la sección de skins
-      setState(() {
-        mostrarfedeAmigos = false;
-      });
+  // ---------- Toggles ----------
+  void _toggleFedeAmigos() {
+    if (!mostrarfedeAmigos && !fedeAmigosCalculado) {
+      widget.ronda.calcularFedeAmigos();
+      fedeAmigosCalculado = true;
     }
+    setState(() => mostrarfedeAmigos = !mostrarfedeAmigos);
   }
 
-   void _toggleSkins() {
-    if (!mostrarSkins) {
-      // Si las skins no se han calculado aún, calcular primero
-      if (!skinsCalculados) {
-        widget.ronda.calcularSkins();
-        skinsCalculados = true;
-      }
-      setState(() {
-        mostrarSkins = true;
-      });
-    } else {
-      // Ocultar la sección de skins
-      setState(() {
-        mostrarSkins = false;
-      });
+  void _toggleSkins() {
+    if (!mostrarSkins && !skinsCalculados) {
+      widget.ronda.calcularSkins();
+      skinsCalculados = true;
     }
+    setState(() => mostrarSkins = !mostrarSkins);
   }
 
   void _toggleStableford() {
-    if (!mostrarStableford) {
-      // Si Stableford no se ha calculado aún, calcular primero
-      if (!stablefordCalculado) {
-        widget.ronda.calcularStableford();
-        stablefordCalculado = true;
-      }
-      setState(() {
-        mostrarStableford = true;
-      });
-    } else {
-      // Ocultar la sección de Stableford
-      setState(() {
-        mostrarStableford = false;
-      });
+    if (!mostrarStableford && !stablefordCalculado) {
+      widget.ronda.calcularStableford();
+      stablefordCalculado = true;
     }
+    setState(() => mostrarStableford = !mostrarStableford);
   }
 
-    Widget _crearStablefordSection() {
-    if (widget.ronda.stablefordResult == null || widget.ronda.stablefordResult!.puntosPorHoyo.isEmpty) {
+  // ---------- Header ----------
+  Widget _crearHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      decoration: const BoxDecoration(
+        gradient: kGradientHomeReverse,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Expanded(
+              child: Text(
+                widget.ronda.campo.nombre,
+                style: kTextStyleBlancoRobotoSize20Normal,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ]),
+          const SizedBox(height: 6),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text(widget.ronda.fecha.toString().substring(0, 10),
+                style: kTextStyleBlancoRobotoSize20Normal),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmBack() async {}
+
+  // ---------- Secciones ----------
+  Widget _crearStablefordSection() {
+    if (widget.ronda.stablefordResult == null ||
+        widget.ronda.stablefordResult!.puntosPorHoyo.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(8.0),
         child: Text('No se han asignado puntos Stableford para esta ronda.'),
       );
     }
 
-    // Agrupar los puntos por hoyo
-    Map<int, List<StablefordHoyo>> puntosPorHoyoMap = {};
-    for (StablefordHoyo punto in widget.ronda.stablefordResult!.puntosPorHoyo) {
+    final Map<int, List<StablefordHoyo>> puntosPorHoyoMap = {};
+    for (final punto in widget.ronda.stablefordResult!.puntosPorHoyo) {
       puntosPorHoyoMap.putIfAbsent(punto.holeNumber, () => []).add(punto);
     }
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Stableford',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Stableford', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        const Text('Puntos Totales por Jugador', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        SizedBox(
+          height: 200,
+          child: ListView(
+            children: widget.ronda.stablefordResult!.puntosTotalesPorJugador.entries.map((e) {
+              final Jugador j = e.key;
+              final int puntos = e.value;
+              return ListTile(
+                leading: CircleAvatar(backgroundColor: Colors.blue, foregroundColor: Colors.white, child: Text(j.nombre[0])),
+                title: Text(j.nombre),
+                trailing: Text('Puntos: $puntos', style: const TextStyle(fontSize: 15, color: Colors.black, fontWeight: FontWeight.bold)),
+              );
+            }).toList(),
           ),
-          const SizedBox(height: 8),
-          // Tabla de Puntos Totales por Jugador
-          const Text(
-            'Puntos Totales por Jugador',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        const Text('Puntos por Hoyo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        SizedBox(
+          height: 300,
+          child: ListView(
+            children: puntosPorHoyoMap.entries.map((entry) {
+              final int holeNumber = entry.key;
+              final puntos = entry.value;
+              return ExpansionTile(
+                title: Text('Hoyo $holeNumber'),
+                children: puntos.map((p) {
+                  return ListTile(
+                    leading: CircleAvatar(backgroundColor: Colors.orange, foregroundColor: Colors.white, child: Text(p.jugador.nombre[0])),
+                    title: Text(p.jugador.nombre),
+                    trailing: Text('Puntos: ${p.puntos}'),
+                  );
+                }).toList(),
+              );
+            }).toList(),
           ),
-          SizedBox(
-            height: 200, // Ajusta la altura según tus necesidades
-            child: ListView(
-              children: widget.ronda.stablefordResult!.puntosTotalesPorJugador.entries.map((entry) {
-                Jugador jugador = entry.key;
-                int puntos = entry.value;
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    child: Text(jugador.nombre[0]),
-                  ),
-                  title: Text(jugador.nombre),
-                  trailing: Text('Puntos: $puntos', style: const TextStyle(fontSize: 15, color: Colors.black, fontWeight: FontWeight.bold),),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Tabla de Puntos por Hoyo
-          const Text(
-            'Puntos por Hoyo',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(
-            height: 300, // Ajusta la altura según tus necesidades
-            child: ListView(
-              children: puntosPorHoyoMap.entries.map((entry) {
-                int holeNumber = entry.key;
-                List<StablefordHoyo> puntos = entry.value;
-                return ExpansionTile(
-                  title: Text('Hoyo $holeNumber'),
-                  children: puntos.map((punto) {
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        child: Text(punto.jugador.nombre[0]),
-                      ),
-                      title: Text(punto.jugador.nombre),
-                      trailing: Text('Puntos: ${punto.puntos}'),
-                    );
-                  }).toList(),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 
-    Widget _crearHeader() {
-
-    return  Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-     decoration: const BoxDecoration(
-      gradient: kGradientHomeReverse,
-      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
-     ),
-      child: Column(
-       
-        children: [
-           
-           Center(
-             child: Row(
-               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                       
-                 Text('Campo: ${widget.ronda.campo.nombre}', style : kTextStyleBlancoNuevaFuente20),
-              ],),
-           ),
-            
-              Center(
-                child: Row(
-                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                Text('Fecha: ${widget.ronda.fecha.toString().substring(0,10)}', style : kTextStyleBlancoNuevaFuente20),
-                
-                            ],),
-              ),
-        
-        ],
-      ),
-    );
-  }
-
-  Future<void> _confirmBack() async {
-  }
-
-   Widget _crearFedeAmigosSection() {
+  Widget _crearFedeAmigosSection() {
     if (widget.ronda.fedeAmigosResult == null) {
       return const Padding(
         padding: EdgeInsets.all(8.0),
@@ -293,255 +261,97 @@ class _CardRondaState extends State<CardRonda> {
       );
     }
 
-    FedeAmigosResult result = widget.ronda.fedeAmigosResult!;
-
+    final FedeAmigosResult result = widget.ronda.fedeAmigosResult!;
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-            Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent, // Fondo del texto
-                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2), // Sombra suave
-                      blurRadius: 8,
-                      offset: const Offset(0, 4), // Desplazamiento de la sombra
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'FedeAmigos',
-                    style: TextStyle(
-                      fontSize: 18, // Tamaño de fuente un poco mayor
-                      fontWeight: FontWeight.bold, // Fuente en negrita
-                      color: Colors.white, // Texto en color blanco para contraste
-                    ),
-                  ),
-                ),
-              ),
-          const SizedBox(height: 8),
-          // Mostrar puntos por jugador
-             Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                  color:Colors.purple,
-                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2), // Sombra suave
-                      blurRadius: 8,
-                      offset: const Offset(0, 4), // Desplazamiento de la sombra
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Puntos por Jugador',
-                    style: TextStyle(
-                      fontSize: 18, // Tamaño de fuente un poco mayor
-                      fontWeight: FontWeight.bold, // Fuente en negrita
-                      color: Colors.white, // Texto en color blanco para contraste
-                    ),
-                  ),
-                ),
-              ),
-          ...result.puntosPorJugador.entries.map((entry) {
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.purple,
-                foregroundColor: Colors.white,
-                child: Text(entry.key.nombre[0],style: kTextStyleBlancoNuevaFuente20, ),
-              ),
-              title: Text(entry.key.nombre,style: kTextStyleNegroRobotoSize20, ),
-              trailing: Text('Puntos: ${entry.value.toStringAsFixed(2)}',style: kTextStyleNegroRobotoSize20, ),
-            );
-          }).toList(),
-          const SizedBox(height: 8),
-          // Mostrar hoyos ganados
-            Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                  color:Colors.green,
-                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2), // Sombra suave
-                      blurRadius: 8,
-                      offset: const Offset(0, 4), // Desplazamiento de la sombra
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Hoyos Ganados',
-                    style: TextStyle(
-                      fontSize: 18, // Tamaño de fuente un poco mayor
-                      fontWeight: FontWeight.bold, // Fuente en negrita
-                      color: Colors.white, // Texto en color blanco para contraste
-                    ),
-                  ),
-                ),
-              ),
-          ...result.hoyosGanados.map((hoyoGanado) {
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                child: Text(hoyoGanado.holeNumber.toString(),style: kTextStyleBlancoNuevaFuente20, ),
-              ),
-              title: Text('Hoyo ${hoyoGanado.holeNumber}',style: kTextStyleNegroRobotoSize20, ),
-              subtitle: Text(hoyoGanado.ganador.nombre,style: kTextStyleNegroRobotoSize20, ),
-            );
-          }).toList(),
-             const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                  color:Colors.orange,
-                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2), // Sombra suave
-                      blurRadius: 8,
-                      offset: const Offset(0, 4), // Desplazamiento de la sombra
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Medal - Ida',
-                    style: TextStyle(
-                      fontSize: 18, // Tamaño de fuente un poco mayor
-                      fontWeight: FontWeight.bold, // Fuente en negrita
-                      color: Colors.white, // Texto en color blanco para contraste
-                    ),
-                  ),
-                ),
-              ),
-            _crearListaPosiciones(result.posicionesIda),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _chip('FedeAmigos', Colors.blueAccent),
+        const SizedBox(height: 8),
+        _chip('Puntos por Jugador', Colors.purple),
+        ...result.puntosPorJugador.entries.map((entry) {
+          return ListTile(
+            leading: const CircleAvatar(backgroundColor: Colors.purple, foregroundColor: Colors.white, child: Icon(Icons.person)),
+            title: Text(entry.key.nombre, style: kTextStyleBlancoNuevaFuente20),
+            trailing: Text('Puntos: ${entry.value.toStringAsFixed(2)}', style: kTextStyleBlancoNuevaFuente20),
+          );
+        }).toList(),
+        const SizedBox(height: 8),
+        _chip('Hoyos Ganados', Colors.green),
+        ...result.hoyosGanados.map((hg) {
+          return ListTile(
+            leading: CircleAvatar(backgroundColor: Colors.green, foregroundColor: Colors.white, child: Text(hg.holeNumber.toString(), style: kTextStyleNegroRobotoSize20)),
+            title: Text('Hoyo ${hg.holeNumber}', style: kTextStyleBlancoNuevaFuente20),
+            subtitle: Text(hg.ganador.nombre, style: kTextStyleBlancoNuevaFuente20),
+          );
+        }).toList(),
+        const SizedBox(height: 8),
+        _chip('Medal - Ida', Colors.orange),
+        _crearListaPosiciones(result.posicionesIda),
+        _chip('Medal - Vuelta', Colors.orange),
+        _crearListaPosiciones(result.posicionesVuelta),
+        _chip('Medal - Total', Colors.orange),
+        _crearListaPosiciones(result.posicionesTotal),
+      ]),
+    );
+  }
 
-            // Mostrar posiciones de la Vuelta
-             Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.orange,
-                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2), // Sombra suave
-                      blurRadius: 8,
-                      offset: const Offset(0, 4), // Desplazamiento de la sombra
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Medal - Vuelta',
-                    style: TextStyle(
-                      fontSize: 18, // Tamaño de fuente un poco mayor
-                      fontWeight: FontWeight.bold, // Fuente en negrita
-                      color: Colors.white, // Texto en color blanco para contraste
-                    ),
-                  ),
-                ),
-              ),
-            _crearListaPosiciones(result.posicionesVuelta),
-
-            // Mostrar posiciones del Total Neto
-               Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                  color:Colors.orange,
-                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2), // Sombra suave
-                      blurRadius: 8,
-                      offset: const Offset(0, 4), // Desplazamiento de la sombra
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Medal - Total',
-                    style: TextStyle(
-                      fontSize: 18, // Tamaño de fuente un poco mayor
-                      fontWeight: FontWeight.bold, // Fuente en negrita
-                      color: Colors.white, // Texto en color blanco para contraste
-                    ),
-                  ),
-                ),
-              ),
-            _crearListaPosiciones(result.posicionesTotal),
-            ],
-      ),
+  Widget _chip(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12), boxShadow: [
+        BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4)),
+      ]),
+      child: Center(child: Text(text, style: kTextStyleNegroRobotoSize20)),
     );
   }
 
   Widget _crearListaPosiciones(List<PosicionCategoria> posiciones) {
-  return ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: posiciones.length,
-    itemBuilder: (context, index) {
-      PosicionCategoria posicion = posiciones[index];
-      String jugadoresTexto = posicion.jugadores.map((j) => j.nombre).join(', ');
-      return ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.orange,
-          foregroundColor: Colors.white,
-          child: Text('${posicion.posicion}°',style: kTextStyleBlancoNuevaFuente20, ),
-        ),
-        title: Text('Posición ${posicion.posicion}',style: kTextStyleNegroRobotoSize20, ),
-        subtitle: Text('Jugadores: $jugadoresTexto',style: kTextStyleNegroRobotoSize20, ),
-      );
-    },
-  );
-}
- 
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: posiciones.length,
+      itemBuilder: (context, index) {
+        final p = posiciones[index];
+        final jugadoresTexto = p.jugadores.map((j) => j.nombre).join(', ');
+        return ListTile(
+          leading: CircleAvatar(backgroundColor: Colors.orange, foregroundColor: Colors.white, child: Text('${p.posicion}°', style: kTextStyleNegroRobotoSize20)),
+          title: Text('Posición ${p.posicion}', style: kTextStyleBlancoNuevaFuente20),
+          subtitle: Text('Jugadores: $jugadoresTexto', style: kTextStyleBlancoNuevaFuente20),
+        );
+      },
+    );
+  }
 
-   Widget _crearSkinsSection() {
+  Widget _crearSkinsSection() {
     if (widget.ronda.skins!.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(8.0),
         child: Text('No se han asignado skins para esta ronda.'),
       );
     }
-    TextStyle textStyle =  const TextStyle(fontSize: 15, fontWeight: FontWeight.w600);
+    const textStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.w600);
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Skins',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+      child: Container(
+        color: Colors.white,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Skins', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.ronda.skins!.length,
             itemBuilder: (context, index) {
-              Skin skin = widget.ronda.skins![index];
+              final Skin skin = widget.ronda.skins![index];
               return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  child: Text(skin.holeNumber.toString(), style: kTextStyleBlancoNuevaFuente20,),
-                ),
-                title: Text('Hoyo ${skin.holeNumber}', style:  textStyle,),
-                subtitle: Text('Ganador: ${skin.ganador.nombre}', style:  textStyle,),
-                trailing: Text('Score Neto: ${skin.scoreNeto}', style:  textStyle,),
+                leading: CircleAvatar(backgroundColor: Colors.green, foregroundColor: Colors.white, child: Text(skin.holeNumber.toString(), style: kTextStyleBlancoRobotoSize20Normal)),
+                title: const Text('Hoyo', style: textStyle),
+                subtitle: Text('Ganador: ${skin.ganador.nombre}', style: textStyle),
+                trailing: Text('Neto: ${skin.scoreNeto}', style: textStyle),
               );
             },
           ),
-        ],
+        ]),
       ),
     );
   }

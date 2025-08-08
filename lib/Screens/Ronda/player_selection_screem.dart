@@ -63,7 +63,7 @@ class PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
         title:'Seleccione un Jugador',
           automaticallyImplyLeading: true,   
           backgroundColor: const Color.fromARGB(255, 41, 18, 45),
-          elevation: 8.0,
+          elevation: 4.0,
           shadowColor: Colors.blueGrey,
           foreColor: Colors.white,
           actions: [ 

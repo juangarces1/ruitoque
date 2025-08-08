@@ -33,22 +33,29 @@ class Hoyo {
   });
 
  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'frenteGreen': frenteGreen?.toJson(),
-      'centroGreen': centroGreen?.toJson(),
-      'fondoGreen': fondoGreen?.toJson(),
-      'centroHoyo': centroHoyo?.toJson(),
-    
-      'numero': numero,
-      'nombre': nombre,
-      'par': par,
-      'campoId': campoId,
-      'handicap': handicap,
-      'hoyotees': hoyotees?.map((hoyoTee) => hoyoTee.toJson()).toList() ?? [],
-      
-    };
-  }
+  final data = <String, dynamic>{
+    'id'      : id,
+    'numero'  : numero,
+    'nombre'  : nombre,
+    'par'     : par,
+    'campoId' : campoId,
+    'handicap': handicap,
+  };
+
+  // coordenadas del green (solo si existen)
+  if (frenteGreen != null) data['frenteGreen'] = frenteGreen!.toJson();
+  if (centroGreen  != null) data['centroGreen']  = centroGreen!.toJson();
+  if (fondoGreen   != null) data['fondoGreen']   = fondoGreen!.toJson();
+  if (centroHoyo   != null) data['centroHoyo']   = centroHoyo!.toJson();
+
+  // hoyoTees: lista - si viene nula o vacía → array vacío
+  data['hoyotees'] = (hoyotees?.isNotEmpty ?? false)
+      ? hoyotees!.map((e) => e.toJson()).toList()
+      : <Map<String, dynamic>>[];
+
+  return data;
+}
+
 
   // Método fromJson
    factory Hoyo.fromJson(Map<String, dynamic> json) {

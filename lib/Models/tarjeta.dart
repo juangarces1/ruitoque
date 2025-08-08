@@ -41,7 +41,7 @@ class Tarjeta {
 
   int get gross => puntuacionTotal;
 
-  int get neto => puntuacionTotal - (jugador?.handicap ?? 0);
+  int get neto => puntuacionTotal - (handicapPlayer);
 
   /// NUEVO: netoIda solo cuenta hoyos con golpes > 0 en la primera mitad
   int get netoIda {
@@ -165,6 +165,22 @@ class Tarjeta {
     return maxDistance;
   }
 
+   /// Calcula la mitad “entera” del handicap (descartando decimales)
+  int get _handicapHalfFloor => handicapPlayer ~/ 2;
+
+  /// Calcula la otra mitad (incluye el +1 si el handicap es impar)
+  int get _handicapHalfCeil => (handicapPlayer + 1) ~/ 2;
+
+  /// Neto simple total = gross – handicap completo
+  int get netoSimpleTotal => gross - handicapPlayer;
+
+  /// Neto simple Ida = scoreIda – *primera* mitad del handicap
+  /// (por convención suele usarse la parte “ceil” en los primeros 9 hoyos)
+  int get netoSimpleIda => scoreIda - _handicapHalfCeil;
+
+  /// Neto simple Vuelta = scoreVuelta – *segunda* mitad del handicap
+  int get netoSimpleVuelta => scoreVuelta - _handicapHalfFloor;
+
   factory Tarjeta.fromJson(Map<String, dynamic> json) {
     return Tarjeta(
       id: json['id'],
@@ -192,5 +208,26 @@ class Tarjeta {
 
     void asignarPosicion(int nuevaPosicion) {
     posicion = nuevaPosicion;
+  }
+
+  /// Cambia el handicap del jugador **y** actualiza instantáneamente
+/// todos los hoyos para mantenerlos sincronizados.
+void actualizarHandicapJugador(int nuevoHcp,) {
+  handicapPlayer    = nuevoHcp;
+ 
+
+  // Aplica porcentaje (90 %, 100 %, etc.)
+  
+
+  for (final h in hoyos) {
+     h.handicapPlayer      = nuevoHcp;
+    
+  }
+}
+
+  
+  @override
+  String toString() {
+    return 'Tarjeta(id: $id, jugadorId: $jugadorId, rondaId: $rondaId, handicapPlayer: $handicapPlayer, hoyos: $hoyos)';
   }
 }

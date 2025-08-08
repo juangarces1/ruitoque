@@ -46,9 +46,12 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.3.10
   flutter_spinkit: ^5.2.1
-  fluttertoast: ^8.2.8
+  fluttertoast: ^8.2.12
   curved_navigation_bar: ^1.0.6
-  
+  pull_to_refresh_flutter3: ^2.0.2
+  flutter_typeahead: ^5.2.0
+  intl: ^0.19.0
+  flutter_speed_dial: ^7.0.0
 
 flutter_icons:
   android: true 

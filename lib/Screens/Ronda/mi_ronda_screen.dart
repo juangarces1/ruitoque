@@ -8,6 +8,7 @@ import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Components/new_card_tardejta.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
+import 'package:ruitoque/Models/Request%20Dtos/create_ronda_request.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Models/jugador.dart';
@@ -520,10 +521,10 @@ class _MiRondaState extends State<MiRonda> {
     setState(() {
      showLoader = true;
    });
-   
-    Map<String, dynamic> ronda = _ronda.toJson();
 
-    Response response = await ApiHelper.post('api/Rondas/', ronda);   
+  
+    
+    Response response = await ApiHelper.post('api/Rondas/', _ronda.toJson());   
 
     setState(() {
       showLoader=false;
@@ -634,12 +635,7 @@ class _MiRondaState extends State<MiRonda> {
   }
 
   goHome() {
-       Navigator.pushReplacement(
-        context, 
-        MaterialPageRoute(
-          builder: (context) => const MyHomePage(),
-        ),                   
-      );
+      Navigator.popUntil(context, (route) => route.isFirst);
     } 
 
   Future<void> _confirmBack() async {

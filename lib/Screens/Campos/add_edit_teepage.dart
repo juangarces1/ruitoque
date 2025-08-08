@@ -56,8 +56,8 @@ class AddEditTeePageState extends State<AddEditTeePage> {
         title: widget.tee == null ? 'Agregar Tee' : 'Editar Tees',
         automaticallyImplyLeading: true,   
         backgroundColor: kPprimaryColor,
-        elevation: 8.0,
-        shadowColor: const Color.fromARGB(255, 207, 214, 218),
+        elevation: 4.5,
+          shadowColor: Colors.red,
         foreColor: Colors.white,
         
       ),

@@ -46,8 +46,8 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
         title: 'Editar Campo',
         automaticallyImplyLeading: true,   
         backgroundColor: kPprimaryColor,
-        elevation: 8.0,
-        shadowColor: const Color.fromARGB(255, 207, 214, 218),
+       elevation: 4.5,
+          shadowColor: Colors.red,
         foreColor: Colors.white,
          actions: [ Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -261,17 +261,14 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
   
 goEditCampo() {
   if (campoSeleccionado != null) {
-      Navigator.pushAndRemoveUntil(
+      Navigator.push(
            context, 
           MaterialPageRoute(
             builder: (context) => AddCourseScreen(campo: campoSeleccionado),
-          ), 
-          (Route<dynamic> route) => false, // Esto elimina todas las rutas anteriores
+          ),          
         );
     } else {
       mostrarSnackBar(context, 'Por favor, seleccione un campo antes de editar.');
     }
   }
-
-  
-}
+ }

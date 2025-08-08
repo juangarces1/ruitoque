@@ -50,8 +50,8 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
         title: widget.hoyoTee == null ? "Agregar Tee" : "Editar Tee",
         automaticallyImplyLeading: true,   
         backgroundColor: kPprimaryColor,
-        elevation: 8.0,
-        shadowColor: const Color.fromARGB(255, 207, 214, 218),
+       elevation: 4.5,
+          shadowColor: Colors.red,
         foreColor: Colors.white,
          actions: [ Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -206,6 +206,7 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
           cordenada: cordenadaActual,
           color: selectedTee!.color,
           distancia: int.parse(distanciaController.text),
+          cordenadaId: 0,
         );
         widget.onAddHoyoTee(hoyoTee);
       

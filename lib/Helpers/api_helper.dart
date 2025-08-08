@@ -54,32 +54,54 @@ class ApiHelper {
 
   
 
-     static Future<Response> getRondasAbiertas(int id) async {
-      var url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRondasAbiertaByPlayer/$id');
-      var response = await http.get(url);
+  static Future<Response> getRondasAbiertas(int id) async {
+  final url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRondasAbiertaByPlayer/$id');
+  final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        List<Ronda> rondas = data.map((json) => Ronda.fromJson(json)).toList();
-        return Response(isSuccess: true, result: rondas);
-      } else {
-        return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas');
-      }
-    }
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    final List<Ronda> rondas = data.map((json) => Ronda.fromJson(json)).toList();
+    return Response(isSuccess: true, result: rondas);
+  } else if (response.statusCode == 204) {
+    // No Content: simplemente regresa lista vacía, no es error.
+    return Response(isSuccess: true, result: <Ronda>[]);
+  } else {
+    return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas: ${response.statusCode}');
+  }
+}
 
     
-     static Future<Response> getRondasTerminadas(int id) async {
-      var url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRondaTerminadasByPlayer/$id');
-      var response = await http.get(url);
+    static Future<Response> getFinishedRoundsByPlayer({
+  required int playerId,
+  required int page,
+  int pageSize = 5,
+}) async {
+  final base = Constans.getAPIUrl();
+  final uri  = Uri.parse(
+    '$base/api/rondas/GetRondaTerminadasByPlayer/$playerId'
+    '?page=$page&pageSize=$pageSize',
+  );
 
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        List<Ronda> rondas = data.map((json) => Ronda.fromJson(json)).toList();
-        return Response(isSuccess: true, result: rondas);
-      } else {
-        return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas');
-      }
+  try {
+    final resp = await http.get(uri, headers: {'Accept': 'application/json'});
+
+    if (resp.statusCode == 204) {
+      return Response(isSuccess: true, result: <Ronda>[], totalCount: 0);
     }
+    if (resp.statusCode != 200) {
+      return Response(isSuccess: false, message: 'Error ${resp.statusCode}');
+    }
+
+    final total = int.tryParse(resp.headers['x-total-count'] ?? '') ?? 0;
+    final list  = (jsonDecode(resp.body) as List)
+        .map((e) => Ronda.fromJson(e))
+        .toList();
+
+    return Response(isSuccess: true, result: list, totalCount: total);
+  } catch (e) {
+    return Response(isSuccess: false, message: e.toString());
+  }
+}
   
  static Future<Response> post(String controller, Map<String, dynamic> request) async {        
     var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
@@ -160,39 +182,44 @@ class ApiHelper {
     
  } 
 
- static Future<Response> getTarjetasById(String id) async {  
-     var url = Uri.parse('${Constans.getAPIUrl()}/api/Tarjetas/GetTarjetasByPlayer/$id');
-     try {
-        var response = await http.get(
-          url,
-          headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-          },
-        );
-      
-         // Check for 200 OK response
-           var body = response.body;
-            if (response.statusCode >= 400) {
-              return Response(isSuccess: false, message: body);
-            }
-           
-            var decodedJson = jsonDecode(body);
-             
-            
-             
-               return Response(isSuccess: true, result: Jugador.fromJson(decodedJson));  
-                       
-          
-            
+static Future<Response> getTarjetasById(
+  String id, {
+  int page = 1,
+  int pageSize = 5,
+}) async {
+  // Construye la URL con query parameters ?page=&pageSize=
+  var url = Uri.parse(
+    '${Constans.getAPIUrl()}/api/Tarjetas/GetTarjetasByPlayer/$id?page=$page&pageSize=$pageSize',
+  );
 
-      } catch (e) {
-        // Catch any other errors, like JSON parsing errors
-       
-        return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-      }
-    
- } 
+  try {
+    var response = await http.get(
+      url,
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+      },
+    );
+
+    var body = response.body;
+    if (response.statusCode >= 400) {
+      return Response(isSuccess: false, message: body);
+    }
+
+    var decodedJson = jsonDecode(body);
+
+    return Response(
+      isSuccess: true,
+      result: Jugador.fromJson(decodedJson),
+    );
+
+  } catch (e) {
+    return Response(
+      isSuccess: false,
+      message: "Exception: ${e.toString()}",
+    );
+  }
+}
 
  static Future<Response> put(String controller, Map<String, dynamic> request) async {        
     var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
@@ -281,4 +308,23 @@ class ApiHelper {
     
  } 
  
+static Future<Response> delete(String controller) async {
+    final url = Uri.parse('${Constans.getAPIUrl()}$controller');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode >= 400) {
+        return Response(isSuccess: false, message: response.body);
+      }
+      return Response(isSuccess: true, result: response.body);
+    } catch (e) {
+      return Response(isSuccess: false, message: 'Error: $e');
+    }
+  }
+
  } 

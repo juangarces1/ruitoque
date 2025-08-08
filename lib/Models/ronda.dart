@@ -17,6 +17,7 @@ class Ronda {
    int? campoId;
    bool isComplete;
    int? creatorId;
+   int? torneoId;
    List<Skin>? skins = [];
    StablefordResult? stablefordResult; 
    FedeAmigosResult? fedeAmigosResult;
@@ -33,7 +34,7 @@ class Ronda {
     this.skins,
     this.stablefordResult,
     this.fedeAmigosResult,
-    
+    this.torneoId,
   });
 
   factory Ronda.fromJson(Map<String, dynamic> json) {
@@ -46,6 +47,7 @@ class Ronda {
       isComplete: json['isComplete'],
       creatorId: json['creatorId'],
       handicapPorcentaje: json['handicapPorcentaje'],
+      torneoId: 1,
     );
   }
 
@@ -58,6 +60,7 @@ class Ronda {
         'isComplete': isComplete,
         'creatorId': creatorId,
         'handicapPorcentaje': handicapPorcentaje,
+        'torneoId': torneoId,
       };
 
     void calcularSkins() {     
@@ -309,13 +312,13 @@ class Ronda {
       if (tarjeta.jugador != null) {
         int netScore;
         if (category == 'netIda') {
-          netScore = tarjeta.netoIda ?? 0;
+          netScore = tarjeta.netoSimpleIda;
         } else if (category == 'netVuelta') {
-          netScore = tarjeta.netoVuelta ?? 0;
+          netScore = tarjeta.netoSimpleVuelta;
         } else if (category == 'totalNeto') {
-          netScore = tarjeta.totalNeto;
+          netScore = tarjeta.netoSimpleTotal;
         } else {
-          netScore = 0;
+          netScore = 999;
         }
         netScores[tarjeta.jugador!] = netScore;
       }
@@ -390,6 +393,7 @@ class Ronda {
 
 
 }
+
 
   
 

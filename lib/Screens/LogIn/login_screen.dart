@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(                
                 decoration: const BoxDecoration(
                        image: DecorationImage(
-                        image: AssetImage('assets/fondoHome.webp'),
+                        image: AssetImage('assets/Fondo.png'),
                         fit: BoxFit.fill, // Ajusta la imagen para que cubra el área de 4:3
                       ),),
                 child: Padding(
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Padding(
       padding: const EdgeInsets.only(left: 30, right: 30, bottom: 5),
       child: CheckboxListTile(
-        title:   Text('Recuerdame', style: myHeadingStyleBlack ),
+        title:   Text('Recuerdame', style: mySubHeadingStyleWhite ),
         value: _rememberme,
         onChanged: (value) {  
           setState(() {

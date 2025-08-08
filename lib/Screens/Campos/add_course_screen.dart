@@ -57,8 +57,8 @@ class AddCourseScreenState extends State<AddCourseScreen> {
           title: widget.campo == null ? 'Agregar Campo' : 'Editar Campo', // Cambiar el título
           automaticallyImplyLeading: true,
           backgroundColor: kPprimaryColor,
-          elevation: 8.0,
-          shadowColor: const Color.fromARGB(255, 244, 244, 245),
+          elevation: 4.5,
+          shadowColor: Colors.red,
           foreColor: Colors.white,
           actions: [
             Padding(
@@ -88,6 +88,8 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
+                      const SizedBox(height: 15), // Espacio superior
+                    
                      TextFormField(
                         controller: _idController,
                         decoration:  buildInputDecoration('Id'),
@@ -383,8 +385,9 @@ class AddCourseScreenState extends State<AddCourseScreen> {
             actions: <Widget>[
               TextButton(
                 child: const Text('Aceptar'),
-                onPressed: () {                 
-                },
+               onPressed: () {
+                    Navigator.of(context).pop();
+                  },
               ),
             ],
           );

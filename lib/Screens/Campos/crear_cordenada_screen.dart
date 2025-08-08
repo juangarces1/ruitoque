@@ -68,8 +68,8 @@ class CrearCordenadaScreenState extends State<CrearCordenadaScreen> {
           title: 'Crear Coordenada Inicial',
           automaticallyImplyLeading: true,
           backgroundColor: kPprimaryColor,
-          elevation: 8.0,
-          shadowColor: const Color.fromARGB(255, 244, 244, 245),
+           elevation: 4.5,
+          shadowColor: Colors.red,
           foreColor: Colors.white,
           actions: [
             Padding(

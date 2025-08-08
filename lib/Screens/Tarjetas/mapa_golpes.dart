@@ -59,7 +59,7 @@ class MapaGolpesState extends State<MapaGolpes> {
         title: widget.estadisticaHoyo.hoyo.nombre,
         automaticallyImplyLeading: true,   
         backgroundColor: kPprimaryColor,
-        elevation: 8.0,
+        elevation: 4.0,
         shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
          actions: [ Padding(

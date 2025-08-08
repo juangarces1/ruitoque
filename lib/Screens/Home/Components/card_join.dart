@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ruitoque/constans.dart';
 
 class UnirseARondaCard extends StatelessWidget {
-  final VoidCallback onTap;
+  final Future<void> Function()? onTap;
 
   const UnirseARondaCard({Key? key, required this.onTap}) : super(key: key);
 

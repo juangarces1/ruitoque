@@ -18,6 +18,7 @@ class EstadisticaHoyo {
    String? nombreJugador;
    bool? isMain;
    int? handicapPorcentaje;
+   
 
   EstadisticaHoyo({
     required this.id,

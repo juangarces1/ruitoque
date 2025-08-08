@@ -17,8 +17,8 @@ class TarjetaStatsWidget extends StatelessWidget {
      
      appBar: MyCustomAppBar(
           title: 'Estadísticas de la Tarjeta',
-          elevation: 6,
-          shadowColor: Colors.white,
+          elevation: 4.5,
+                          shadowColor: Colors.red,
           automaticallyImplyLeading: true,
           foreColor: Colors.white,
           backgroundColor: kPprimaryColor,

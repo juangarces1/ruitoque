@@ -69,6 +69,16 @@ const kTextStyleNegroRobotoSize20Normal = TextStyle(
     // Para un estilo en cursiva
 );
 
+const kTextStyleBlancoRobotoSize20Normal = TextStyle(
+  fontFamily: 'RobotoCondensed',
+  // Puedes especificar el peso y el estilo si es necesario
+  fontWeight: FontWeight.normal,
+  fontSize: 20,
+  color: Colors.white,
+    // Para un estilo en negrita
+    // Para un estilo en cursiva
+);
+
 const kGradientHome = LinearGradient(colors: [kPprimaryColor, kPcontrastMoradoColor ]);
 const kGradientHomeReverse = LinearGradient(colors: [kPcontrastMoradoColor, kPprimaryColor ]);
 const kGradiantBandera = LinearGradient(

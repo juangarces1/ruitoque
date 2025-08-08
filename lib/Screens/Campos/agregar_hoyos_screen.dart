@@ -225,27 +225,101 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
               ),
         
                    const Divider(color: Colors.white70,),
-              const Text('Coordenadas', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold), ),
-              Container(
-                decoration: const BoxDecoration(
-                  
-                  color: Color.fromARGB(255, 6, 33, 45),
-        
+             
+             Container(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 6, 33, 45),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                padding: const EdgeInsets.all(8.0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: TipoCoordenada.values.length,
-                  itemBuilder: (context, index) {
-                    var tipoCoordenada = TipoCoordenada.values[index];
-                    return ListTile(
-                      title: Text(tipoCoordenada.toString().split('.').last, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold), ),
-                      onTap: () => _editarCoordenada(tipoCoordenada, getTitulo(tipoCoordenada), cordenadaProvider),
-                    );
-                  },
+                padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.place, color: Colors.white70),
+                        SizedBox(width: 8),
+                        Text(
+                          'Selecciona tipo de coordenada',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: TipoCoordenada.values.length,
+                      separatorBuilder: (context, index) => const Divider(
+                        color: Colors.white24,
+                        thickness: 1,
+                        indent: 12,
+                        endIndent: 12,
+                      ),
+                      itemBuilder: (context, index) {
+                        var tipoCoordenada = TipoCoordenada.values[index];
+                        final tieneValor = tieneCoordenada(tipoCoordenada);
+                   
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(15),
+                              onTap: () => _editarCoordenada(
+                                tipoCoordenada,
+                                getTitulo(tipoCoordenada),
+                                cordenadaProvider,
+                              ),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                                margin: const EdgeInsets.symmetric(vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: tieneValor
+                                      ? const Color(0xFF216C49) // verde cuando ya tiene valor
+                                      : const Color(0xFF103041), // color base cuando está vacío
+                                  borderRadius: BorderRadius.circular(15),
+                                  border: Border.all(
+                                    color: tieneValor ? Colors.greenAccent : Colors.white24,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.gps_fixed,
+                                        color: tieneValor ? Colors.greenAccent : Colors.white60,
+                                      ),
+                                      const SizedBox(width: 15),
+                                      Expanded(
+                                        child: Text(
+                                          getTitulo(tipoCoordenada),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(
+                                        tieneValor ? Icons.check_circle : Icons.chevron_right,
+                                        color: tieneValor ? Colors.greenAccent : Colors.white38,
+                                        size: 28,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                      },
+                    ),
+                  ],
                 ),
               ),
+
             const Divider(color: Colors.white70,),
               buildCard(),
             const Divider(color: Colors.white70,),
@@ -286,6 +360,21 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
     );
   }
 
+  bool tieneCoordenada(TipoCoordenada tipo) {
+  switch (tipo) {
+    case TipoCoordenada.frenteGreen:
+      return nuevoHoyo.frenteGreen != null && (nuevoHoyo.frenteGreen!.latitud != 0 || nuevoHoyo.frenteGreen!.longitud != 0);
+    case TipoCoordenada.centroGreen:
+      return nuevoHoyo.centroGreen != null && (nuevoHoyo.centroGreen!.latitud != 0 || nuevoHoyo.centroGreen!.longitud != 0);
+    case TipoCoordenada.fondoGreen:
+      return nuevoHoyo.fondoGreen != null && (nuevoHoyo.fondoGreen!.latitud != 0 || nuevoHoyo.fondoGreen!.longitud != 0);
+    case TipoCoordenada.centroHoyo:
+      return nuevoHoyo.centroHoyo != null && (nuevoHoyo.centroHoyo!.latitud != 0 || nuevoHoyo.centroHoyo!.longitud != 0);
+    default:
+      return false; // Si no es un tipo conocido, no tiene coordenada
+  }
+}
+
   void _editarCoordenada(TipoCoordenada tipo, String titulo, CordenadaProvider cordenadaProvider) async {
     Cordenada? coordenadaInicial;
    if(widget.hoyo == null){
@@ -308,21 +397,31 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
      else {
         switch (tipo) {
           case TipoCoordenada.frenteGreen:
-            coordenadaInicial =  widget.hoyo!.frenteGreen!.latitud != 0.0 ? widget.hoyo!.frenteGreen : cordenadaProvider.cordenada;
+            coordenadaInicial = (widget.hoyo?.frenteGreen != null && widget.hoyo!.frenteGreen!.latitud != 0.0)
+                ? widget.hoyo!.frenteGreen
+                : cordenadaProvider.cordenada;
             break;
           case TipoCoordenada.centroGreen:
-            coordenadaInicial =  widget.hoyo!.centroGreen!.latitud != 0.0 ? widget.hoyo!.centroGreen : cordenadaProvider.cordenada;
+            coordenadaInicial = (widget.hoyo?.centroGreen != null && widget.hoyo!.centroGreen!.latitud != 0.0)
+                ? widget.hoyo!.centroGreen
+                : cordenadaProvider.cordenada;
             break;
           case TipoCoordenada.fondoGreen:
-            coordenadaInicial = widget.hoyo!.fondoGreen!.latitud != 0.0 ? widget.hoyo!.fondoGreen : cordenadaProvider.cordenada;
+            coordenadaInicial = (widget.hoyo?.fondoGreen != null && widget.hoyo!.fondoGreen!.latitud != 0.0)
+                ? widget.hoyo!.fondoGreen
+                : cordenadaProvider.cordenada;
             break;
           case TipoCoordenada.centroHoyo:
-            coordenadaInicial = widget.hoyo!.centroHoyo!.latitud != 0.0 ? widget.hoyo!.centroHoyo : cordenadaProvider.cordenada;
+            coordenadaInicial = (widget.hoyo?.centroHoyo != null && widget.hoyo!.centroHoyo!.latitud != 0.0)
+                ? widget.hoyo!.centroHoyo
+                : cordenadaProvider.cordenada;
             break;
-       default:
-         break;
+          default:
+            coordenadaInicial = cordenadaProvider.cordenada;
+            break;
+}
      }
-     }
+     
   
      switch (tipo) {
       

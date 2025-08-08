@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/my_loader.dart';
+import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/constans.dart';
@@ -31,25 +32,46 @@ class _PlayerCardState extends State<PlayerCard> {
 
     return Stack(
       children: [
-        Card(
-          color: widget.isSelected ? kPsecondaryColor.withOpacity(0.3) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: widget.isSelected ? kPsecondaryColor.withOpacity(0.28) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: widget.isSelected
+                ? Border.all(
+                    color: kPprimaryColor.withOpacity(0.8),
+                    width: 2.8,
+                  )
+                : Border.all(
+                    color: Colors.grey.shade300,
+                    width: 1,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.isSelected
+                    ? kPprimaryColor.withOpacity(0.25)
+                    : Colors.black12,
+                blurRadius: widget.isSelected ? 14 : 5,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          elevation: 5,
-          shadowColor: kPprimaryColor,
           child: InkWell(
+            borderRadius: BorderRadius.circular(20),
             onTap: () => widget.onSelected(!widget.isSelected),
-            borderRadius: BorderRadius.circular(20.0),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
                   CircleAvatar(
                     backgroundColor: kPprimaryColor,
-                    radius: 25,
+                    radius: 27,
                     child: Text(
-                      widget.jugador.nombre[0].toUpperCase(),
+                      widget.jugador.nombre.isNotEmpty
+                          ? widget.jugador.nombre[0].toUpperCase()
+                          : "-",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -59,33 +81,75 @@ class _PlayerCardState extends State<PlayerCard> {
                   ),
                   const SizedBox(width: 15),
                   Expanded(
-                    child: Text(
-                      widget.jugador.nombre,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: kPprimaryColor,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.jugador.nombre,
+                          style:  TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: widget.isSelected ? Colors.white : kPprimaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'HCP: ${widget.jugador.handicap ?? "-"}',
+                          style:  TextStyle(
+                            fontSize: 18,
+                            color: widget.isSelected ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Checkbox(
-                    value: widget.isSelected,
-                    onChanged: widget.onSelected,
-                    activeColor: kPprimaryColor,
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.edit,
-                      color: kPprimaryColor,
+                
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message: "Editar Handicap",
+                    child: IconButton(
+                      icon: const Icon(Icons.sports_golf, color: kBlueColorLogo),
+                      splashRadius: 22,
+                      onPressed: () => mostrarEditarHandicapDialog(context, widget.jugador),
                     ),
-                    onPressed: () => mostrarEditarDialog(context, widget.jugador, esJugadorActual),
-                    tooltip: 'Editar Handicap',
+                  ),
+                  Tooltip(
+                    message: "Editar Nombre",
+                    child: IconButton(
+                      icon: const Icon(Icons.drive_file_rename_outline, color: kPprimaryColor),
+                      splashRadius: 22,
+                      onPressed: () => mostrarEditarNombreDialog(context, widget.jugador),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
+        // Overlay check flotante solo si está seleccionado
+        if (widget.isSelected)
+          Positioned(
+            right: 18,
+            top: 6,
+            child: AnimatedOpacity(
+              opacity: widget.isSelected ? 1 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: kPprimaryColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: kPprimaryColor.withOpacity(0.27),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(6),
+                child: const Icon(Icons.check, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
         if (showLoader)
           const MyLoader(
             opacity: 1,
@@ -95,7 +159,8 @@ class _PlayerCardState extends State<PlayerCard> {
     );
   }
 
-  Future<void> mostrarEditarDialog(BuildContext context, Jugador jugador, bool esJugadorActual) async {
+  // ---------- Diálogo para editar handicap ----------
+  Future<void> mostrarEditarHandicapDialog(BuildContext context, Jugador jugador) async {
     int updatedHandicap = jugador.handicap ?? 0;
 
     return showDialog<void>(
@@ -103,17 +168,14 @@ class _PlayerCardState extends State<PlayerCard> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
+          builder: (BuildContext context, StateSetter setStateDialog) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               title: const Row(
                 children: [
-                  Icon(
-                    Icons.edit,
-                    color: kPprimaryColor,
-                  ),
+                  Icon(Icons.sports_golf, color: kBlueColorLogo),
                   SizedBox(width: 10),
                   Text('Editar Handicap'),
                 ],
@@ -122,34 +184,21 @@ class _PlayerCardState extends State<PlayerCard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.remove_circle,
-                      color: Colors.red,
-                      size: 28,
-                    ),
+                    icon: const Icon(Icons.remove_circle, color: Colors.red, size: 28),
                     onPressed: () {
-                      setState(() {
-                        if (updatedHandicap > 0) {
-                          updatedHandicap--;
-                        }
+                      setStateDialog(() {
+                        if (updatedHandicap > 0) updatedHandicap--;
                       });
                     },
                   ),
                   Text(
                     '$updatedHandicap',
-                    style: const TextStyle(
-                      fontSize: 33,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 33, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
-                    icon: const Icon(
-                      Icons.add_circle,
-                      color: kBlueColorLogo,
-                      size: 28,
-                    ),
+                    icon: const Icon(Icons.add_circle, color: kBlueColorLogo, size: 28),
                     onPressed: () {
-                      setState(() {
+                      setStateDialog(() {
                         updatedHandicap++;
                       });
                     },
@@ -179,10 +228,13 @@ class _PlayerCardState extends State<PlayerCard> {
                     ),
                   ),
                   child: const Text('Guardar'),
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                    goUpdateHandicap(jugador, updatedHandicap, esJugadorActual);
-                  },
+                  onPressed: () async {
+                      Navigator.of(dialogContext).pop();
+                      setState(() {
+                        jugador.handicap = updatedHandicap;
+                      });
+                      await actualizarJugadorCompleto(jugador);
+                    },
                 ),
               ],
             );
@@ -192,9 +244,85 @@ class _PlayerCardState extends State<PlayerCard> {
     );
   }
 
-  Future<void> goUpdateHandicap(Jugador jugador, int updatedHandicap, bool esJugadorActual) async {
-      setState(() {
-        jugador.handicap=updatedHandicap;
-      });
+  // ---------- Diálogo para editar nombre ----------
+  Future<void> mostrarEditarNombreDialog(BuildContext context, Jugador jugador) async {
+    TextEditingController controller = TextEditingController(text: jugador.nombre);
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.drive_file_rename_outline, color: kPprimaryColor),
+              SizedBox(width: 10),
+              Text('Editar Nombre'),
+            ],
+          ),
+          content: TextField(
+            controller: controller,
+            maxLength: 30,
+            decoration: const InputDecoration(
+              labelText: "Nombre",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.grey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: kPprimaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Guardar'),
+              onPressed: () async {
+                  Navigator.of(dialogContext).pop();
+                  setState(() {
+                    jugador.nombre = controller.text.trim();
+                  });
+                  await actualizarJugadorCompleto(jugador);
+                },
+            ),
+          ],
+        );
+      },
+    );
   }
+
+  Future<void> actualizarJugadorCompleto(Jugador jugador) async {
+  setState(() => showLoader = true);
+
+  final resp = await ApiHelper.put("/api/players/${jugador.id}", jugador.toJson());
+
+  setState(() => showLoader = false);
+
+  if (resp.isSuccess) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Actualización exitosa")),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: ${resp.message}")),
+    );
+  }
+}
 }

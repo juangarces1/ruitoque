@@ -156,12 +156,12 @@ class SelectPlayersScreenState extends State<SelectPlayersScreen> {
     }
 
     if (mounted) {
-      Navigator.pushAndRemoveUntil(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => MiRonda(ronda: ronda),
         ),
-        (Route<dynamic> route) => false,
+        
       );
     }
   }
@@ -320,12 +320,11 @@ void _showCreateJugadorDialog() {
     }
 
     if (mounted) {
-      Navigator.pushAndRemoveUntil(
+      Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => RondaRapida(ronda: ronda),
-        ),
-        (Route<dynamic> route) => false,
+          builder: (context) => RondaRapida(ronda: ronda, ruta: 'Inicio',),
+        ),       
       );
     }
   }
@@ -435,7 +434,7 @@ void _showCreateJugadorDialog() {
         title: 'Agregar Jugadores',
         automaticallyImplyLeading: true,
         backgroundColor: kPprimaryColor,
-        elevation: 8.0,
+        elevation: 4.0,
         shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
         actions: [

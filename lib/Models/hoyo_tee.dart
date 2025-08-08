@@ -6,6 +6,7 @@ class HoyoTee {
   Cordenada cordenada;  // Asumiendo que existe una clase Cordenada.
   String color;
   int distancia;
+  int cordenadaId;
 
   HoyoTee({
     required this.id,
@@ -13,6 +14,7 @@ class HoyoTee {
     required this.color,
     required this.cordenada,    
     required this.distancia,
+    required this.cordenadaId,
   });
 
   // Convertir un objeto HoyoTee a un mapa JSON.
@@ -23,6 +25,7 @@ class HoyoTee {
       'cordenada': cordenada.toJson(),
       'color':color,
       'distancia': distancia,
+      'cordenadaId': cordenadaId,
     };
   }
 
@@ -34,6 +37,7 @@ class HoyoTee {
       cordenada: Cordenada.fromJson(json['cordenada']),
       color: json['color'],
       distancia: json['distancia'] as int,
+      cordenadaId: json['cordenadaId'] as int,
     );
   }
 }
