@@ -17,6 +17,8 @@ import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Screens/Home/my_home_pag.dart';
+import 'package:ruitoque/Screens/Mapas/Components/mi_mapa_proviider.dart';
+import 'package:ruitoque/Screens/Mapas/mapa_hoyo_screen.dart';
 import 'package:ruitoque/Screens/Mapas/mapa_par3.dart';
 import 'package:ruitoque/Screens/Mapas/mi_mapa.dart';
 import 'package:ruitoque/Screens/Ronda/estadistica_hoyo_dialog.dart';
@@ -110,15 +112,17 @@ class _MiRondaState extends State<MiRonda> {
                           // Segunda parte
                         isCreator ?  SliverToBoxAdapter(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 3),
+                              padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 3),
                               height: segundaParteAltura,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _ronda.tarjetas[0].hoyos.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return buildCardEstadistica(myTarjeta.hoyos[index]);
-                                },
-                              ),
+                              child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12), // margen lateral
+                                    itemCount: _ronda.tarjetas[0].hoyos.length,
+                                    itemBuilder: (context, index) {
+                                      return buildCardEstadistica(myTarjeta.hoyos[index]);
+                                    },
+                                    separatorBuilder: (context, index) => const SizedBox(width: 12), // espacio entre cards
+                                  )
                             ),
                           ) :  SliverToBoxAdapter(
                             child: Container(
@@ -176,20 +180,38 @@ class _MiRondaState extends State<MiRonda> {
    
   goHole(EstadisticaHoyo hoyo) {
 
-   hoyo.hoyo.par == 3 ?
+    hoyo.hoyo.par == 3 ?
+    Navigator.push(
+     context, 
+     MaterialPageRoute(
+       builder: (context) =>  MiMapaPar3(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo, onDeleteShot: deleteShot, teeSalida: _ronda.tarjetas[0].teeSalida ?? '',)
+     )
+    )  :
    Navigator.push(
-    context, 
-    MaterialPageRoute(
-      builder: (context) =>  MiMapaPar3(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo, onDeleteShot: deleteShot, teeSalida: _ronda.tarjetas[0].teeSalida ?? '',)
-    )
-   )  :
+     context, 
+     MaterialPageRoute(
+       builder: (context) =>  MiMapa(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo, onDeleteShot: deleteShot, teeSalida: _ronda.tarjetas[0].teeSalida ?? '',)
+     )
+    );
+//    Navigator.of(context).push(
+//   MaterialPageRoute(
+//     builder: (_) => ChangeNotifierProvider(
+//       create: (_) => MiMapaProvider(
+//         hoyo: hoyo,
+//         teeSalida:  _ronda.tarjetas[0].teeSalida ?? '',
+//         onAgregarShot: agregarShotAEstadisticaHoyo,
+//         onDeleteShot: deleteShot,
+//       ),
+//       child: MapaHoyoScreen(
+//         hoyo: hoyo,
+//          teeSalida:  _ronda.tarjetas[0].teeSalida ?? '',
+//         onAgregarShot: agregarShotAEstadisticaHoyo,
+//         onDeleteShot: deleteShot,
+//       ),
+//     ),
+//   ),
+// );
 
-   Navigator.push(
-    context, 
-    MaterialPageRoute(
-      builder: (context) =>  MiMapa(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo, onDeleteShot: deleteShot, teeSalida: _ronda.tarjetas[0].teeSalida ?? '',)
-    )
-   );
   }
 
   void agregarShotAEstadisticaHoyo(int idEstadisticaHoyo, Shot nuevoShot) {
@@ -211,129 +233,315 @@ class _MiRondaState extends State<MiRonda> {
   }
  
   Widget buildCardEstadistica(EstadisticaHoyo estadistica) {
-  return SizedBox(
-    width: 200,   
+  final bool isSaved = (estadistica.golpes > 0) || ((estadistica.shots?.isNotEmpty ?? false));
+  const Color baseDark = Color(0xFF151922);
+  const Color elev2    = Color(0xFF1B202B);
+  const Color txtPri   = Color(0xFFE8EAED);
+  const Color txtSec   = Color(0xFFAEB4BE);
+  const Color border   = Color(0x1AFFFFFF); // 10% white
 
-    child: Card(
-      color: estadistica.golpes == 0
-          ? const Color.fromARGB(255, 46, 46, 46)
-          : kPsecondaryColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
+  return SizedBox(
+    width: 220,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.all(1), // espacio para el borde "externo"
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        // Borde animado según estado
+        border: Border.all(
+          color: isSaved ? Colors.greenAccent : kPsecondaryColor,
+          width: isSaved ? 2 : 1,
+        ),
+        // Glow sutil cuando está guardado
+        boxShadow: isSaved
+            ? [
+                BoxShadow(
+                  color: kPsecondaryColor.withOpacity(.35),
+                  blurRadius: 14,
+                  spreadRadius: 1.2,
+                ),
+              ]
+            : [
+                const BoxShadow(
+                  color: Colors.black54,
+                  blurRadius: 6,
+                  spreadRadius: 0,
+                  offset: Offset(0, 2),
+                ),
+              ],
       ),
-      elevation: 10,
-      child: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            ListTile(
-              title: Text(
-                'Hoyo: ${estadistica.hoyo.numero.toString()}',
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-               subtitle: Text(
-                'Par: ${estadistica.hoyo.par.toString()}',
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.golf_course, color: Colors.white),
-            ),
-          
-            const SizedBox(height: 3),
-            estadistica.shots != null && estadistica.shots!.isNotEmpty
-                ? SizedBox(
-                 
-                    height: 55, // Altura ajustada para contener los ShotTile
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: estadistica.shots!.asMap().entries.map((entry) {
-                          int index = entry.key;
-                          Shot shot = entry.value;
-                          return ShotTile(
-                            index: index,
-                            shot: shot,
-                            onDelete: () {
-                              // Mostrar diálogo de confirmación antes de eliminar
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Confirmar Eliminación'),
-                                    content: const Text(
-                                        '¿Eliminar este golpe?'),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text('Cancelar'),
-                                        onPressed: () {
-                                          Navigator.of(context).pop(); // Cerrar el diálogo
-                                        },
-                                      ),
-                                      TextButton(
-                                        child: const Text('Eliminar',
-                                            style: TextStyle(color: Colors.red)),
-                                        onPressed: () {
-                                          // Llamar a la función para eliminar el golpe
-                                          deleteShot(estadistica.id, shot);
-                                          Navigator.of(context).pop(); // Cerrar el diálogo
-                                          // Opcional: Mostrar un SnackBar de confirmación
-                                          
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        }).toList(),
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        color: baseDark,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: isSaved ? kPsecondaryColor.withOpacity(.45) : border,
+            width: 1,
+          ),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {}, // solo para ripple
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ---------- Header ----------
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Flag con "ring" sutil si hay progreso
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (isSaved)
+                          SizedBox(
+                            width: 28, height: 28,
+                            child: CircularProgressIndicator(
+                              value: 1,
+                              strokeWidth: 2.2,
+                              color: kPsecondaryColor,
+                              backgroundColor: Colors.white.withOpacity(.06),
+                            ),
+                          ),
+                        const SizedBox(width: 28, height: 28),
+                        const Icon(Icons.flag, color: Colors.white70, size: 18),
+                      ],
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Hoyo N
+                          Text(
+                            'Hoyo ${estadistica.hoyo.numero}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: txtPri,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              _pill('Par ${estadistica.hoyo.par}', txtSec, elev2, border),
+                              const SizedBox(width: 6),
+                              _statusBadge(isSaved ? 'Guardado' : 'Pendiente', isSaved),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                : Container(),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Container(
-                  decoration: const ShapeDecoration(
-                    color: kTextColorBlanco,
-                    shape: CircleBorder(),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.flag,
-                      color: kPprimaryColor,
-                      size: 30,
-                    ),
-                    onPressed: () => goHole(estadistica),
-                  ),
+                  ],
                 ),
+      
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: border),
+      
+                // ---------- Tira de shots ----------
+                const SizedBox(height: 10),
                 Container(
-                  decoration: const ShapeDecoration(
-                    color: kTextColorBlanco,
-                    shape: CircleBorder(),
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: elev2,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: border),
                   ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.bar_chart,
-                      color: kPsecondaryColor,
-                      size: 30,
+                  child: (estadistica.shots != null && estadistica.shots!.isNotEmpty)
+                      ? Stack(
+                          children: [
+                            // scroll chips
+                            ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              scrollDirection: Axis.horizontal,
+                              itemBuilder: (_, i) {
+                                final shot = estadistica.shots![i];
+                                return ShotTile(
+                                  index: i,
+                                  shot: shot,
+                                  onDelete: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext ctx) {
+                                        return AlertDialog(
+                                          title: const Text('Confirmar eliminación'),
+                                          content: const Text('¿Eliminar este golpe?'),
+                                          actions: [
+                                            TextButton(
+                                              child: const Text('Cancelar'),
+                                              onPressed: () => Navigator.of(ctx).pop(),
+                                            ),
+                                            TextButton(
+                                              child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                              onPressed: () {
+                                                deleteShot(estadistica.id, shot);
+                                                Navigator.of(ctx).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                );
+                              },
+                              separatorBuilder: (_, __) => const SizedBox(width: 8),
+                              itemCount: estadistica.shots!.length,
+                            ),
+                            // fades laterales
+                            _edgeFade(left: true),
+                            _edgeFade(right: true),
+                          ],
+                        )
+                      : const Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.sports_golf, size: 18, color: txtSec),
+                              SizedBox(width: 8),
+                              Text('Sin golpes aún', style: TextStyle(color: txtSec, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                ),
+      
+                // ---------- Acciones ----------
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _actionPill(
+                        icon: Icons.map_outlined,
+                        label: 'Mapa',
+                        bg: Colors.white,
+                        fg: kPprimaryColor,
+                        onTap: () => goHole(estadistica),
+                      ),
                     ),
-                    onPressed: () => _mostrarDialogoEstadisticaHoyo(estadistica.hoyoId),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _actionPill(
+                        icon: Icons.bar_chart,
+                        label: 'Stats',
+                        bg: kPsecondaryColor,
+                        fg: Colors.white,
+                        onTap: () => _mostrarDialogoEstadisticaHoyo(estadistica.hoyoId),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// ---------- helpers visuales (solo UI) ----------
+Widget _statusBadge(String text, bool ok) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: ok ? Colors.green.withOpacity(.18) : Colors.white.withOpacity(.06),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: ok ? Colors.green.withOpacity(.5) : const Color(0x1AFFFFFF)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(ok ? Icons.check_circle : Icons.timelapse, size: 14, color: ok ? Colors.green : Colors.white70),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            color: ok ? Colors.green : Colors.white70,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: .4,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _pill(String text, Color fg, Color bg, Color border) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: bg,
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: border),
+    ),
+    child: Text(
+      text,
+      style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: .6),
+    ),
+  );
+}
+
+Widget _edgeFade({bool left = false, bool right = false}) {
+  assert(left != right); // uno u otro
+  return Positioned(
+    left: left ? 0 : null,
+    right: right ? 0 : null,
+    top: 0,
+    bottom: 0,
+    child: IgnorePointer(
+      child: Container(
+        width: 18,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: left ? Alignment.centerLeft : Alignment.centerRight,
+            end: left ? Alignment.centerRight : Alignment.centerLeft,
+            colors: const [
+              Color(0xFF1B202B),
+              Color(0x001B202B),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _actionPill({
+  required IconData icon,
+  required String label,
+  required Color bg,
+  required Color fg,
+  required VoidCallback onTap,
+}) {
+  return Material(
+    color: bg,
+    borderRadius: BorderRadius.circular(14),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: fg),
+            const SizedBox(width: 8),
+            Text(label, style: TextStyle(color: fg, fontSize: 13, fontWeight: FontWeight.w700)),
           ],
         ),
       ),
     ),
   );
 }
+
 
   Widget buildCardSoloHoyos(EstadisticaHoyo estadistica) {
   return SizedBox(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -10,7 +11,9 @@ import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Components/tarjeta_fondo_oscuro.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
+import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/Models/fede_amigos.dart';
+import 'package:ruitoque/Models/hoyo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Models/ronda.dart';
@@ -204,6 +207,19 @@ class _RondaRapidaState extends State<RondaRapida> {
               child: const Icon(Icons.flag),
               onTap: _selectPlayerAndEditHandicap,
             ),
+            SpeedDialChild(
+              label: 'Agregar jugador',
+              backgroundColor: Colors.green,
+              child: const Icon(Icons.person_add_alt_1),
+              onTap: _handleAddPlayer,
+            ),
+
+            SpeedDialChild(
+              label: 'Eliminar jugador',
+              backgroundColor: Colors.redAccent,
+              child: const Icon(Icons.person_remove_alt_1),
+              onTap: _selectPlayerToDelete,
+            ),
           ],
         ),
       backgroundColor: Colors.transparent,   // para que se vea tu gradiente
@@ -269,6 +285,155 @@ class _RondaRapidaState extends State<RondaRapida> {
     );
   }
 
+  Future<void> _selectPlayerToDelete() async {
+  final Tarjeta? elegido = await showModalBottomSheet<Tarjeta>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) {
+      return DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        minChildSize: 0.35,
+        maxChildSize: 0.9,
+        builder: (context, ctrl) {
+          return Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10)],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 40, height: 4,
+                  margin: const EdgeInsets.only(top: 10, bottom: 8),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+                const Text('Selecciona jugador a eliminar',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                const Divider(color: Colors.white12, height: 24),
+                Expanded(
+                  child: ListView.separated(
+                    controller: ctrl,
+                    itemCount: _ronda.tarjetas.length,
+                    separatorBuilder: (_, __) => const Divider(color: Colors.white12, height: 1),
+                    itemBuilder: (_, i) {
+                      final t = _ronda.tarjetas[i];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: kPcontrastMoradoColor, foregroundColor: Colors.white,
+                          child: Text(t.jugador!.nombre.isNotEmpty ? t.jugador!.nombre[0] : '?'),
+                        ),
+                        title: Text(t.jugador!.nombre, style: const TextStyle(color: Colors.white)),
+                        subtitle: Text('Hcp: ${t.handicapPlayer}',
+                            style: const TextStyle(color: Colors.white70)),
+                        trailing: const Icon(Icons.delete_forever, color: Colors.redAccent),
+                        onTap: () => Navigator.pop(context, t),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+
+  if (elegido != null) {
+    await _confirmDeletePlayer(elegido);
+  }
+}
+
+Future<void> _confirmDeletePlayer(Tarjeta t) async {
+  // Permisos básicos: el creador puede eliminar a cualquiera; los demás, solo su propia tarjeta
+  final bool puedeEliminar = isCreator || t.jugadorId == jugador.id;
+  if (!puedeEliminar) {
+    Fluttertoast.showToast(
+      msg: 'Solo el creador puede eliminar a otros jugadores.',
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.black87,
+      textColor: Colors.white,
+    );
+    return;
+  }
+
+  final bool? ok = await showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Eliminar jugador'),
+      content: Text('¿Deseas eliminar a "${t.jugador?.nombre ?? 'jugador'}" de la ronda?'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+        TextButton(onPressed: () => Navigator.pop(context, true),  child: const Text('Eliminar')),
+      ],
+    ),
+  );
+
+  if (ok != true) return;
+
+  await _removeTarjeta(t);
+}
+
+Future<void> _removeTarjeta(Tarjeta t) async {
+  // (Opcional) Llamada a tu API. Deja una de estas rutas según tu backend:
+  // final res = await ApiHelper.post('api/Rondas/${_ronda.id}/EliminarJugador', {'jugadorId': t.jugadorId});
+  // final res = await ApiHelper.delete('api/Rondas/${_ronda.id}/Jugadores/${t.jugadorId}');
+  // if (!res.isSuccess) {
+  //   if (!mounted) return;
+  //   showDialog(context: context, builder: (_) => AlertDialog(
+  //     title: const Text('Error'),
+  //     content: Text(res.message),
+  //     actions: [ TextButton(onPressed: () => Navigator.pop(context), child: const Text('Aceptar')) ],
+  //   ));
+  //   return;
+  // }
+
+  if (!mounted) return;
+  setState(() {
+    _ronda.tarjetas.removeWhere((x) => x.jugadorId == t.jugadorId);
+
+    // re-seleccionar myTarjeta si quitaste la tuya
+    final bool meElimine = t.jugadorId == jugador.id;
+    if (meElimine) {
+      final Tarjeta propia = _ronda.tarjetas.firstWhere(
+        (x) => x.jugadorId == jugador.id, orElse: () => _ronda.tarjetas.isNotEmpty ? _ronda.tarjetas.first : t);
+      if (_ronda.tarjetas.isNotEmpty) {
+        myTarjeta = propia;
+      }
+    }
+
+    // Recalcular orden, posiciones, FedeAmigos
+    if (_ronda.tarjetas.isNotEmpty) {
+      _ronda.calcularYAsignarPosiciones();
+      if (fedeAmigosCalculado) _ronda.calcularFedeAmigos();
+    }
+  });
+
+  // Si no queda nadie… volvemos a Home (o lo que prefieras)
+  if (_ronda.tarjetas.isEmpty) {
+    Fluttertoast.showToast(
+      msg: 'No quedan jugadores en la ronda. Saliendo…',
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.black87,
+      textColor: Colors.white,
+    );
+    if (mounted) goHome();
+    return;
+  }
+
+  Fluttertoast.showToast(
+    msg: 'Jugador eliminado.',
+    gravity: ToastGravity.CENTER,
+    backgroundColor: Colors.black87,
+    textColor: Colors.white,
+  );
+}
+
+
+
  Future<void> _showHandicapDialogForPlayer(Tarjeta tarjeta) async {
   final int? nuevoHcp = await _handicapDialog(context, tarjeta);
 
@@ -276,7 +441,7 @@ class _RondaRapidaState extends State<RondaRapida> {
     setState(() {
       tarjeta.actualizarHandicapJugador(nuevoHcp); 
         _ronda.calcularYAsignarPosiciones();    // ordena posiciones, etc.
-        if (fedeAmigosCalculado) _ronda.calcularFedeAmigos();
+       _ronda.calcularFedeAmigos();
     });
 
     Fluttertoast.showToast(
@@ -642,10 +807,7 @@ bool _isComplete() {
       .every((h) => h.golpes > 0);
 }
 
-  
-
-
- 
+   
   Future<void> _goRefresh() async {
     
    setState(() {
@@ -693,10 +855,6 @@ bool _isComplete() {
 
   }
 
- 
-
-   
-
   void goHome() {
   if (!mounted) return;
 
@@ -741,155 +899,951 @@ bool _isComplete() {
   }
 }
 
- 
-
-  
- bool isComplete() {  
-  for (var hoyo in _ronda.tarjetas[0].hoyos) {
-    if (hoyo.golpes == 0) {
-      return false;
-    }
-  }
-  return true;
-}
-
   void _showScoreEntryDialogForPlayer(Tarjeta tarjeta) {
-    
-   List<int> scores = tarjeta.hoyos.map((h) => h.golpes == 0 ? h.hoyo.par : h.golpes).toList();
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      // Para poder hacer setState dentro del diálogo usamos StatefulBuilder
-      return StatefulBuilder(
-        builder: (BuildContext context, setStateDialog) {
-          int calcIda()   => scores.sublist(0, 9).fold(0, (a, b) => a + b);
-          int calcVuelta() => scores.sublist(9).fold(0, (a, b) => a + b);
-          int calcGross() => scores.fold(0, (a, b) => a + b);
+  // 1) Inicial: si un hoyo está en 0, propón el par
+    List<int> scores = tarjeta.hoyos
+        .map((h) => h.golpes == 0 ? h.hoyo.par : h.golpes)
+        .toList();
 
-          return AlertDialog(
-            title: Text('Scores de ${tarjeta.jugador!.nombre}'),
-            content: SingleChildScrollView(
-              child: Column(
-                children: [
-                   Text(
-                    'Ida  ${calcIda()}  Vta: ${calcVuelta()}  Gross: ${calcGross()}',
-                    style: kTextStyleNegroRobotoSize20,
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: 300,
-                    height: 300,
-                    child: ListView.builder(
-                      itemCount: tarjeta.hoyos.length,
-                      itemBuilder: (context, index) {
-                        final estadistica = tarjeta.hoyos[index];
-                        return Card(
-                          color: const Color.fromARGB(117, 255, 255, 255),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Info del hoyo
-                                Expanded(
-                                  child: Text(
-                                    'Hoyo ${estadistica.hoyo.numero} Par:${estadistica.hoyo.par}',
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    // Botón para bajar el score
-                                    IconButton(
-                                      icon: const Icon(Icons.remove_circle),
-                                      color: Colors.redAccent,
-                                      onPressed: () {
-                                        setStateDialog(() {
-                                          if (scores[index] > 1) {
-                                            scores[index]--;
-                                             
-                                          }
-                                        });
-                                      },
-                                    ),
-                                    // Muestra el valor actual
-                                    Text(
-                                      scores[index].toString(),
-                                      style: const TextStyle(fontSize: 25),
-                                    ),
-                                    // Botón para subir el score
-                                    IconButton(
-                                      icon: const Icon(Icons.add_circle),
-                                      color: Colors.green,
-                                      onPressed: () {
-                                        setStateDialog(() {
-                                          scores[index]++;
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+    // Rango permitido (ajústalo si quieres)
+    const int minGolpes = 1;
+    const int maxGolpes = 12;
+
+    int mitad() => (tarjeta.hoyos.length / 2).floor();
+    int calcIda()   => scores.take(mitad()).fold(0, (a, b) => a + b);
+    int calcVuelta() => (tarjeta.hoyos.length > mitad())
+        ? scores.skip(mitad()).fold(0, (a, b) => a + b)
+        : 0;
+    int calcGross() => scores.fold(0, (a, b) => a + b);
+
+    bool hayInvalido() => scores.any((s) => s < minGolpes || s > maxGolpes);
+
+    // ====== PALETA DARK ======
+    const bg = Color(0xFF121212);
+    const surface = Color(0xFF1E1E1E);
+    const surface2 = Color(0xFF232323);
+    const outline = Color(0xFF2E2E2E);
+    const onBg = Color(0xFFEAEAEA);
+    const onBgDim = Color(0xFFBDBDBD);
+    const accentGreen = Color(0xFF25D366);
+    const accentRed = Color(0xFFFF5A5F);
+    const accentNeutral = Color(0xFF9E9E9E);
+
+    Future<void> editarNumeroDirecto(int index) async {
+      final controller = TextEditingController(text: scores[index].toString());
+      final int? nuevo = await showDialog<int>(
+        context: context,
+        builder: (_) => Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: onBg,
+                  surface: surface,
+                  onSurface: onBg,
+                ), dialogTheme: const DialogThemeData(backgroundColor: surface),
+          ),
+          child: AlertDialog(
+            title: Text(
+              'Golpes Hoyo ${tarjeta.hoyos[index].hoyo.numero}',
+              style: const TextStyle(color: onBg, fontWeight: FontWeight.w700),
+            ),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              style: const TextStyle(color: onBg),
+              decoration: const InputDecoration(
+                hintText: 'Ingresa golpes',
+                hintStyle: TextStyle(color: onBgDim),
+                filled: true,
+                fillColor: surface2,
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: outline),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: outline),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: onBg),
+                ),
               ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(foregroundColor: onBgDim),
                 child: const Text('Cancelar'),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: onBg,
+                  foregroundColor: Colors.black,
+                ),
                 onPressed: () {
-                  // Actualiza los golpes en la tarjeta
-                   for (int i = 0; i < tarjeta.hoyos.length; i++) {
-                    final estadisticaHoyo = tarjeta.hoyos[i];
-                    estadisticaHoyo.golpes = scores[i];
-
-                   
-                   
-                  }
-
-                  // 3. Actualizamos el estado de la tarjeta
-                  // Updating the state of the tarjeta here ensures that the UI reflects the changes made to the scores.
-                  setState(() {
-                    
-                    _ronda.calcularYAsignarPosiciones();
-                    _ronda.calcularFedeAmigos();
-                  });
-
-                  Navigator.of(context).pop();
-
-                  // Si quieres, llama a tu _goUpdateRonda() para reflejar los cambios
-                 // _goUpdateRonda();
-
-                  // Sarcasmo de confirmación:
-                  Fluttertoast.showToast(
-                    msg: "El jugador ${tarjeta.jugador!.nombre} registró sus golpes. ",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.CENTER,
-                    backgroundColor: Colors.black54,
-                    textColor: Colors.white,
-                    fontSize: 16.0,
-                  );
+                  final v = int.tryParse(controller.text.trim());
+                  if (v != null) Navigator.pop(context, v);
                 },
-                child: const Text('Guardar'),
+                child: const Text('Aceptar'),
               ),
             ],
-          );
-        },
+          ),
+        ),
       );
-    },
+
+      if (nuevo != null) {
+        setState(() {}); // para que no marque warning con mounted
+        scores[index] = nuevo.clamp(minGolpes, maxGolpes);
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setStateSheet) {
+                Widget totalesHeader() {
+                  return Container(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    decoration: BoxDecoration(
+                      color: surface,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.35),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        )
+                      ],
+                      border: const Border(bottom: BorderSide(color: outline)),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 40, height: 4,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: outline,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        Text(
+                          'Golpes de ${tarjeta.jugador?.nombre ?? ''}',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: onBg),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _MiniTotal(label: 'Ida', value: calcIda()),
+                            _MiniTotal(label: 'Vta', value: calcVuelta()),
+                            _MiniTotal(label: 'Gross', value: calcGross()),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Divider(height: 1, color: outline),
+                      ],
+                    ),
+                  );
+                }
+
+                Widget itemHoyo(int index) {
+                  final est = tarjeta.hoyos[index];
+                  final par = est.hoyo.par;
+                  final val = scores[index];
+                  int vsPar = val - par;
+
+                  Color chipTone() {
+                    if (vsPar < 0) return accentGreen;
+                    if (vsPar == 0) return accentNeutral;
+                    return accentRed;
+                  }
+
+                  void setVal(int v) {
+                    setStateSheet(() {
+                      scores[index] = v.clamp(minGolpes, maxGolpes);
+                    });
+                  }
+
+                  final presets = <int>{
+                    (par - 1).clamp(minGolpes, maxGolpes),
+                    par.clamp(minGolpes, maxGolpes),
+                    (par + 1).clamp(minGolpes, maxGolpes),
+                    (par + 2).clamp(minGolpes, maxGolpes),
+                    (par + 3).clamp(minGolpes, maxGolpes),
+                  }.toList();
+
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    color: surface2,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(color: outline),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Hoyo ${est.hoyo.numero}  •  Par $par',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: onBg,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: chipTone().withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: chipTone().withOpacity(0.5)),
+                                ),
+                                child: Text(
+                                  vsPar == 0 ? 'E' : (vsPar > 0 ? '+$vsPar' : '$vsPar'),
+                                  style: TextStyle(
+                                    color: chipTone(),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onLongPress: () => setVal(val - 2),
+                                child: IconButton(
+                                  icon: const Icon(Icons.remove_circle),
+                                  color: accentRed,
+                                  onPressed: () => setVal(val - 1),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => editarNumeroDirecto(index),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                  child: Text(
+                                    '$val',
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w700,
+                                      color: onBg,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onLongPress: () => setVal(val + 2),
+                                child: IconButton(
+                                  icon: const Icon(Icons.add_circle),
+                                  color: accentGreen,
+                                  onPressed: () => setVal(val + 1),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          Align(
+                            alignment: Alignment.center,
+                            child: Wrap(
+                              spacing: 8,
+                              children: presets.map((p) {
+                                final selected = p == val;
+                                return ChoiceChip(
+                                  label: Text(
+                                    p.toString(),
+                                    style: TextStyle(
+                                      color: selected ? Colors.black : onBg,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  selected: selected,
+                                  backgroundColor: surface,
+                                  selectedColor: onBg,
+                                  shape: StadiumBorder(
+                                    side: BorderSide(
+                                      color: selected ? onBg : outline,
+                                    ),
+                                  ),
+                                  onSelected: (_) => setVal(p),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: Column(
+                      children: [
+                        totalesHeader(),
+                        Expanded(
+                          child: ListView.separated(
+                            controller: scrollController,
+                            itemCount: tarjeta.hoyos.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 2),
+                            itemBuilder: (_, i) => itemHoyo(i),
+                          ),
+                        ),
+                        const Divider(height: 1, color: outline),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: onBg,
+                                    side: const BorderSide(color: outline),
+                                    backgroundColor: surface,
+                                  ),
+                                  child: const Text('Cerrar'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: onBg,
+                                    foregroundColor: Colors.black,
+                                  ),
+                                  onPressed: hayInvalido()
+                                      ? null
+                                      : () {
+                                          for (int i = 0; i < tarjeta.hoyos.length; i++) {
+                                            tarjeta.hoyos[i].golpes = scores[i];
+                                          }
+                                          if (mounted) {
+                                            setState(() {
+                                              _ronda.calcularYAsignarPosiciones();
+                                              _ronda.calcularFedeAmigos();
+                                            });
+                                          }
+                                          Navigator.pop(context);
+
+                                          Fluttertoast.showToast(
+                                            msg: "El jugador ${tarjeta.jugador?.nombre ?? ''} registró sus golpes.",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.CENTER,
+                                            backgroundColor: Colors.black87,
+                                            textColor: Colors.white,
+                                          );
+                                        },
+                                  child: const Text('Guardar'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+Future<void> _handleAddPlayer() async {
+  final PlayerChoiceResult? r = await _openAddOrPickPlayerSheet();
+  if (r == null) return;
+
+  // 1) Crear/normalizar Jugador a partir de la elección
+  final Jugador jugadorItem = _ensureJugadorFromChoice(r);
+
+  // Evitar duplicados por jugadorId en la ronda:
+  final yaExiste = _ronda.tarjetas.any((t) => t.jugadorId == jugadorItem.id);
+  if (yaExiste) {
+    Fluttertoast.showToast(
+      msg: 'El jugador "${jugadorItem.nombre}" ya está en la ronda.',
+      gravity: ToastGravity.CENTER,
+      backgroundColor: Colors.black87,
+      textColor: Colors.white,
+    );
+    return;
+  }
+
+  // 2) Construir Tarjeta basándonos en la tarjeta[0] (o en el campo)
+  final Tarjeta nueva = _buildTarjetaFromTemplate(jugadorItem);
+
+  // 3) Agregar, recalcular y notificar
+  setState(() {
+    _ronda.tarjetas.add(nueva);
+    _ronda.calcularYAsignarPosiciones();
+    if (fedeAmigosCalculado) _ronda.calcularFedeAmigos();
+  });
+
+  Fluttertoast.showToast(
+    msg: r.esInvitado
+        ? 'Invitado ${jugadorItem.nombre} agregado (hcp ${jugadorItem.handicap ?? 0}).'
+        : 'Jugador ${jugadorItem.nombre} agregado (id ${jugadorItem.id}, hcp ${jugadorItem.handicap ?? 0}).',
+    gravity: ToastGravity.CENTER,
+    backgroundColor: kPcontrastMoradoColor,
+    textColor: Colors.white,
   );
 }
 
+/// Crea un Jugador a partir del PlayerChoiceResult.
+/// - Invitado: le genero un id negativo temporal para evitar choques.
+/// - API: uso id/nombre/hcp que vinieron del modal.
+Jugador _ensureJugadorFromChoice(PlayerChoiceResult r) {
+  final int id = r.id ?? -(DateTime.now().microsecondsSinceEpoch % 1000000);
+  // Ajusta a tu constructor real de Jugador si requiere más campos.
+  return Jugador(
+    id: id,
+    nombre: r.nombre,
+    handicap: r.handicap,
+    pin: 0
+    // agrega campos opcionales si tu modelo los tiene (email, foto, etc.)
+  );
+}
+
+/// Construye una Tarjeta clonando la estructura de hoyos de la tarjeta[0].
+/// Si no hay tarjetas, usa los hoyos del campo de la ronda.
+/// Inicializa todas las estadísticas en 0, copia tee/campo de la plantilla.
+Tarjeta _buildTarjetaFromTemplate(Jugador jugadorItem) {
+  // Plantilla: tarjeta[0] si existe
+  final Tarjeta? plantilla = _ronda.tarjetas.isNotEmpty ? _ronda.tarjetas.first : null;
+
+  // Campo y tee
+  final campo = plantilla?.campo ?? _ronda.campo;
+  final tee   = plantilla?.teeSalida; // si tu modelo lo exige, ajusta aquí
+
+  // % handicap: copiamos de la plantilla si existe, si no usa 100
+  final int handicapPctPlantilla = (plantilla?.hoyos.isNotEmpty == true)
+      ? (plantilla!.hoyos.first.handicapPorcentaje ?? 100)
+      : 100;
+
+  final Tarjeta tarjeta = Tarjeta(
+    id: 0,
+    rondaId: _ronda.id,
+    jugadorId: jugadorItem.id,
+    jugador: jugadorItem,
+    handicapPlayer: jugadorItem.handicap ?? 0,
+    hoyos: [],
+    campo: campo,
+    teeSalida: tee, // si es requerido; si no, elimínalo
+  );
+
+  // Fuente de hoyos a clonar:
+  final List<dynamic> fuenteHoyos = (plantilla != null && plantilla.hoyos.isNotEmpty)
+      ? plantilla.hoyos.map((e) => e.hoyo).toList()
+      : (campo.hoyos);
+
+  for (final dynamic h in fuenteHoyos) {
+    // h es Hoyo (de tu modelo)
+    final Hoyo hoyo = h as Hoyo;
+
+    final EstadisticaHoyo aux = EstadisticaHoyo(
+      id: 0,
+      hoyo: hoyo,
+      hoyoId: hoyo.id,
+      golpes: 0,
+      putts: 0,
+      bunkerShots: 0,
+      acertoFairway: false,
+      falloFairwayIzquierda: false,
+      falloFairwayDerecha: false,
+      penaltyShots: 0,
+      shots: const [],
+      handicapPlayer: jugadorItem.handicap ?? 0,
+      nombreJugador: jugadorItem.nombre,
+      isMain: jugadorItem.id == jugador.id, // "jugador" es el actual (logueado) en tu State
+      handicapPorcentaje: handicapPctPlantilla,
+    );
+
+    tarjeta.hoyos.add(aux);
+  }
+
+  return tarjeta;
+}
+
+Future<PlayerChoiceResult?> _openAddOrPickPlayerSheet() async {
+  // Paleta dark
+  const bg = Color(0xFF121212);
+  const surface = Color(0xFF1E1E1E);
+  const surface2 = Color(0xFF232323);
+  const outline = Color(0xFF2E2E2E);
+  const onBg = Color(0xFFEAEAEA);
+  const onBgDim = Color(0xFFBDBDBD);
+  const accentGreen = Color(0xFF25D366);
+
+  // Estado Invitado
+  final nameCtrl = TextEditingController();
+  int hcpInv = 0;
+
+  // Estado Buscar
+  final searchCtrl = TextEditingController();
+  List<Jugador> items = [];
+  bool loading = false;
+  String lastError = '';
+  Timer? debounce;
+
+  // Control inicial de pestaña
+  bool listenerAttached = false;
+  bool firstFetchDone = false;
+
+  Future<void> loadJugadores({
+    required void Function(void Function()) setStateSheet,
+    String q = '',
+  }) async {
+    setStateSheet(() {
+      loading = true;
+      lastError = '';
+    });
+
+    try {
+      final Response res = await ApiHelper.getPlayers(); // SIEMPRE lista
+
+      if (!res.isSuccess || res.result is! List) {
+        setStateSheet(() {
+          lastError = res.message.isNotEmpty ? res.message : 'Respuesta no es una lista';
+          items = [];
+        });
+        return;
+      }
+
+      final List<Jugador> all = (res.result as List).cast<Jugador>();
+
+      final term = q.trim().toLowerCase();
+      final List<Jugador> filtered = term.isEmpty
+          ? all
+          : all.where((j) {
+              final nombre = (j.nombre).toLowerCase();
+              return nombre.contains(term) || '${j.id}'.contains(term);
+            }).toList();
+
+      setStateSheet(() => items = filtered);
+    } catch (err) {
+      setStateSheet(() {
+        lastError = err.toString();
+        items = [];
+      });
+    } finally {
+      setStateSheet(() => loading = false);
+    }
+  }
+
+  void onSearchChanged(String v, void Function(void Function()) setStateSheet) {
+    debounce?.cancel();
+    debounce = Timer(const Duration(milliseconds: 400), () async {
+      await loadJugadores(setStateSheet: setStateSheet, q: v);
+    });
+  }
+
+  final result = await showModalBottomSheet<PlayerChoiceResult>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) {
+      return DefaultTabController(
+        length: 2,
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.86,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setStateSheet) {
+                // Adjuntar listener al TabController UNA sola vez
+                if (!listenerAttached) {
+                  listenerAttached = true;
+                  final tabCtrl = DefaultTabController.of(context);
+                  // Si abre ya en "Buscar", dispara una vez
+                  if (tabCtrl.index == 1 && !firstFetchDone) {
+                    scheduleMicrotask(() async {
+                      await loadJugadores(setStateSheet: setStateSheet, q: '');
+                      firstFetchDone = true;
+                    });
+                  }
+                  tabCtrl.addListener(() async {
+                    if (tabCtrl.index == 1 && !firstFetchDone) {
+                      await loadJugadores(setStateSheet: setStateSheet, q: '');
+                      firstFetchDone = true;
+                    }
+                  });
+                                }
+
+                Widget header() {
+                  return Container(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    decoration: const BoxDecoration(
+                      color: surface,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: const Column(
+                      children: [
+                        SizedBox(height: 6),
+                        _GripBar(),
+                        SizedBox(height: 8),
+                        Text('Agregar jugador',
+                            style: TextStyle(color: onBg, fontSize: 18, fontWeight: FontWeight.w700)),
+                        SizedBox(height: 8),
+                        TabBar(
+                          indicatorColor: onBg,
+                          labelColor: onBg,
+                          unselectedLabelColor: onBgDim,
+                          tabs: [
+                            Tab(text: 'Invitado'),
+                            Tab(text: 'Buscar en lista'),
+                          ],
+                        ),
+                        Divider(height: 1, color: outline),
+                      ],
+                    ),
+                  );
+                }
+
+                Widget invitadoTab() {
+                  final nombreValido =
+                      nameCtrl.text.trim().isNotEmpty && nameCtrl.text.trim().length >= 2;
+
+                  void setHcp(int v) {
+                    setStateSheet(() => hcpInv = v.clamp(-10, 54));
+                  }
+
+                  return ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    children: [
+                      TextField(
+                        controller: nameCtrl,
+                        autofocus: true,
+                        style: const TextStyle(color: onBg),
+                        // AQUÍ: solo refrescamos validación local, no buscamos en API
+                        onChanged: (_) => setStateSheet(() {}),
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre del jugador',
+                          labelStyle: TextStyle(color: onBgDim),
+                          hintText: 'Ej: Juan Pérez',
+                          hintStyle: TextStyle(color: onBgDim),
+                          filled: true,
+                          fillColor: surface2,
+                          border: OutlineInputBorder(borderSide: BorderSide(color: outline)),
+                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: outline)),
+                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: onBg)),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: surface2,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: outline),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Hándicap', style: TextStyle(color: onBgDim, fontSize: 12)),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
+                                  onPressed: () => setHcp(hcpInv - 1),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    '$hcpInv',
+                                    style: const TextStyle(
+                                      color: onBg, fontSize: 28, fontWeight: FontWeight.w800),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add_circle, color: accentGreen),
+                                  onPressed: () => setHcp(hcpInv + 1),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: onBg,
+                                side: const BorderSide(color: outline),
+                                backgroundColor: surface,
+                              ),
+                              child: const Text('Cancelar'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: nombreValido
+                                  ? () {
+                                      Navigator.pop(
+                                        context,
+                                        PlayerChoiceResult(
+                                          id: null,
+                                          nombre: nameCtrl.text.trim(),
+                                          handicap: hcpInv,
+                                          esInvitado: true,
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: onBg,
+                                foregroundColor: Colors.black,
+                                disabledBackgroundColor: outline,
+                                disabledForegroundColor: onBgDim,
+                              ),
+                              child: const Text('Crear invitado'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+
+                Widget buscarTab() {
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: TextField(
+                          controller: searchCtrl,
+                          style: const TextStyle(color: onBg),
+                          onChanged: (v) => onSearchChanged(v, setStateSheet),
+                          decoration: const InputDecoration(
+                            labelText: 'Buscar jugador',
+                            labelStyle: TextStyle(color: onBgDim),
+                            hintText: 'Nombre...',
+                            hintStyle: TextStyle(color: onBgDim),
+                            prefixIcon: Icon(Icons.search, color: onBgDim),
+                            filled: true,
+                            fillColor: surface2,
+                            border: OutlineInputBorder(borderSide: BorderSide(color: outline)),
+                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: outline)),
+                            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: onBg)),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: loading
+                            ? const Center(child: CircularProgressIndicator())
+                            : lastError.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text('Error: $lastError',
+                                        style: const TextStyle(color: Colors.redAccent)),
+                                  )
+                                : items.isEmpty
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Text('Sin resultados.',
+                                            style: TextStyle(color: onBgDim)),
+                                      )
+                                    : ListView.separated(
+                                        controller: scrollController,
+                                        itemCount: items.length,
+                                        separatorBuilder: (_, __) => const Divider(height: 1, color: outline),
+                                        itemBuilder: (_, i) {
+                                          final j = items[i];
+                                          final inicial = j.nombre.isNotEmpty ? j.nombre[0] : '?';
+                                          final hcp = j.handicap ?? 0;
+                                          return ListTile(
+                                            leading: CircleAvatar(
+                                              backgroundColor: kPcontrastMoradoColor,
+                                              foregroundColor: Colors.white,
+                                              child: Text(inicial),
+                                            ),
+                                            title: Text(j.nombre,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(color: onBg, fontWeight: FontWeight.w600)),
+                                            subtitle: Text('Hcp: $hcp',
+                                                style: const TextStyle(color: onBgDim)),
+                                            trailing: const Icon(Icons.person_add_alt_1, color: onBg),
+                                            onTap: () {
+                                              Navigator.pop(
+                                                context,
+                                                PlayerChoiceResult(
+                                                  id: j.id,
+                                                  nombre: j.nombre,
+                                                  handicap: hcp,
+                                                  esInvitado: false,
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: () async {
+                              await loadJugadores(setStateSheet: setStateSheet, q: searchCtrl.text.trim());
+                            },
+                            icon: const Icon(Icons.refresh, color: onBgDim, size: 18),
+                            label: const Text('Actualizar', style: TextStyle(color: onBgDim)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: Column(
+                      children: [
+                        header(),
+                        // SIN hacks: hijos directos (se reconstruyen bien)
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              invitadoTab(),
+                              buscarTab(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      );
+    },
+  );
+
+  // Limpieza del debounce
+  debounce?.cancel();
+  return result;
+}
+
+}
+class _MiniTotal extends StatelessWidget {
+  final String label;
+  final int value;
+  const _MiniTotal({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    const onBg = Color(0xFFEAEAEA);
+    const onBgDim = Color(0xFFBDBDBD);
+
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: onBgDim, fontSize: 12)),
+        const SizedBox(height: 2),
+        Text(
+          '$value',
+          style: const TextStyle(color: onBg, fontWeight: FontWeight.w800, fontSize: 18),
+        ),
+      ],
+    );
+  }
+}
+
+
+class PlayerChoiceResult {
+  final int? id;           // null si es invitado local
+  final String nombre;
+  final int handicap;
+  final bool esInvitado;
+  const PlayerChoiceResult({
+    required this.id,
+    required this.nombre,
+    required this.handicap,
+    required this.esInvitado,
+  });
+}
+
+class _GripBar extends StatelessWidget {
+  const _GripBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40, height: 4,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2E2E2E),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+  }
+}
+
+// Hack elegante para pasar los 2 trees a TabBarView sin complicar el StatefulBuilder
+class _TabHolder extends StatelessWidget {
+  final Widget Function(BuildContext) childBuilder;
+  const _TabHolder({required this.childBuilder});
+
+  static Widget invitadoBuilder(BuildContext context) =>
+      (context.findAncestorWidgetOfExactType<_InjectedTabs>()!).invited;
+
+  static Widget buscarBuilder(BuildContext context) =>
+      (context.findAncestorWidgetOfExactType<_InjectedTabs>()!).search;
+
+  @override
+  Widget build(BuildContext context) => childBuilder(context);
+}
+
+class _InjectedTabs extends InheritedWidget {
+  final Widget invited;
+  final Widget search;
+  const _InjectedTabs({
+    required this.invited,
+    required this.search,
+    required Widget child,
+    super.key,
+  }) : super(child: child);
+
+  @override
+  bool updateShouldNotify(covariant _InjectedTabs oldWidget) =>
+      invited != oldWidget.invited || search != oldWidget.search;
+}
+
+extension _InjectTabsExt on Widget {
+  Widget _injectTabs(Widget invited, Widget search) =>
+      _InjectedTabs(invited: invited, search: search, child: this);
 }

@@ -9,41 +9,48 @@ import 'package:ruitoque/Components/enum.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/Models/hoyo_tee.dart';
 import 'package:ruitoque/Models/shot.dart';
+import 'package:flutter/services.dart';
 
 class MiMapaProvider extends ChangeNotifier {
-  // Variables necesarias
-  static const String _kLocationServicesDisabledMessage =
-      'Location services are disabled.';
+  // ---------------- Constantes & mensajes ----------------
+  static const String _kLocationServicesDisabledMessage = 'Location services are disabled.';
   static const String _kPermissionDeniedMessage = 'Permission denied.';
-  static const String _kPermissionDeniedForeverMessage =
-      'Permission denied forever.';
+  static const String _kPermissionDeniedForeverMessage = 'Permission denied forever.';
   static const String _kPermissionGrantedMessage = 'Permission granted.';
 
+  // ---------------- Dependencias ----------------
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
 
-  // Variables de estado
+  // ---------------- Estado de UI / cálculo ----------------
   bool positionStreamStarted = false;
+
   int? dHoyo = 0;
   int? dCentro = 0;
   int? dfrente = 0;
   int? dAtras = 0;
   int? dSalidaMedio = 0;
   int? dMedioGreen = 0;
+
   bool showLoader = false;
   double? altitude = 0;
   double bearing = 0;
-  late String distanciaHoyo;
+
   double miLatitud = 0;
   double miLongitud = 0;
-  late GoogleMapController mapController;
-  late LatLng puntoA;
-  late LatLng puntoB;
-  late LatLng puntoMedio;
+
+  GoogleMapController? mapController;
+
+  late LatLng puntoA;       // tee o última posición (después de golpe)
+  late LatLng puntoB;       // objetivo (centro green por defecto o drag final)
+  late LatLng puntoMedio;   // centro del hoyo
+
   final Set<Polyline> polylines = {};
   final Set<Marker> markers = {};
+
   late Position pMedio;
   late Position salida;
   late HoyoTee? tee;
+
   late LatLng makerA;
   late LatLng makerB;
 
@@ -52,6 +59,20 @@ class MiMapaProvider extends ChangeNotifier {
 
   bool isEnterScreen = true;
 
+  // Flags para UI según permisos
+  bool permissionDeniedForever = false;
+
+  // Exponer un helper de modo para el chip
+  String get modoTexto => isEnterScreen ? 'Modo planificación' : 'Siguiente golpe';
+
+
+  // ---------------- Streams & cachés ----------------
+  StreamSubscription<Position>? _posSub;
+
+  // Cache de ícono de marcador para evitar recargar el asset repetidamente
+  static Future<BitmapDescriptor>? _markerFuture;
+
+  // ---------------- Props de negocio ----------------
   final EstadisticaHoyo hoyo;
   final String teeSalida;
   final Function(int, Shot) onAgregarShot;
@@ -65,8 +86,18 @@ class MiMapaProvider extends ChangeNotifier {
   }) {
     setInitialData();
     _calculateBearing();
+    _ensureMarkerCache();
+    _startPositionStream(); // inicia stream con filtro de distancia
   }
 
+  // --------------- Ciclo de vida ---------------
+  @override
+  void dispose() {
+    _posSub?.cancel();
+    super.dispose();
+  }
+
+  // --------------- Setup inicial ---------------
   void setMapController(GoogleMapController controller) {
     mapController = controller;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -74,23 +105,41 @@ class MiMapaProvider extends ChangeNotifier {
     });
   }
 
-  void setInitialData() {
-    // Encontramos el Tee desde el cual jugamos
-    tee = _encontrarHoyoTeePorColor(hoyo.hoyo.hoyotees!, teeSalida);
-    // El puntoA o de inicio es la coordenada del tee que escogimos
-    puntoA = LatLng(tee!.cordenada.latitud, tee!.cordenada.longitud);
-    // El puntoB o de fin es la coordenada del centro del green al que vamos
-    puntoB = LatLng(
-        hoyo.hoyo.centroGreen!.latitud, hoyo.hoyo.centroGreen!.longitud);
-    // El punto medio es la coordenada del centro del hoyo
-    puntoMedio = LatLng(
-        hoyo.hoyo.centroHoyo!.latitud, hoyo.hoyo.centroHoyo!.longitud);
+  void _ensureMarkerCache() {
+    _markerFuture ??= BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(),
+      'assets/newMarker.png',
+    );
+  }
 
-    // Calculamos los puntos de los markers
+  void setInitialData() {
+    // 1) Tee de salida por color
+    tee = _encontrarHoyoTeePorColor(hoyo.hoyo.hoyotees ?? [], teeSalida);
+
+    // Guardas para evitar nulls críticos
+    final centroGreen = hoyo.hoyo.centroGreen;
+    final frenteGreen = hoyo.hoyo.frenteGreen;
+    final fondoGreen = hoyo.hoyo.fondoGreen;
+    final centroHoyo = hoyo.hoyo.centroHoyo;
+
+    if (tee == null || centroGreen == null || centroHoyo == null || fondoGreen == null || frenteGreen == null) {
+      // Si falta información clave, deja el estado mínimo y no crashea
+      polylines.clear();
+      markers.clear();
+      notifyListeners();
+      return;
+    }
+
+    // 2) Puntos principales
+    puntoA = LatLng(tee!.cordenada.latitud, tee!.cordenada.longitud);
+    puntoB = LatLng(centroGreen.latitud, centroGreen.longitud);
+    puntoMedio = LatLng(centroHoyo.latitud, centroHoyo.longitud);
+
+    // 3) Markers intermedios (para badges de distancia visual)
     makerA = _calcularPuntoMedio(puntoA, puntoMedio);
     makerB = _calcularPuntoMedio(puntoMedio, puntoB);
 
-    // Inicializamos la posición de la salida para calcular las distancias luego
+    // 4) Posiciones de referencia
     salida = Position(
       longitude: tee!.cordenada.longitud,
       latitude: tee!.cordenada.latitud,
@@ -99,115 +148,130 @@ class MiMapaProvider extends ChangeNotifier {
       altitude: 0,
       heading: 0.0,
       speed: 0.0,
-      altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+      altitudeAccuracy: 10,
+      headingAccuracy: 0.0,
+      speedAccuracy: 0.0,
     );
 
-    // Inicializamos la posición del punto medio para calcular las distancias luego
     pMedio = Position(
-      longitude: hoyo.hoyo.centroHoyo!.longitud,
-      latitude: hoyo.hoyo.centroHoyo!.latitud,
+      longitude: centroHoyo.longitud,
+      latitude: centroHoyo.latitud,
       timestamp: DateTime.now(),
       accuracy: 1,
       altitude: 0,
       heading: 0.0,
       speed: 0.0,
-      altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+      altitudeAccuracy: 10,
+      headingAccuracy: 0.0,
+      speedAccuracy: 0.0,
     );
 
-    // Agregamos la polyline con sus coordenadas
-    polylines.add(
-      Polyline(
-        polylineId: const PolylineId('mi_polyline'),
-        points: [puntoA, puntoMedio, puntoB],
-        width: 2,
-        color: Colors.white,
-      ),
-    );
+    // 5) Polyline inicial A–medio–B
+    polylines
+      ..clear()
+      ..add(
+        Polyline(
+          polylineId: const PolylineId('mi_polyline'),
+          points: [puntoA, puntoMedio, puntoB],
+          width: 3, // un poco más gruesa para legibilidad
+          color: Colors.white,
+        ),
+      );
 
-    // Creamos el marcador
+    // 6) Marcador principal
     _crearMarcadorPersonalizado();
 
-    // Calculamos las distancias de las líneas
+    // 7) Distancias base
     _calculateDistancesLinea(pMedio);
-
-    // Calculamos las distancias a frente, centro y fondo del green
-    calculateDistances();
+    calculateDistances(); // calcula frente/centro/fondo/hoyo
   }
 
+  // --------------- Posición: stream optimizado ---------------
+  void _startPositionStream() async {
+    final hasPermission = await _handlePermission();
+    if (!hasPermission) return;
+
+    if (positionStreamStarted) return;
+
+    positionStreamStarted = true;
+    // Afinar para golf: alta precisión, pero filtrando movimientos pequeños
+    const settings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 5, // recalcular al moverse ≥ 5m
+    );
+
+    _posSub = _geolocatorPlatform.getPositionStream(locationSettings: settings).listen(
+      (pos) {
+        miLatitud = pos.latitude;
+        miLongitud = pos.longitude;
+        altitude = pos.altitude;
+
+        // Recalcular distancias a green solo si ya tenemos coordenadas claves
+        if (hoyo.hoyo.centroGreen != null && hoyo.hoyo.frenteGreen != null && hoyo.hoyo.fondoGreen != null) {
+          _recalculateGreenDistancesFrom(pos);
+        }
+
+        // Reducimos notificaciones: una sola al final
+        notifyListeners();
+      },
+      onError: (_) {},
+      cancelOnError: false,
+    );
+  }
+
+  // --------------- Helpers de UI ---------------
   Future<void> updateScreenCoordinates() async {
-    Offset offsetaMediotemp = await _getScreenPosition(makerA);
-    Offset offsetmedioBtemp = await _getScreenPosition(makerB);
-    offsetAMedio = offsetaMediotemp;
-    offsetMedioB = offsetmedioBtemp;
+    if (mapController == null) return;
+    final a = await _getScreenPosition(makerA);
+    final b = await _getScreenPosition(makerB);
+    offsetAMedio = a;
+    offsetMedioB = b;
     notifyListeners();
   }
 
   Future<Offset> _getScreenPosition(LatLng punto) async {
-    ScreenCoordinate screenCoordinate =
-        await mapController.getScreenCoordinate(punto);
-    double devicePixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
-    double adjustedX = screenCoordinate.x.toDouble() / devicePixelRatio;
-    double adjustedY = screenCoordinate.y.toDouble() / devicePixelRatio;
-    return Offset(adjustedX, adjustedY);
+    if (mapController == null) return const Offset(0, 0);
+    final screenCoordinate = await mapController!.getScreenCoordinate(punto);
+    final devicePixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
+    return Offset(screenCoordinate.x / devicePixelRatio, screenCoordinate.y / devicePixelRatio);
   }
 
- Future<void> _crearMarcadorPersonalizado() async {
-  BitmapDescriptor iconoPersonalizado = await BitmapDescriptor.fromAssetImage(
-    const ImageConfiguration(), 
-    'assets/newMarker.png'
-  );
+  Future<void> _crearMarcadorPersonalizado() async {
+    final icono = await (_markerFuture ??= BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(),
+      'assets/newMarker.png',
+    ));
 
-  // Si isEnterScreen = true, el marcador va en el puntoMedio, 
-  // si es false, va en puntoB (centro del green).
-  LatLng markerPosition = isEnterScreen ? puntoMedio : puntoB;
+    final markerPosition = isEnterScreen ? puntoMedio : puntoB;
 
-  Marker markerPersonalizado = Marker(
-    markerId: const MarkerId('marcadorPrincipal'),
-    position: markerPosition,
-    draggable: true, // Siempre draggable, sin importar si esEnterScreen
-    icon: iconoPersonalizado,
-    anchor: const Offset(0.5, 0.5),
-    onDragEnd: (newPosition) {
-      // Si esEnterScreen es true, el marcador representa el punto medio original
-      // y la polyline es entre A, medio, B:
+    final markerPersonalizado = Marker(
+      markerId: const MarkerId('marcadorPrincipal'),
+      position: markerPosition,
+      draggable: true,
+      icon: icono,
+      // anchor afinado: punta del pin cerca del suelo
+      anchor: const Offset(0.5, 0.9),
+      onDragEnd: (newPosition) {
         if (isEnterScreen) {
           _updatePolyline(puntoA, newPosition, puntoB);
         } else {
-          // Si esEnterScreen es false, ya estamos en la fase donde solo hay una línea 
-          // de A (tu posición) a B (centro green). Aquí, al arrastrar el marcador 
-          // cambias la posición de puntoB al nuevo punto arrastrado.
+          // Modo "siguiente golpe": línea A–B (arrastre redefine B)
           puntoB = newPosition;
 
-          // Actualizamos la polilínea para que sea desde puntoA a este newPosition
-          polylines.clear();
-          polylines.add(
-            Polyline(
-              polylineId: const PolylineId('mi_polyline'),
-              points: [puntoA, puntoB],
-              width: 2,
-              color: Colors.white,
-            ),
-          );
-           makerA = _calcularPuntoMedio(puntoA, puntoB);
-          // Recalculamos las distancias con la nueva posición del marcador
-          Position nuevaPosicion = Position(
-            longitude: puntoB.longitude,
-            latitude: puntoB.latitude,
-            timestamp: DateTime.now(),
-            accuracy: 1,
-            altitude: 0,
-            heading: 0.0,
-            speed: 0.0,
-            altitudeAccuracy: 10, 
-            headingAccuracy: 0.0, 
-            speedAccuracy: 0.0
-          );
+          polylines
+            ..clear()
+            ..add(
+              Polyline(
+                polylineId: const PolylineId('mi_polyline'),
+                points: [puntoA, puntoB],
+                width: 3,
+                color: Colors.white,
+              ),
+            );
 
-          // Recalcular distancias de línea (puntoA a puntoB)
+          makerA = _calcularPuntoMedio(puntoA, puntoB);
+
+          // Recalcula distancia del tramo A–B (post golpe)
           _calculateDistancesLineaAfterGolpe(
             Position(
               longitude: puntoA.longitude,
@@ -217,57 +281,69 @@ class MiMapaProvider extends ChangeNotifier {
               altitude: 0,
               heading: 0.0,
               speed: 0.0,
-              altitudeAccuracy: 10, 
-              headingAccuracy: 0.0, 
-              speedAccuracy: 0.0
+              altitudeAccuracy: 10,
+              headingAccuracy: 0.0,
+              speedAccuracy: 0.0,
             ),
-            nuevaPosicion
+            Position(
+              longitude: puntoB.longitude,
+              latitude: puntoB.latitude,
+              timestamp: DateTime.now(),
+              accuracy: 1,
+              altitude: 0,
+              heading: 0.0,
+              speed: 0.0,
+              altitudeAccuracy: 10,
+              headingAccuracy: 0.0,
+              speedAccuracy: 0.0,
+            ),
           );
 
-          // Recalcular distancias a frente, centro y fondo del green 
-          // en base a la ubicación actual del usuario
+          // También refresca distancias al green desde la ubicación actual
           calculateDistances();
-          
           notifyListeners();
         }
       },
     );
 
-    markers.clear();
-    markers.add(markerPersonalizado);
+    markers
+      ..clear()
+      ..add(markerPersonalizado);
+
     notifyListeners();
   }
 
+  // --------------- Búsqueda de tee ----------------
   HoyoTee? _encontrarHoyoTeePorColor(List<HoyoTee> hoyos, String color) {
-    for (var hoyotee in hoyos) {
-      if (hoyotee.color.toLowerCase() == color.toLowerCase()) {
-        return hoyotee;
-      }
+    try {
+      return hoyos.firstWhere((h) => h.color.toLowerCase() == color.toLowerCase());
+    } catch (_) {
+      return null;
     }
-    return null; // Retorna null si no encuentra ninguna coincidencia
   }
 
-  LatLng _calcularPuntoMedio(LatLng puntoA, LatLng puntoB) {
-    double lat1 = radians(puntoA.latitude);
-    double lon1 = radians(puntoA.longitude);
-    double lat2 = radians(puntoB.latitude);
-    double lon2 = radians(puntoB.longitude);
+  // --------------- Geodesia ----------------
+  LatLng _calcularPuntoMedio(LatLng a, LatLng b) {
+    final lat1 = radians(a.latitude);
+    final lon1 = radians(a.longitude);
+    final lat2 = radians(b.latitude);
+    final lon2 = radians(b.longitude);
 
-    double dLon = lon2 - lon1;
-
-    double Bx = cos(lat2) * cos(dLon);
-    double By = cos(lat2) * sin(dLon);
-    double lat3 = atan2(
-        sin(lat1) + sin(lat2), sqrt((cos(lat1) + Bx) * (cos(lat1) + Bx) + By * By));
-    double lon3 = lon1 + atan2(By, cos(lat1) + Bx);
+    final dLon = lon2 - lon1;
+    final Bx = cos(lat2) * cos(dLon);
+    final By = cos(lat2) * sin(dLon);
+    final lat3 = atan2(
+      sin(lat1) + sin(lat2),
+      sqrt((cos(lat1) + Bx) * (cos(lat1) + Bx) + By * By),
+    );
+    final lon3 = lon1 + atan2(By, cos(lat1) + Bx);
 
     return LatLng(degrees(lat3), degrees(lon3));
   }
 
   void _updatePolyline(LatLng inicio, LatLng medio, LatLng fin) {
     if (isEnterScreen) {
-      List<LatLng> points = [inicio, medio, fin];
-      Position auxMedio = Position(
+      final auxMedio = Position(
         longitude: medio.longitude,
         latitude: medio.latitude,
         timestamp: DateTime.now(),
@@ -275,44 +351,31 @@ class MiMapaProvider extends ChangeNotifier {
         altitude: 0,
         heading: 0.0,
         speed: 0.0,
-        altitudeAccuracy: 10, 
-        headingAccuracy: 0.0, 
-        speedAccuracy: 0.0
+        altitudeAccuracy: 10,
+        headingAccuracy: 0.0,
+        speedAccuracy: 0.0,
       );
 
       _calculateDistancesLinea(auxMedio);
 
-      // Actualiza la polilínea
-      polylines.clear();
-      polylines.add(
-        Polyline(
-          polylineId: const PolylineId('mi_polyline'),
-          points: points,
-          width: 2,
-          color: Colors.white,
-        ),
-      );
+      polylines
+        ..clear()
+        ..add(
+          Polyline(
+            polylineId: const PolylineId('mi_polyline'),
+            points: [inicio, medio, fin],
+            width: 3,
+            color: Colors.white,
+          ),
+        );
 
       makerA = _calcularPuntoMedio(puntoA, medio);
       makerB = _calcularPuntoMedio(medio, puntoB);
+
       updateScreenCoordinates();
       notifyListeners();
     } else {
-      List<LatLng> points = [inicio, fin];
-      Position auxFin = Position(
-        longitude: fin.longitude,
-        latitude: fin.latitude,
-        timestamp: DateTime.now(),
-        accuracy: 1,
-        altitude: 0,
-        heading: 0.0,
-        speed: 0.0,
-         altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
-      );
-
-      Position auxInicio = Position(
+      final auxInicio = Position(
         longitude: inicio.longitude,
         latitude: inicio.latitude,
         timestamp: DateTime.now(),
@@ -320,24 +383,35 @@ class MiMapaProvider extends ChangeNotifier {
         altitude: 0,
         heading: 0.0,
         speed: 0.0,
-         altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+        altitudeAccuracy: 10,
+        headingAccuracy: 0.0,
+        speedAccuracy: 0.0,
+      );
+      final auxFin = Position(
+        longitude: fin.longitude,
+        latitude: fin.latitude,
+        timestamp: DateTime.now(),
+        accuracy: 1,
+        altitude: 0,
+        heading: 0.0,
+        speed: 0.0,
+        altitudeAccuracy: 10,
+        headingAccuracy: 0.0,
+        speedAccuracy: 0.0,
       );
 
       _calculateDistancesLineaAfterGolpe(auxInicio, auxFin);
 
-      // Actualiza la polilínea
-      markers.clear();
-      polylines.clear();
-      polylines.add(
-        Polyline(
-          polylineId: const PolylineId('mi_polyline'),
-          points: points,
-          width: 2,
-          color: Colors.white,
-        ),
-      );
+      polylines
+        ..clear()
+        ..add(
+          Polyline(
+            polylineId: const PolylineId('mi_polyline'),
+            points: [inicio, fin],
+            width: 3,
+            color: Colors.white,
+          ),
+        );
 
       makerA = _calcularPuntoMedio(puntoA, fin);
       updateScreenCoordinates();
@@ -350,75 +424,101 @@ class MiMapaProvider extends ChangeNotifier {
     notifyListeners();
 
     final hasPermission = await _handlePermission();
-
     if (!hasPermission) {
       showLoader = false;
       notifyListeners();
       return;
     }
 
-    final position = await _geolocatorPlatform.getCurrentPosition();
+    // Usar última posición del stream si existe; si no, tomar una puntual
+    Position position;
+    try {
+      position = await _geolocatorPlatform.getCurrentPosition();
+    } catch (_) {
+      showLoader = false;
+      notifyListeners();
+      return;
+    }
+
     miLatitud = position.latitude;
     miLongitud = position.longitude;
-
     altitude = position.altitude;
 
-    Position frente = Position(
-      longitude: hoyo.hoyo.centroGreen!.longitud,
-      latitude: hoyo.hoyo.centroGreen!.latitud,
-      timestamp: DateTime.now(),
-      accuracy: 1,
-      altitude: 0,
-      heading: 0.0,
-      speed: 0.0,
-       altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
-    );
+    _recalculateGreenDistancesFrom(position);
 
-    Position centro = Position(
-      longitude: hoyo.hoyo.centroGreen!.longitud,
-      latitude: hoyo.hoyo.centroGreen!.latitud,
-      timestamp: DateTime.now(),
-      accuracy: 1,
-      altitude: 0,
-      heading: 0.0,
-      speed: 0.0,
-       altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
-    );
+    // dHoyo: si tee.distancia == 0, calcula desde salida a CENTRO (no frente)
+    if (tee != null) {
+      final centro = Position(
+        longitude: hoyo.hoyo.centroGreen!.longitud,
+        latitude: hoyo.hoyo.centroGreen!.latitud,
+        timestamp: DateTime.now(),
+        accuracy: 1,
+        altitude: 0,
+        heading: 0.0,
+        speed: 0.0,
+        altitudeAccuracy: 10,
+        headingAccuracy: 0.0,
+        speedAccuracy: 0.0,
+      );
+      dHoyo = tee!.distancia == 0 ? _calculateDistanceInYards(salida, centro) : tee!.distancia;
+    }
 
-    Position fondo = Position(
-      longitude: hoyo.hoyo.fondoGreen!.longitud,
-      latitude: hoyo.hoyo.fondoGreen!.latitud,
-      timestamp: DateTime.now(),
-      accuracy: 1,
-      altitude: 0,
-      heading: 0.0,
-      speed: 0.0,
-       altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
-    );
-
-    dCentro = _calculateDistanceInYards(centro, position);
-    dAtras = _calculateDistanceInYards(fondo, position);
-    dfrente = _calculateDistanceInYards(frente, position);
-    dHoyo = tee!.distancia == 0
-        ? _calculateDistanceInYards(salida, centro)
-        : tee!.distancia;
     showLoader = false;
     notifyListeners();
   }
 
+  void _recalculateGreenDistancesFrom(Position from) {
+    final frente = hoyo.hoyo.frenteGreen!;
+    final centro = hoyo.hoyo.centroGreen!;
+    final fondo = hoyo.hoyo.fondoGreen!;
+
+    final pFrente = Position(
+      longitude: frente.longitud,
+      latitude: frente.latitud,
+      timestamp: DateTime.now(),
+      accuracy: 1,
+      altitude: 0,
+      heading: 0.0,
+      speed: 0.0,
+      altitudeAccuracy: 10,
+      headingAccuracy: 0.0,
+      speedAccuracy: 0.0,
+    );
+    final pCentro = Position(
+      longitude: centro.longitud,
+      latitude: centro.latitud,
+      timestamp: DateTime.now(),
+      accuracy: 1,
+      altitude: 0,
+      heading: 0.0,
+      speed: 0.0,
+      altitudeAccuracy: 10,
+      headingAccuracy: 0.0,
+      speedAccuracy: 0.0,
+    );
+    final pFondo = Position(
+      longitude: fondo.longitud,
+      latitude: fondo.latitud,
+      timestamp: DateTime.now(),
+      accuracy: 1,
+      altitude: 0,
+      heading: 0.0,
+      speed: 0.0,
+      altitudeAccuracy: 10,
+      headingAccuracy: 0.0,
+      speedAccuracy: 0.0,
+    );
+
+    dfrente = _calculateDistanceInYards(pFrente, from);
+    dCentro = _calculateDistanceInYards(pCentro, from);
+    dAtras = _calculateDistanceInYards(pFondo, from);
+  }
+
   Future<void> _calculateDistancesLinea(Position medio) async {
     final hasPermission = await _handlePermission();
-    if (!hasPermission) {
-      return;
-    }
+    if (!hasPermission) return;
 
-    Position puntoBCentroGreen = Position(
+    final puntoBCentroGreen = Position(
       longitude: hoyo.hoyo.centroGreen!.longitud,
       latitude: hoyo.hoyo.centroGreen!.latitud,
       timestamp: DateTime.now(),
@@ -426,9 +526,9 @@ class MiMapaProvider extends ChangeNotifier {
       altitude: 0,
       heading: 0.0,
       speed: 0.0,
-       altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+      altitudeAccuracy: 10,
+      headingAccuracy: 0.0,
+      speedAccuracy: 0.0,
     );
 
     dSalidaMedio = _calculateDistanceInYards(salida, medio);
@@ -436,83 +536,65 @@ class MiMapaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _calculateDistancesLineaAfterGolpe(
-      Position inicio, Position fin) async {
+  Future<void> _calculateDistancesLineaAfterGolpe(Position inicio, Position fin) async {
     final hasPermission = await _handlePermission();
-    if (!hasPermission) {
-      return;
-    }
+    if (!hasPermission) return;
 
     dSalidaMedio = _calculateDistanceInYards(inicio, fin);
     notifyListeners();
   }
 
   int _calculateDistanceInYards(Position position1, Position position2) {
-    double distanceInMeters = Geolocator.distanceBetween(
+    final distanceInMeters = Geolocator.distanceBetween(
       position1.latitude,
       position1.longitude,
       position2.latitude,
       position2.longitude,
     );
-    // Convertir metros a yardas
-    double distanceInYards = distanceInMeters * 1.09361;
-    return distanceInYards.toInt();
+    return (distanceInMeters * 1.09361).round();
   }
 
+  // --------------- Permisos ---------------
   Future<bool> _handlePermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-    serviceEnabled = await _geolocatorPlatform.isLocationServiceEnabled();
+    final serviceEnabled = await _geolocatorPlatform.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _updatePositionList(
-        PositionItemType.log,
-        _kLocationServicesDisabledMessage,
-      );
-
+      _updatePositionList(PositionItemType.log, _kLocationServicesDisabledMessage);
       return false;
     }
 
-    permission = await _geolocatorPlatform.checkPermission();
+    var permission = await _geolocatorPlatform.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await _geolocatorPlatform.requestPermission();
       if (permission == LocationPermission.denied) {
-        _updatePositionList(
-          PositionItemType.log,
-          _kPermissionDeniedMessage,
-        );
-
+        _updatePositionList(PositionItemType.log, _kPermissionDeniedMessage);
+        permissionDeniedForever = false;
         return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      _updatePositionList(
-        PositionItemType.log,
-        _kPermissionDeniedForeverMessage,
-      );
-
+      _updatePositionList(PositionItemType.log, _kPermissionDeniedForeverMessage);
+      permissionDeniedForever = true; // la UI puede mostrar CTA a Ajustes
       return false;
     }
 
-    _updatePositionList(
-      PositionItemType.log,
-      _kPermissionGrantedMessage,
-    );
+    _updatePositionList(PositionItemType.log, _kPermissionGrantedMessage);
+    permissionDeniedForever = false;
     return true;
   }
 
   void _updatePositionList(PositionItemType type, String displayValue) {
-    // Manejo de logs o mensajes
+    // hook para logging si quieres
   }
 
+  // --------------- Bearing / rumbos ---------------
   double radians(double degrees) => degrees * (pi / 180.0);
-
   double degrees(double radians) => radians * (180.0 / pi);
 
   void _calculateBearing() {
-    LatLng start = LatLng(tee!.cordenada.latitud, tee!.cordenada.longitud);
-    LatLng end = LatLng(
-        hoyo.hoyo.centroHoyo!.latitud, hoyo.hoyo.centroHoyo!.longitud);
+    if (tee == null || hoyo.hoyo.centroHoyo == null) return;
+    final start = LatLng(tee!.cordenada.latitud, tee!.cordenada.longitud);
+    final end = LatLng(hoyo.hoyo.centroHoyo!.latitud, hoyo.hoyo.centroHoyo!.longitud);
     bearing = _calcularBearing(start, end);
   }
 
@@ -523,56 +605,39 @@ class MiMapaProvider extends ChangeNotifier {
     var endLng = radians(end.longitude);
 
     var dLong = endLng - startLng;
+    var dPhi = log(tan(endLat / 2.0 + pi / 4.0) / tan(startLat / 2.0 + pi / 4.0));
 
-    var dPhi =
-        log(tan(endLat / 2.0 + pi / 4.0) / tan(startLat / 2.0 + pi / 4.0));
     if (dLong.abs() > pi) {
-      if (dLong > 0.0) {
-        dLong = -(2.0 * pi - dLong);
-      } else {
-        dLong = (2.0 * pi + dLong);
-      }
+      dLong = dLong > 0.0 ? -(2.0 * pi - dLong) : (2.0 * pi + dLong);
     }
-
     return (degrees(atan2(dLong, dPhi)) + 360.0) % 360.0;
   }
 
-  void grabarGolpe() async {
-    await calculateDistances(); // Asegúrate de tener la posición actualizada
+  // --------------- Registro de golpes ---------------
+  Future<void> grabarGolpe() async {
+    // Asegura permisos/posición actual antes de calcular
+    final hasPermission = await _handlePermission();
+    if (!hasPermission) return;
 
+    Position position;
+    try {
+      position = await _geolocatorPlatform.getCurrentPosition();
+    } catch (_) {
+      return;
+    }
+
+    // Punto anterior = tee si no hay shots; si hay, el último shot
     LatLng puntoAnterior;
-
     if (hoyo.shots == null || hoyo.shots!.isEmpty) {
-      // Si no hay shots registrados, usar el puntoA
       puntoAnterior = puntoA;
     } else {
-      // Si ya hay shots, usar la última posición registrada
-      Shot ultimoShot = hoyo.shots!.last;
+      final ultimoShot = hoyo.shots!.last;
       puntoAnterior = LatLng(ultimoShot.latitud, ultimoShot.longitud);
     }
 
-    // Obtener la posición actual
-      Position position = await _geolocatorPlatform.getCurrentPosition();
+    final puntoActual = LatLng(position.latitude, position.longitude);
 
-   //     7.025030, -73.084319
-
-    // Position position = Position(
-    //   latitude: 7.025030,
-    //     longitude: -73.084319,
-    //     timestamp: DateTime.now(),
-    //     accuracy: 1,
-    //     altitude: 0,
-    //     heading: 0.0,
-    //     speed: 0.0,
-    //      altitudeAccuracy: 10, 
-    //   headingAccuracy: 0.0, 
-    //   speedAccuracy: 0.0
-    // );
-
-    LatLng puntoActual = LatLng(position.latitude, position.longitude);
-
-    // Calcular la distancia en yardas
-    int distancia = _calculateDistanceInYards(
+    final distancia = _calculateDistanceInYards(
       Position(
         latitude: puntoAnterior.latitude,
         longitude: puntoAnterior.longitude,
@@ -581,9 +646,9 @@ class MiMapaProvider extends ChangeNotifier {
         altitude: 0,
         heading: 0.0,
         speed: 0.0,
-         altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+        altitudeAccuracy: 10,
+        headingAccuracy: 0.0,
+        speedAccuracy: 0.0,
       ),
       Position(
         latitude: puntoActual.latitude,
@@ -593,41 +658,35 @@ class MiMapaProvider extends ChangeNotifier {
         altitude: 0,
         heading: 0.0,
         speed: 0.0,
-         altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+        altitudeAccuracy: 10,
+        headingAccuracy: 0.0,
+        speedAccuracy: 0.0,
       ),
     );
 
-    // Crear un nuevo shot con la distancia calculada
-    Shot nuevoShot = Shot(
+    final nuevoShot = Shot(
       latitud: puntoActual.latitude,
       longitud: puntoActual.longitude,
       distancia: distancia,
     );
 
-    // Agregar el shot a la lista y ejecutar el callback
     onAgregarShot(hoyo.id, nuevoShot);
 
     isEnterScreen = false;
-
     _afterGrabarGolpe(position);
   }
 
   void _afterGrabarGolpe(Position position) {
-     // Actualizamos el puntoA a la nueva posición (donde se realizó el último shot)
+    // A = nueva posición
     puntoA = LatLng(position.latitude, position.longitude);
-    // El puntoB o de fin es la coordenada del centro del green al que vamos
-    puntoB = LatLng(
-        hoyo.hoyo.centroGreen!.latitud, hoyo.hoyo.centroGreen!.longitud);
-    // El punto medio es la coordenada del centro del hoyo
-    // puntoMedio = LatLng(
-    //     hoyo.hoyo.centroHoyo!.latitud, hoyo.hoyo.centroHoyo!.longitud);
 
-    // Calculamos los puntos de los markers
+    // B = centro de green
+    if (hoyo.hoyo.centroGreen == null) return;
+    puntoB = LatLng(hoyo.hoyo.centroGreen!.latitud, hoyo.hoyo.centroGreen!.longitud);
 
-     makerA = _calcularPuntoMedio(puntoA, puntoB);
-    Position fin =  Position(
+    makerA = _calcularPuntoMedio(puntoA, puntoB);
+
+    final fin = Position(
       longitude: hoyo.hoyo.centroGreen!.longitud,
       latitude: hoyo.hoyo.centroGreen!.latitud,
       timestamp: DateTime.now(),
@@ -635,98 +694,114 @@ class MiMapaProvider extends ChangeNotifier {
       altitude: 0,
       heading: 0.0,
       speed: 0.0,
-      altitudeAccuracy: 10, 
-      headingAccuracy: 0.0, 
-      speedAccuracy: 0.0
+      altitudeAccuracy: 10,
+      headingAccuracy: 0.0,
+      speedAccuracy: 0.0,
     );
 
-    _calculateDistancesLineaAfterGolpe(position,fin );
-   
-     
+    _calculateDistancesLineaAfterGolpe(position, fin);
 
-    polylines.clear();
-    markers.clear();
+    polylines
+      ..clear()
+      ..add(
+        Polyline(
+          polylineId: const PolylineId('mi_polyline'),
+          points: [puntoA, puntoB],
+          width: 3,
+          color: Colors.white,
+        ),
+      );
 
-    // Agregamos la polilínea con sus coordenadas
-    polylines.add(
-      Polyline(
-        polylineId: const PolylineId('mi_polyline'),
-        points: [puntoA, puntoB],
-        width: 2,
-        color: Colors.white,
-      ),
-    );
+    isEnterScreen = false;
 
-     isEnterScreen = false; 
-
-    // Creamos el marcador
-    _crearMarcadorPersonalizado();
-
-    // Calculamos las distancias de las líneas
-   
-
-    // Calculamos las distancias a frente, centro y fondo del green
-    calculateDistances();
-
+    _crearMarcadorPersonalizado(); // reubica marcador
+    calculateDistances();          // refresca frente/centro/fondo
     notifyListeners();
   }
 
-void mostrarModalDeDistancias(BuildContext context) {
+  // --------------- Modal (solo callback de borrar ya existe) ---------------
+  void mostrarModalDeDistancias(BuildContext context) {
   showModalBottomSheet(
     context: context,
-    builder: (BuildContext context) {
-      return Consumer<MiMapaProvider>(
-        builder: (context, provider, child) {
-          return Container(
-            padding: const EdgeInsets.all(16.0),
-            height: 300, // Ajusta la altura según tus necesidades
-            child: provider.hoyo.shots == null || provider.hoyo.shots!.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No hay golpes registrados.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+    useRootNavigator: false, // <- importante para heredar el provider de esta ruta
+    builder: (sheetContext) {
+      // Aseguramos que el bottom sheet tenga el mismo MiMapaProvider
+      return ChangeNotifierProvider<MiMapaProvider>.value(
+        value: this, // <- el mismo instance del provider actual
+        child: Consumer<MiMapaProvider>(
+          builder: (context, provider, child) {
+            final shots = provider.hoyo.shots ?? [];
+
+            return Container(
+              padding: const EdgeInsets.all(16.0),
+              height: 300,
+              child: shots.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No hay golpes registrados.',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: provider.hoyo.shots!.length,
-                    itemBuilder: (context, index) {
-                      final shot = provider.hoyo.shots![index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blueAccent,
-                          foregroundColor: Colors.white,
-                          child: Text('${index + 1}'),
-                        ),
-                        title: Text(
-                          '${shot.distancia} yds',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                    )
+                  : ListView.builder(
+                      itemCount: shots.length,
+                      itemBuilder: (context, index) {
+                        final shot = shots[index];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blueAccent,
+                            foregroundColor: Colors.white,
+                            child: Text('${index + 1}'),
                           ),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            // Eliminar el golpe de la lista
-                            provider.onDeleteShot(provider.hoyo.id, shot);
-                            // Notificar cambios para actualizar la UI
-                            provider.notifyListeners();
-                          },
-                        ),
-                        onTap: () {
-                          // Opcional: Manejar toques en el ListTile
-                        },
-                      );
-                    },
-                  ),
-          );
-        },
+                          title: Text(
+                            '${shot.distancia} yds',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              provider.onDeleteShot(provider.hoyo.id, shot);
+                              provider.notifyListeners(); // si mantienes este patrón
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            );
+          },
+        ),
       );
     },
   );
+}
+
+
+
+
+  // Ajuste de cámara a bounds (tee ↔ green) con padding
+Future<void> fitCameraToBounds({double padding = 60}) async {
+  if (mapController == null) return;
+  final sw = LatLng(
+    min(puntoA.latitude, puntoB.latitude),
+    min(puntoA.longitude, puntoB.longitude),
+  );
+  final ne = LatLng(
+    max(puntoA.latitude, puntoB.latitude),
+    max(puntoA.longitude, puntoB.longitude),
+  );
+  final bounds = LatLngBounds(southwest: sw, northeast: ne);
+  await mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, padding));
+}
+
+// Señal háptica al finalizar drag del marcador (lo llamaremos desde la UI)
+Future<void> hapticOnDragEnd() async {
+  try {
+    await HapticFeedback.selectionClick();
+  } catch (_) {}
+}
+
+// onCameraIdle de bajo consumo
+void onCameraIdle() {
+  updateScreenCoordinates();
 }
 
 }

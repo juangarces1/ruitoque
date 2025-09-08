@@ -5,7 +5,7 @@ import 'package:ruitoque/Screens/Estadisticas/golf_score_screen.dart';
 import 'package:ruitoque/constans.dart';
 
 // Paleta oscura centralizada
-const Color _cardBg      = Color(0xFF1A1A1D); // gris‑casi‑negro
+const Color _cardBg      = Color(0xFF1A1A1D); // gris-casi-negro
 const Color _headerBg    = Color(0xFF222228);
 const Color _accentBlue  = Color(0xFF0EA5E9); // azul cian
 const Color _rowEven     = Color(0xFF2D2D32);
@@ -44,66 +44,131 @@ class _NewTarjetaCardDarkState extends State<NewTarjetaCardDark> {
     final TextStyle whiteBold =
         Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.white);
 
-    return Card(
-      color: _cardBg,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      elevation: 3,
-      child: ExpansionTile(
-        collapsedBackgroundColor: _headerBg,
-        backgroundColor: _headerBg,
-        collapsedIconColor: _accentBlue,
-        iconColor: _accentBlue,
-        title: _crearHeader(whiteBold),
-        children: <Widget>[
-          Divider(color: Colors.grey.shade700, height: 0),
-          _crearCuerpoEstadisticas(whiteBold),
-          Divider(color: Colors.grey.shade700, height: 0),
-          _crearFooter(whiteBold),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Breakpoints sencillos: limita ancho máximo para desktop/tablet
+        final double maxContentWidth = constraints.maxWidth >= 1100
+            ? 1000
+            : (constraints.maxWidth >= 800 ? 760 : constraints.maxWidth);
+
+        final bool isWide = maxContentWidth >= 760;
+
+        // Escala tipográfica: 0.90x - 1.20x
+        final double tScale = (maxContentWidth / 760).clamp(0.90, 1.20);
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxContentWidth),
+            child: Card(
+              color: _cardBg,
+              margin: EdgeInsets.symmetric(
+                horizontal: isWide ? 16 : 12,
+                vertical: 6,
+              ),
+              elevation: 3,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  dividerColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                ),
+                child: ExpansionTile(
+                  collapsedBackgroundColor: _headerBg,
+                  backgroundColor: _headerBg,
+                  collapsedIconColor: _accentBlue,
+                  iconColor: _accentBlue,
+                  title: _crearHeader(
+                    whiteBold.copyWith(fontSize: (whiteBold.fontSize ?? 16) * tScale),
+                    tScale,
+                  ),
+                  children: <Widget>[
+                    Divider(color: Colors.grey.shade700, height: 0),
+                    // Fallback: si el ancho es muy estrecho, usa scroll horizontal
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: maxContentWidth,
+                        ),
+                        child: _crearCuerpoEstadisticas(
+                          whiteBold.copyWith(fontSize: 14 * tScale),
+                          maxContentWidth,
+                          tScale,
+                        ),
+                      ),
+                    ),
+                    Divider(color: Colors.grey.shade700, height: 0),
+                    _crearFooter(whiteBold.copyWith(fontSize: 14 * tScale)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   // ---------------- HEADER ----------------
-  Widget _crearHeader(TextStyle whiteBold) {
-    return Container(
+  Widget _crearHeader(TextStyle whiteBold, double tScale) {
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Izquierda: posición + botón score
           Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(widget.tarjeta.posicion.toString(),
-                  style: whiteBold.copyWith(fontSize: 22)),
+              Text(
+                widget.tarjeta.posicion.toString(),
+                style: whiteBold.copyWith(fontSize: 22 * tScale),
+              ),
               if (widget.onEnterScores != null)
                 IconButton(
                   icon: const Icon(Icons.score),
                   color: _accentBlue,
                   onPressed: widget.onEnterScores,
+                  iconSize: 22 * tScale,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
             ],
           ),
           // Centro: nombre + HCP
           Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(widget.tarjeta.jugador!.nombre,
-                  style: whiteBold.copyWith(fontSize: 19)),
+              Text(
+                widget.tarjeta.jugador!.nombre,
+                overflow: TextOverflow.ellipsis,
+                style: whiteBold.copyWith(fontSize: 19 * tScale),
+              ),
               const SizedBox(height: 2),
-              Text('HCP ${widget.tarjeta.handicapPlayer}',
-                  style: whiteBold.copyWith(
-                      fontSize: 14, color: Colors.grey.shade300)),
+              Text(
+                'HCP ${widget.tarjeta.handicapPlayer}',
+                style: whiteBold.copyWith(
+                  fontSize: 14 * tScale,
+                  color: Colors.grey.shade300,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
           // Derecha: Score vs Par
           Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text('Par',
-                  style: TextStyle(color: Colors.grey, fontSize: 14)),
+              Text(
+                'Par',
+                style: TextStyle(color: Colors.grey, fontSize: 14 * tScale),
+              ),
               const SizedBox(height: 2),
-              Text(widget.tarjeta.scoreParString,
-                  style: whiteBold.copyWith(fontSize: 22)),
+              Text(
+                widget.tarjeta.scoreParString,
+                style: whiteBold.copyWith(fontSize: 22 * tScale),
+              ),
             ],
           ),
         ],
@@ -112,7 +177,7 @@ class _NewTarjetaCardDarkState extends State<NewTarjetaCardDark> {
   }
 
   // ---------------- TABLA ----------------
-  Widget _crearCuerpoEstadisticas(TextStyle whiteBold) {
+  Widget _crearCuerpoEstadisticas(TextStyle whiteBold, double maxWidth, double tScale) {
     int total = widget.tarjeta.hoyos.length;
     int mid = (total / 2).floor();
     List<EstadisticaHoyo> ida = widget.tarjeta.hoyos.sublist(0, mid);
@@ -120,240 +185,205 @@ class _NewTarjetaCardDarkState extends State<NewTarjetaCardDark> {
 
     return Column(
       children: [
-        _tabla('Ida', ida, 0, whiteBold),
-        _tabla('Vuelta', vuelta, ida.length, whiteBold),
+        _tabla('Ida', ida, 0, whiteBold, maxWidth, tScale),
+        _tabla('Vuelta', vuelta, ida.length, whiteBold, maxWidth, tScale),
       ],
     );
   }
 
-  Widget _tabla(String titulo, List<EstadisticaHoyo> hoyos, int offset,
-      TextStyle whiteBold) {
-    TextStyle header = whiteBold.copyWith(fontSize: 13);
-    TextStyle normal =
-        whiteBold.copyWith(fontSize: 13, fontWeight: FontWeight.w400);
+  Widget _tabla(
+    String titulo,
+    List<EstadisticaHoyo> hoyos,
+    int offset,
+    TextStyle whiteBold,
+    double maxWidth,
+    double tScale,
+  ) {
+    final TextStyle header = whiteBold.copyWith(fontSize: 13 * tScale, fontWeight: FontWeight.w700);
+    final TextStyle normal = whiteBold.copyWith(fontSize: 13 * tScale, fontWeight: FontWeight.w400);
 
-    // Anchos de columnas
-    Map<int, TableColumnWidth> widths = {0: const FlexColumnWidth(1)};
-    for (int i = 1; i <= hoyos.length; i++) {
-      widths[i] = const FixedColumnWidth(26);
-    }
-    widths[hoyos.length + 1] = const FixedColumnWidth(42);
+    // Dimensiones responsivas
+    const double leftColMin = 56;  // "Hoyo/Hcp/Par/Score/Neto"
+    const double rightColMin = 58; // Totales
+    final double usable = (maxWidth - leftColMin - rightColMin).clamp(240, 2000);
+    final double cellW  = (usable / hoyos.length).clamp(24, 46); // límites razonables
+
+    // Column widths
+    final Map<int, TableColumnWidth> widths = <int, TableColumnWidth>{
+      0: const FixedColumnWidth(leftColMin),
+      for (int i = 1; i <= hoyos.length; i++) i: FixedColumnWidth(cellW),
+      hoyos.length + 1: const FixedColumnWidth(rightColMin),
+    };
 
     Widget filaColor(bool even, Widget child) => Container(
           color: even ? _rowEven : _rowOdd,
           child: child,
         );
 
+    // Helper para centrar texto
+    Widget c(String s, TextStyle st, {int maxLines = 1}) => Center(
+          child: Text(s, style: st, maxLines: maxLines, overflow: TextOverflow.ellipsis),
+        );
+
     return Table(
       columnWidths: widths,
       border: TableBorder(
-        horizontalInside:
-            BorderSide(color: Colors.grey.shade800, width: 0.6),
+        horizontalInside: BorderSide(color: Colors.grey.shade800, width: 0.6),
       ),
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
         // Header fila 1
         TableRow(
           decoration: const BoxDecoration(color: _greenDark),
           children: [
-            Center(child: Text('Hoyo', style: header)),
-            ...List.generate(
-                hoyos.length,
-                (i) => Center(
-                    child: Text('${i + 1 + offset}', style: header))),
-            Center(child: Text(titulo, style: header)),
+            c('Hoyo', header),
+            ...List.generate(hoyos.length, (i) => c('${i + 1 + offset}', header)),
+            c(titulo, header),
           ],
         ),
         // HCP row
         TableRow(
           children: [
-            Center(child: Text('Hcp', style: normal)),
-            ...hoyos.map((h) =>
-                Center(child: Text('${h.hoyo.handicap}', style: normal))),
+            c('Hcp', normal),
+            ...hoyos.map((h) => c('${h.hoyo.handicap}', normal)),
             const SizedBox(),
           ],
         ),
         // Par row
         TableRow(
           children: [
-            Center(child: Text('Par', style: normal)),
-            ...hoyos.map((h) =>
-                Center(child: Text('${h.hoyo.par}', style: normal))),
-            Center(
-                child: Text(
-                    titulo == 'Ida'
-                        ? '${widget.tarjeta.parIda}'
-                        : '${widget.tarjeta.parVuelta}',
-                    style: whiteBold)),
+            c('Par', normal),
+            ...hoyos.map((h) => c('${h.hoyo.par}', normal)),
+            c(
+              titulo == 'Ida' ? '${widget.tarjeta.parIda}' : '${widget.tarjeta.parVuelta}',
+              whiteBold,
+            ),
           ],
         ),
         // Score row
         TableRow(
           children: [
-            Center(child: Text('Score', style: whiteBold)),
+            c('Score', whiteBold),
             ...hoyos.map((h) => celdaTarjeta(h.pontajeVsPar, h.golpes)),
-            Center(
-                child: Text(
-                    titulo == 'Ida'
-                        ? (widget.tarjeta.scoreIda == 0
-                            ? ''
-                            : '${widget.tarjeta.scoreIda}')
-                        : (widget.tarjeta.scoreVuelta == 0
-                            ? ''
-                            : '${widget.tarjeta.scoreVuelta}'),
-                    style: whiteBold)),
+            c(
+              titulo == 'Ida'
+                  ? (widget.tarjeta.scoreIda == 0 ? '' : '${widget.tarjeta.scoreIda}')
+                  : (widget.tarjeta.scoreVuelta == 0 ? '' : '${widget.tarjeta.scoreVuelta}'),
+              whiteBold,
+            ),
           ],
         ),
         // Neto row
         TableRow(
           children: [
-            Center(child: Text('Neto', style: whiteBold)),
-            ...hoyos.map((h) => h.golpes == 0
-                ? const SizedBox()
-                : Center(child: Text('${h.neto}', style: whiteBold))),
-            Center(
-                child: Text(
-                    titulo == 'Ida'
-                        ? (widget.tarjeta.netoIda == 0
-                            ? ''
-                            : '${widget.tarjeta.netoIda}')
-                        : (widget.tarjeta.netoVuelta == 0
-                            ? ''
-                            : '${widget.tarjeta.netoVuelta}'),
-                    style: whiteBold)),
+            c('Neto', whiteBold),
+            ...hoyos.map((h) => h.golpes == 0 ? const SizedBox() : c('${h.neto}', whiteBold)),
+            c(
+              titulo == 'Ida'
+                  ? (widget.tarjeta.netoIda == 0 ? '' : '${widget.tarjeta.netoIda}')
+                  : (widget.tarjeta.netoVuelta == 0 ? '' : '${widget.tarjeta.netoVuelta}'),
+              whiteBold,
+            ),
           ],
         ),
       ].asMap().entries.map((e) {
-        // Alterna fondo en filas de datos (except header)
-        if (e.key == 0) return e.value;
+        if (e.key == 0) return e.value; // header sin alternar
         return TableRow(
-            children: e.value.children
-                .map((c) => filaColor(e.key.isEven, c))
-                .toList());
+          children: e.value.children.map((c) => filaColor(e.key.isEven, c)).toList(),
+        );
       }).toList(),
     );
   }
 
   // ---------- Celdas Score ----------
   Widget celdaTarjeta(int scorePar, int golpes){
-     TextStyle styleScore = const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
-     TextStyle styleScoreDiferente = const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
-     if(golpes == 0){
-      return Text('', style: styleScore,);
-     }
-     switch (scorePar) {
+    TextStyle styleScore = const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
+    TextStyle styleScoreDiferente = const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
+
+    if (golpes == 0) {
+      return const SizedBox();
+    }
+
+    switch (scorePar) {
       case -1:
         return Padding(
           padding: const EdgeInsets.all(2),
           child: Container(
-          padding: const EdgeInsets.all(2), // Ajusta este valor para cambiar el tamaño del círculo
-          decoration: const BoxDecoration(
-            color: kBerdieColor, // Color de fondo del círculo
-            shape: BoxShape.circle, // Hace que el Container sea circular
-          ),
-          child: Center(
-            child: Text(
-              golpes.toString(),
-              style: styleScoreDiferente,
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              color: kBerdieColor,
+              shape: BoxShape.circle,
             ),
+            child: Center(child: Text(golpes.toString(), style: styleScoreDiferente)),
           ),
-                ),
         );
-    
-    case -2:
-      return Padding(
-        padding: const EdgeInsets.all(2),
-        child: Container(
-          padding: const EdgeInsets.all(2), // Ajusta este valor para cambiar el tamaño del círculo
-          decoration: const BoxDecoration(
-            color: kEagleColor, // Color de fondo del círculo
-            shape: BoxShape.circle, // Hace que el Container sea circular
-          ),
-          child: Center(
-            child: Text(
-              golpes.toString(),
-              style: styleScoreDiferente,
-            ),
-          ),
-         ),
-      );
 
-     case -3:
-      return Padding(
-        padding: const EdgeInsets.all(2),
-        child: Container(
-          padding: const EdgeInsets.all(2), // Ajusta este valor para cambiar el tamaño del círculo
-          decoration: const BoxDecoration(
-            color: kAlvatrosColor, // Color de fondo del círculo
-            shape: BoxShape.circle, // Hace que el Container sea circular
-          ),
-          child: Center(
-            child: Text(
-              golpes.toString(),
-              style: styleScoreDiferente,
+      case -2:
+        return Padding(
+          padding: const EdgeInsets.all(2),
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              color: kEagleColor,
+              shape: BoxShape.circle,
             ),
+            child: Center(child: Text(golpes.toString(), style: styleScoreDiferente)),
           ),
-         ),
-      );
+        );
 
-    case 0:
-      return Padding(
-        padding: const EdgeInsets.all(2),
-        child: Container(
-          padding: const EdgeInsets.all(2), 
-          child: Center(
-            child: Text(
-              golpes.toString(),
-              style: styleScore,
+      case -3:
+        return Padding(
+          padding: const EdgeInsets.all(2),
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              color: kAlvatrosColor,
+              shape: BoxShape.circle,
             ),
+            child: Center(child: Text(golpes.toString(), style: styleScoreDiferente)),
           ),
-         ),
-      );
-    case 1:
-     return Padding(
-       padding: const EdgeInsets.all(2),
-       child: Container(
-          padding: const EdgeInsets.all(2), 
-          color: kBogeyColor,
-          child: Center(
-            child: Text(
-              golpes.toString(),
-              style: styleScoreDiferente,
-            ),
+        );
+
+      case 0:
+        return Padding(
+          padding: const EdgeInsets.all(2),
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            child: Center(child: Text(golpes.toString(), style: styleScore)),
           ),
-         ),
-     );
-     case 2:
-      return Padding(
-        padding: const EdgeInsets.all(2),
-        child: Container(
-          padding: const EdgeInsets.all(2), 
-          color: kDoubleBogueColor,
-          child: Center(
-            child: Text(
-              golpes.toString(),
-              style: styleScoreDiferente,
-            ),
+        );
+
+      case 1:
+        return Padding(
+          padding: const EdgeInsets.all(2),
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            color: kBogeyColor,
+            child: Center(child: Text(golpes.toString(), style: styleScoreDiferente)),
           ),
-         ),
-      );
-    default:
-      return Padding(
-        padding: const EdgeInsets.all(2),
-        child: Container(
-          padding: const EdgeInsets.all(2), 
-          color: kDoubleBogueColor,
-          child: Center(
-            child: Text(
-              golpes.toString(),
-              style: styleScoreDiferente,
-            ),
+        );
+
+      case 2:
+        return Padding(
+          padding: const EdgeInsets.all(2),
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            color: kDoubleBogueColor,
+            child: Center(child: Text(golpes.toString(), style: styleScoreDiferente)),
           ),
-         ),
-      );
+        );
+
+      default:
+        return Padding(
+          padding: const EdgeInsets.all(2),
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            color: kDoubleBogueColor,
+            child: Center(child: Text(golpes.toString(), style: styleScoreDiferente)),
+          ),
+        );
+    }
   }
-  
-  }
-
 
   // ---------------- FOOTER ----------------
   Widget _crearFooter(TextStyle whiteBold) {

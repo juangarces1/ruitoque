@@ -35,6 +35,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'RobotoCondensed',
         textTheme: Theme.of(context).textTheme.apply(fontFamily: 'RobotoCondensed'),
+        
       ),
       home: Consumer<JugadorProvider>(
         builder: (context, jugadorProvider, child) {

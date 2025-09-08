@@ -55,7 +55,7 @@ class MiMapa extends StatelessWidget {
                   ),
                   polylines: provider.polylines,
                   markers: provider.markers,
-                  onCameraIdle: provider.updateScreenCoordinates,
+                   onCameraIdle: () => provider.onCameraIdle(),
                 );
               },
             ),

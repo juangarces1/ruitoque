@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
 import 'package:ruitoque/Screens/Campos/sekect_edit_campo.dart';
+import 'package:ruitoque/Screens/Jugadores/juagadores_screen.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Screens/Ronda/mis_rondas_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
@@ -37,6 +38,11 @@ class GolfDrawer extends StatelessWidget {
                     _drawerItem(Icons.sports_golf, 'Mis Rondas', () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const MisRondasScreen()));
                     }),
+
+                     _drawerItem(Icons.person, 'Jugadores', () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const JugadoresScreen()));
+                    }, textColor: Colors.black),
+
                     _drawerItem(Icons.flag_circle_outlined, 'Agregar Campo', () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const AddCourseScreen()));
                     }),
@@ -46,6 +52,9 @@ class GolfDrawer extends StatelessWidget {
                     _drawerItem(Icons.logout, 'Cerrar Sesión', () {
                       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
                     }, textColor: Colors.black),
+
+                   
+                   
                   ],
                 ),
               ),

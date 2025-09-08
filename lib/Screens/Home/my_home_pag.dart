@@ -21,10 +21,13 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool showLoader = false;
   late Jugador jugador;
   List<Ronda> rondasIncompletas = [];
+
+  late final AnimationController _fadeCtrl =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
 
   @override
   void initState() {
@@ -33,9 +36,16 @@ class _MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _obtenerRondasIncompletas());
   }
 
+  @override
+  void dispose() {
+    _fadeCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _obtenerRondasIncompletas() async {
     if (!mounted) return;
     setState(() => showLoader = true);
+    _fadeCtrl.forward(from: 0);
 
     final resp = await ApiHelper.getRondasAbiertas(jugador.id);
 
@@ -43,11 +53,16 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() => showLoader = false);
 
     if (!resp.isSuccess) {
-      Fluttertoast.showToast(msg: 'Error: ${resp.message}', backgroundColor: Colors.red);
+      Fluttertoast.showToast(
+        msg: 'Error: ${resp.message}',
+        backgroundColor: Colors.red,
+      );
       return;
     }
     setState(() => rondasIncompletas = resp.result);
   }
+
+  Future<void> _refresh() => _obtenerRondasIncompletas();
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final double posJugar = SizeConfig.screenWidth / 2 - 40;
 
     return Scaffold(
-      drawer: GolfDrawer(jugador: jugador),          // ←  Drawer tradicional
+      drawer: GolfDrawer(jugador: jugador),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: MyCustomAppBar(
@@ -63,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
           backgroundColor: const Color(0xFF00472C),
           foreColor: Colors.white,
           automaticallyImplyLeading: true,
-          shadowColor: Colors.red,
+          shadowColor: Colors.black54,
           elevation: 4.0,
           actions: [
             Padding(
@@ -75,77 +90,144 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Stack(
         children: [
-          Container(decoration: const BoxDecoration(image: DecorationImage(image: AssetImage('assets/Fondo.png'), fit: BoxFit.fill))),
-          Padding(
-            padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
-            child: Column(
+          // Fondo con overlay para mejorar legibilidad
+          Positioned.fill(
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                const SizedBox(height: 20),
-                const CardJugador(),
-                rondasIncompletas.isNotEmpty
-                    ? Expanded(
-                      child: ListView.builder(
-                          itemCount: rondasIncompletas.length,
-                          itemBuilder: (context, index) {
-                            final ronda = rondasIncompletas[index];
-                            return Dismissible(
-                              key: ValueKey(ronda.id),
-                              direction: DismissDirection.endToStart,        // ←  swipe horizontal para borrar
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.symmetric(horizontal: 25),
-                                color: Colors.red[600],
-                                child: const Icon(Icons.delete, color: Colors.white, size: 36),
-                              ),
-                              confirmDismiss: (d) => _confirmar(context),
-                              onDismissed: (direction) async {
-                                  // 1️⃣  Copia y quita YA
-                                  final removed = rondasIncompletas[index];
-                                  setState(() => rondasIncompletas.removeAt(index));
-
-                                  // 2️⃣  Llama al backend
-                                  final resp = await ApiHelper.delete('/api/rondas/${removed.id}');
-
-                                  if (resp.isSuccess) {
-                                    Fluttertoast.showToast(
-                                      msg: 'Ronda eliminada',
-                                      backgroundColor: Colors.green[700],
-                                      textColor: Colors.white,
-                                    );
-                                  } else {
-                                    // 3️⃣  Rollback visual si falló
-                                    if (mounted) {
-                                      setState(() => rondasIncompletas.insert(index, removed));
-                                    }
-                                    Fluttertoast.showToast(
-                                      msg: 'Error: ${resp.message}',
-                                      backgroundColor: Colors.red[700],
-                                      textColor: Colors.white,
-                                    );
-                                  }
-                                },
-                              child: RondaCard(ronda: ronda),
-                            );
-                          },
-                        ),
-                    )
-                    : UnirseARondaCard(onTap: _obtenerRondasIncompletas),
+                Image.asset('assets/Fondo.png', fit: BoxFit.fill),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.10),
+                        Colors.black.withOpacity(0.20),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          if (showLoader) const Center(child: MyLoader(text: 'Cargando...', opacity: 1)),
+          // Contenido
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8, right: 10, left: 10),
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  const CardJugador(),
+                  const SizedBox(height: 8),
+                  // Lista / Vacío con pull-to-refresh
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: _refresh,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        child: rondasIncompletas.isNotEmpty
+                            ? ListView.builder(
+                                key: const ValueKey('list'),
+                                padding: const EdgeInsets.only(bottom: 100),
+                                itemCount: rondasIncompletas.length,
+                                itemBuilder: (context, index) {
+                                  final ronda = rondasIncompletas[index];
+                                  return Dismissible(
+                                    key: ValueKey(ronda.id),
+                                    direction: DismissDirection.endToStart,
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.symmetric(horizontal: 25),
+                                      margin: const EdgeInsets.symmetric(vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red[600],
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(Icons.delete, color: Colors.white, size: 32),
+                                    ),
+                                    confirmDismiss: (d) => _confirmar(context),
+                                    onDismissed: (direction) async {
+                                      final removed = ronda;
+                                      setState(() => rondasIncompletas.removeAt(index));
+
+                                      final resp = await ApiHelper.delete('/api/rondas/${removed.id}');
+                                      if (resp.isSuccess) {
+                                        Fluttertoast.showToast(
+                                          msg: 'Ronda eliminada',
+                                          backgroundColor: Colors.green[700],
+                                          textColor: Colors.white,
+                                        );
+                                      } else {
+                                        if (mounted) {
+                                          setState(() => rondasIncompletas.insert(index, removed));
+                                        }
+                                        Fluttertoast.showToast(
+                                          msg: 'Error: ${resp.message}',
+                                          backgroundColor: Colors.red[700],
+                                          textColor: Colors.white,
+                                        );
+                                      }
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      child: RondaCard(ronda: ronda),
+                                    ),
+                                  );
+                                },
+                              )
+                            : ListView(
+                                key: const ValueKey('empty'),
+                                padding: const EdgeInsets.only(bottom: 120),
+                                children: [
+                                  const SizedBox(height: 8),
+                                  // Estado vacío existente, centrado
+                                  UnirseARondaCard(onTap: _obtenerRondasIncompletas),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Loader con fade (sin bloquear gestos del RefreshIndicator)
+          if (showLoader)
+            FadeTransition(
+              opacity: _fadeCtrl,
+              child: const Center(child: MyLoader(text: 'Cargando...', opacity: 1)),
+            ),
+          // Botón Jugar con ripple y sombra suave (misma lógica que ya tienes)
           Positioned(
-            bottom: 3,
+            bottom: 10,
             left: posJugar,
-            child: GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SelectCampoScreen())),
-              child: ClipOval(
-                child: Container(
+            child: Material(
+              color: kPcontrastMoradoColor,
+              borderRadius: BorderRadius.circular(40),
+              elevation: 4,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(40),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SelectCampoScreen()),
+                ),
+                child: const SizedBox(
                   width: 80,
                   height: 80,
-                  padding: const EdgeInsets.symmetric(vertical: 22),
-                  color: kPcontrastMoradoColor,
-                  child: const Text('Jugar', style: TextStyle(fontSize: 23, color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                  child: Center(
+                    child: Text(
+                      'Jugar',
+                      style: TextStyle(
+                        fontSize: 23,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -163,10 +245,11 @@ class _MyHomePageState extends State<MyHomePage> {
           content: const Text('¿Deseas eliminar esta ronda? Esta acción no se puede deshacer.'),
           actions: [
             TextButton(child: const Text('Cancelar'), onPressed: () => Navigator.pop(ctx, false)),
-            TextButton(child: const Text('Eliminar', style: TextStyle(color: Colors.red)), onPressed: () => Navigator.pop(ctx, true)),
+            TextButton(
+              child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+              onPressed: () => Navigator.pop(ctx, true),
+            ),
           ],
         ),
       );
-
-
 }

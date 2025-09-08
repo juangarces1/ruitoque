@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
-import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/constans.dart';
 
@@ -27,9 +25,7 @@ class _PlayerCardState extends State<PlayerCard> {
 
   @override
   Widget build(BuildContext context) {
-    final jugadorActual = Provider.of<JugadorProvider>(context, listen: false).jugador;
-    final esJugadorActual = widget.jugador.id == jugadorActual.id;
-
+    
     return Stack(
       children: [
         AnimatedContainer(

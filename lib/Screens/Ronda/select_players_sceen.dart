@@ -89,6 +89,7 @@ class SelectPlayersScreenState extends State<SelectPlayersScreen> {
     setState(() {
       jugadores = response.result;
       jugadores.removeWhere((j) => j.id == jugadorActual.id);
+       jugadores.sort((a, b) => a.nombre.compareTo(b.nombre));
       isJugadoresLoaded = true;
     });
   }

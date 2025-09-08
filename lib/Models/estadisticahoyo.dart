@@ -115,7 +115,7 @@ class EstadisticaHoyo {
         handicapPlayer: json['handicapPlayer'] ?? 0  ,
       nombreJugador: json['nombreJugador'],
       isMain: json['isMain'],  
-      handicapPorcentaje: json['handicapPorcentaje'] ?? 0.0,
+      handicapPorcentaje: json['handicapPorcentaje'] ?? 100,
     );
   }
 

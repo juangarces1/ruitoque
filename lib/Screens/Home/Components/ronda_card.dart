@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ruitoque/Components/default_button.dart';
-import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/ronda.dart';
-import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Screens/Ronda/mi_ronda_screen.dart';
 import 'package:ruitoque/constans.dart';
 
