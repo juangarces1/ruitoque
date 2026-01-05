@@ -68,6 +68,8 @@ class MiMapaProvider extends ChangeNotifier {
 
   // ---------------- Streams & cachés ----------------
   StreamSubscription<Position>? _posSub;
+  Position? _lastKnownPosition;
+  LocationPermission? _permissionStatus;
 
   // Cache de ícono de marcador para evitar recargar el asset repetidamente
   static Future<BitmapDescriptor>? _markerFuture;
@@ -108,7 +110,7 @@ class MiMapaProvider extends ChangeNotifier {
   void _ensureMarkerCache() {
     _markerFuture ??= BitmapDescriptor.fromAssetImage(
       const ImageConfiguration(),
-      'assets/newMarker.png',
+      'assets/PuntoCentro.png',
     );
   }
 
@@ -202,6 +204,7 @@ class MiMapaProvider extends ChangeNotifier {
 
     _posSub = _geolocatorPlatform.getPositionStream(locationSettings: settings).listen(
       (pos) {
+        _lastKnownPosition = pos;
         miLatitud = pos.latitude;
         miLongitud = pos.longitude;
         altitude = pos.altitude;
@@ -231,15 +234,19 @@ class MiMapaProvider extends ChangeNotifier {
 
   Future<Offset> _getScreenPosition(LatLng punto) async {
     if (mapController == null) return const Offset(0, 0);
-    final screenCoordinate = await mapController!.getScreenCoordinate(punto);
-    final devicePixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
-    return Offset(screenCoordinate.x / devicePixelRatio, screenCoordinate.y / devicePixelRatio);
+    try {
+      final screenCoordinate = await mapController!.getScreenCoordinate(punto);
+      final devicePixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
+      return Offset(screenCoordinate.x / devicePixelRatio, screenCoordinate.y / devicePixelRatio);
+    } catch (_) {
+      return const Offset(0, 0);
+    }
   }
 
   Future<void> _crearMarcadorPersonalizado() async {
     final icono = await (_markerFuture ??= BitmapDescriptor.fromAssetImage(
       const ImageConfiguration(),
-      'assets/newMarker.png',
+      'assets/PuntoCentro.png',
     ));
 
     final markerPosition = isEnterScreen ? puntoMedio : puntoB;
@@ -250,7 +257,10 @@ class MiMapaProvider extends ChangeNotifier {
       draggable: true,
       icon: icono,
       // anchor afinado: punta del pin cerca del suelo
-      anchor: const Offset(0.5, 0.9),
+      anchor: const Offset(0.5, 0.5),
+      onDrag: (newPosition) {
+        _updatePolylineDuringDrag(newPosition);
+      },
       onDragEnd: (newPosition) {
         if (isEnterScreen) {
           _updatePolyline(puntoA, newPosition, puntoB);
@@ -419,52 +429,82 @@ class MiMapaProvider extends ChangeNotifier {
     }
   }
 
+  void _updatePolylineDuringDrag(LatLng newPosition) {
+    if (isEnterScreen) {
+      polylines
+        ..clear()
+        ..add(
+          Polyline(
+            polylineId: const PolylineId('mi_polyline'),
+            points: [puntoA, newPosition, puntoB],
+            width: 3,
+            color: Colors.white,
+          ),
+        );
+      makerA = _calcularPuntoMedio(puntoA, newPosition);
+      makerB = _calcularPuntoMedio(newPosition, puntoB);
+    } else {
+      puntoB = newPosition;
+      polylines
+        ..clear()
+        ..add(
+          Polyline(
+            polylineId: const PolylineId('mi_polyline'),
+            points: [puntoA, puntoB],
+            width: 3,
+            color: Colors.white,
+          ),
+        );
+      makerA = _calcularPuntoMedio(puntoA, puntoB);
+    }
+
+    updateScreenCoordinates();
+    notifyListeners();
+  }
+
   Future<void> calculateDistances() async {
     showLoader = true;
     notifyListeners();
 
-    final hasPermission = await _handlePermission();
-    if (!hasPermission) {
-      showLoader = false;
-      notifyListeners();
-      return;
-    }
-
-    // Usar última posición del stream si existe; si no, tomar una puntual
-    Position position;
     try {
-      position = await _geolocatorPlatform.getCurrentPosition();
-    } catch (_) {
+      final hasPermission = await _handlePermission();
+      if (!hasPermission) return;
+
+      // Usar última posición del stream si existe; si no, tomar una puntual
+      Position position;
+      if (_lastKnownPosition != null) {
+        position = _lastKnownPosition!;
+      } else {
+        position = await _geolocatorPlatform.getCurrentPosition();
+      }
+      _lastKnownPosition = position;
+
+      miLatitud = position.latitude;
+      miLongitud = position.longitude;
+      altitude = position.altitude;
+
+      _recalculateGreenDistancesFrom(position);
+
+      // dHoyo: si tee.distancia == 0, calcula desde salida a CENTRO (no frente)
+      if (tee != null) {
+        final centro = Position(
+          longitude: hoyo.hoyo.centroGreen!.longitud,
+          latitude: hoyo.hoyo.centroGreen!.latitud,
+          timestamp: DateTime.now(),
+          accuracy: 1,
+          altitude: 0,
+          heading: 0.0,
+          speed: 0.0,
+          altitudeAccuracy: 10,
+          headingAccuracy: 0.0,
+          speedAccuracy: 0.0,
+        );
+        dHoyo = tee!.distancia == 0 ? _calculateDistanceInYards(salida, centro) : tee!.distancia;
+      }
+    } finally {
       showLoader = false;
       notifyListeners();
-      return;
     }
-
-    miLatitud = position.latitude;
-    miLongitud = position.longitude;
-    altitude = position.altitude;
-
-    _recalculateGreenDistancesFrom(position);
-
-    // dHoyo: si tee.distancia == 0, calcula desde salida a CENTRO (no frente)
-    if (tee != null) {
-      final centro = Position(
-        longitude: hoyo.hoyo.centroGreen!.longitud,
-        latitude: hoyo.hoyo.centroGreen!.latitud,
-        timestamp: DateTime.now(),
-        accuracy: 1,
-        altitude: 0,
-        heading: 0.0,
-        speed: 0.0,
-        altitudeAccuracy: 10,
-        headingAccuracy: 0.0,
-        speedAccuracy: 0.0,
-      );
-      dHoyo = tee!.distancia == 0 ? _calculateDistanceInYards(salida, centro) : tee!.distancia;
-    }
-
-    showLoader = false;
-    notifyListeners();
   }
 
   void _recalculateGreenDistancesFrom(Position from) {
@@ -517,6 +557,7 @@ class MiMapaProvider extends ChangeNotifier {
   Future<void> _calculateDistancesLinea(Position medio) async {
     final hasPermission = await _handlePermission();
     if (!hasPermission) return;
+    if (hoyo.hoyo.centroGreen == null) return;
 
     final puntoBCentroGreen = Position(
       longitude: hoyo.hoyo.centroGreen!.longitud,
@@ -556,6 +597,14 @@ class MiMapaProvider extends ChangeNotifier {
 
   // --------------- Permisos ---------------
   Future<bool> _handlePermission() async {
+    if (_permissionStatus == LocationPermission.deniedForever) {
+      permissionDeniedForever = true;
+      return false;
+    }
+    if (_permissionStatus == LocationPermission.always || _permissionStatus == LocationPermission.whileInUse) {
+      return true;
+    }
+
     final serviceEnabled = await _geolocatorPlatform.isLocationServiceEnabled();
     if (!serviceEnabled) {
       _updatePositionList(PositionItemType.log, _kLocationServicesDisabledMessage);
@@ -567,6 +616,7 @@ class MiMapaProvider extends ChangeNotifier {
       permission = await _geolocatorPlatform.requestPermission();
       if (permission == LocationPermission.denied) {
         _updatePositionList(PositionItemType.log, _kPermissionDeniedMessage);
+        _permissionStatus = permission;
         permissionDeniedForever = false;
         return false;
       }
@@ -575,16 +625,18 @@ class MiMapaProvider extends ChangeNotifier {
     if (permission == LocationPermission.deniedForever) {
       _updatePositionList(PositionItemType.log, _kPermissionDeniedForeverMessage);
       permissionDeniedForever = true; // la UI puede mostrar CTA a Ajustes
+      _permissionStatus = permission;
       return false;
     }
 
     _updatePositionList(PositionItemType.log, _kPermissionGrantedMessage);
     permissionDeniedForever = false;
+    _permissionStatus = permission;
     return true;
   }
 
   void _updatePositionList(PositionItemType type, String displayValue) {
-    // hook para logging si quieres
+    debugPrint(displayValue);
   }
 
   // --------------- Bearing / rumbos ---------------
@@ -800,8 +852,12 @@ Future<void> hapticOnDragEnd() async {
 }
 
 // onCameraIdle de bajo consumo
-void onCameraIdle() {
-  updateScreenCoordinates();
-}
+  void onCameraIdle() {
+    updateScreenCoordinates();
+  }
+
+  void onCameraMove() {
+    updateScreenCoordinates();
+  }
 
 }

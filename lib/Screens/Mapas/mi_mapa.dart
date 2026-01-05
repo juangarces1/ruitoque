@@ -42,6 +42,7 @@ class MiMapa extends StatelessWidget {
               builder: (context, provider, child) {
                 return GoogleMap(
                   mapType: MapType.satellite,
+                  compassEnabled: false,
                   onMapCreated: (controller) {
                     provider.setMapController(controller);
                     provider.updateScreenCoordinates();
@@ -55,7 +56,8 @@ class MiMapa extends StatelessWidget {
                   ),
                   polylines: provider.polylines,
                   markers: provider.markers,
-                   onCameraIdle: () => provider.onCameraIdle(),
+                  onCameraIdle: () => provider.onCameraIdle(),
+                  onCameraMove: (_) => provider.onCameraMove(),
                 );
               },
             ),

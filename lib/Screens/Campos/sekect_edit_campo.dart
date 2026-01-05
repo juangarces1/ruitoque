@@ -196,7 +196,7 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
         children: [
           const SizedBox(height: 30),
           const Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.only(top: 20),
             child: Center(
               child: Text(
                 'Seleccione el Campo:',
@@ -206,7 +206,7 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               child: ListView.builder(
                 itemCount: campos!.length,
                 itemBuilder: (context, index) {

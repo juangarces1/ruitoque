@@ -64,7 +64,7 @@ class _NewTarjetaCardState extends State<NewTarjetaCard> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                widget.tarjeta.posicion.toString(), // Número de hoyo
+                widget.tarjeta.posicion?.toString() ?? '-', // Número de hoyo
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,

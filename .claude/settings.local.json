@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(cat:*)",
+      "Bash(xargs:*)",
+      "Bash(dir \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\WebKilos\" /b)"
+    ]
+  }
+}

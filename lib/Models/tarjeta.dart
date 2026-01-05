@@ -194,6 +194,7 @@ class Tarjeta {
           .toList(),
       teeSalida: json['teeSalida'],
       handicapPlayer: json['handicapPlayer'] ?? 0,
+      posicion: json['posicion'],
     );
   }
 

@@ -49,7 +49,7 @@ class Hoyo {
   if (centroHoyo   != null) data['centroHoyo']   = centroHoyo!.toJson();
 
   // hoyoTees: lista - si viene nula o vacía → array vacío
-  data['hoyotees'] = (hoyotees?.isNotEmpty ?? false)
+  data['hoyoTees'] = (hoyotees?.isNotEmpty ?? false)
       ? hoyotees!.map((e) => e.toJson()).toList()
       : <Map<String, dynamic>>[];
 

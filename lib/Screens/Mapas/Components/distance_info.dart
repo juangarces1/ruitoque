@@ -10,67 +10,80 @@ class DistanceInfoWidget extends StatelessWidget {
     final provider = Provider.of<MiMapaProvider>(context);
     return Positioned(
       top: MediaQuery.of(context).size.height / 2 - 80,
-      left: 20,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Distancia al Fondo
-          const Text(
-            'Fondo',
-            style: TextStyle(
-              fontSize: 15.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      left: 14,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.025),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.12)),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black45,
+              blurRadius: 10,
+              offset: Offset(0, 4),
             ),
-          ),
-          Text(
-            '${provider.dAtras.toString()}y',
-            style: const TextStyle(
-              fontFamily: 'RobotoCondensed',
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Colors.white,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Fondo',
+              style: TextStyle(
+                fontSize: 15.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          // Distancia al Centro
-          const Text(
-            'Centro',
-            style: TextStyle(
-              fontSize: 20.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            Text(
+              '${provider.dAtras ?? 0}y',
+              style: const TextStyle(
+                fontFamily: 'RobotoCondensed',
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.white,
+              ),
             ),
-          ),
-          Text(
-            '${provider.dCentro.toString()}y',
-            style: const TextStyle(
-              fontFamily: 'RobotoCondensed',
-              fontWeight: FontWeight.bold,
-              fontSize: 28,
-              color: Colors.white,
+            const SizedBox(height: 10),
+            const Text(
+              'Centro',
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          // Distancia al Frente
-          const Text(
-            'Frente',
-            style: TextStyle(
-              fontSize: 15.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            Text(
+              '${provider.dCentro ?? 0}y',
+              style: const TextStyle(
+                fontFamily: 'RobotoCondensed',
+                fontWeight: FontWeight.bold,
+                fontSize: 28,
+                color: Colors.white,
+              ),
             ),
-          ),
-          Text(
-            '${provider.dfrente.toString()}y',
-            style: const TextStyle(
-              fontFamily: 'RobotoCondensed',
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Colors.white,
+            const SizedBox(height: 10),
+            const Text(
+              'Frente',
+              style: TextStyle(
+                fontSize: 15.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
-        ],
+            Text(
+              '${provider.dfrente ?? 0}y',
+              style: const TextStyle(
+                fontFamily: 'RobotoCondensed',
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

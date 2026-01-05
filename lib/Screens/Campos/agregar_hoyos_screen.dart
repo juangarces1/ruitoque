@@ -215,9 +215,10 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
                   onAddHoyo: (HoyoTee hoyoTee) {},
                   onUpdate: (HoyoTee hoyo) {
                      setState(() {
-                        int index = nuevoHoyo.hoyotees!.indexWhere((t) => t.id == hoyo.id);
+                        // Buscar por color ya que cada hoyo solo puede tener un tee de cada color
+                        int index = nuevoHoyo.hoyotees!.indexWhere((t) => t.color == hoyo.color);
                         if (index != -1) {
-                          nuevoHoyo.hoyotees![index] = hoyo; 
+                          nuevoHoyo.hoyotees![index] = hoyo;
                         }
                       });
                   },

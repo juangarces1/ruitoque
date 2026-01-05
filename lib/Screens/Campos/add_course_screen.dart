@@ -273,12 +273,9 @@ class AddCourseScreenState extends State<AddCourseScreen> {
 
   void  onUpdateHoyo (nuevoHoyo) {
       setState(() {
-
           int index = _hoyos.indexWhere((hoyo) => hoyo.id == nuevoHoyo.id);
           if (index != -1) {
-           widget.campo != null ? 
-            widget.campo!.hoyos[index] = nuevoHoyo
-            : _hoyos[index]=nuevoHoyo; // Actualizar el Tee en la lista
+            _hoyos[index] = nuevoHoyo; // Siempre actualizar _hoyos
           }
       });
     }
@@ -334,8 +331,12 @@ class AddCourseScreenState extends State<AddCourseScreen> {
       nombre: _nombreController.text,
       ubicacion: _ubicacionController.text,
       hoyos: _hoyos,
-      tees: _tees,     
+      tees: _tees,
     );
+
+    // Debug: imprimir el JSON que se enviará
+    debugPrint('=== JSON a enviar ===');
+    debugPrint(nuevoCampo.toJson().toString());
 
     Response response;
 
@@ -345,7 +346,6 @@ class AddCourseScreenState extends State<AddCourseScreen> {
     } else {
       // Actualizar campo existente
         response = await ApiHelper.put('api/Campos/UpdateCampo/${nuevoCampo.id}', nuevoCampo.toJson());
-      //   response = await ApiHelper.post('api/Campos/', nuevoCampo.toJson());
     }
 
     setState(() {
@@ -353,6 +353,8 @@ class AddCourseScreenState extends State<AddCourseScreen> {
     });
 
     if (!response.isSuccess) {
+      debugPrint('=== ERROR de API ===');
+      debugPrint('Mensaje: ${response.message}');
       if (mounted) {
         showDialog(
           context: context,

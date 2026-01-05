@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_ronda.dart';
 import 'package:ruitoque/Components/loader_component.dart';
+import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/jugador.dart';
@@ -67,6 +68,9 @@ class _MisRondasScreenState extends State<MisRondasScreen> {
                   'assets/LogoGolf.png',
                   width: 30,
                   height: 30,
+
+
+                  
                   fit: BoxFit.cover,
                 ),
               ),
@@ -74,7 +78,7 @@ class _MisRondasScreenState extends State<MisRondasScreen> {
           ],
         ),
         body: _showLoader
-            ? const LoaderComponent(loadingText: 'Cargando...')
+            ? const MyLoader(opacity: 1, text: 'Cargando...')
             : Container(
                 decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
                 child: Padding(

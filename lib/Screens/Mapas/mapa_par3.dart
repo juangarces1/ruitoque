@@ -56,6 +56,7 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
   late LatLng makerA;
 
    Offset offsetAMedio = const Offset(0, 0); 
+   int _screenUpdateToken = 0;
    final GlobalKey _mapKey = GlobalKey();
 
   @override
@@ -74,10 +75,17 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
 
 
   Future<void> updateScreenCoordinates() async {   
-    Offset offsetaMediotemp   = await getScreenPosition(makerA);  
+    if (!mounted) return;
+    final currentToken = ++_screenUpdateToken;
+    try {
+      final offsetaMediotemp = await getScreenPosition(makerA);  
+      if (!mounted || currentToken != _screenUpdateToken) return;
       setState(() {
         offsetAMedio = offsetaMediotemp;      
       });   
+    } catch (_) {
+      // si el mapa estŠ moviendo o el punto estŠ fuera de vista, no explotar
+    }
   }
 
   void setInitialData ()  {
@@ -143,12 +151,16 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
   }
 
   Future<Offset> getScreenPosition(LatLng punto) async {
-  ScreenCoordinate screenCoordinate = await mapController.getScreenCoordinate(punto);
-  double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-  double adjustedX = screenCoordinate.x.toDouble() / devicePixelRatio;
-  double adjustedY = screenCoordinate.y.toDouble() / devicePixelRatio; 
-  return Offset(adjustedX, adjustedY);
-}
+    try {
+      final screenCoordinate = await mapController.getScreenCoordinate(punto);
+      final devicePixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
+      final adjustedX = screenCoordinate.x.toDouble() / devicePixelRatio;
+      final adjustedY = screenCoordinate.y.toDouble() / devicePixelRatio; 
+      return Offset(adjustedX, adjustedY);
+    } catch (_) {
+      return const Offset(0, 0);
+    }
+  }
 
   Future<void> _crearMarcadorPersonalizado() async {    
   
@@ -161,6 +173,7 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
         draggable: true,
         icon: iconoPersonalizado,
         anchor: const Offset(0.5, 0.5),
+        onDrag: (newPosition) => _updatePolylineDuringDrag(newPosition),
         onDragEnd: (newPosition) {
           _updatePolyline(puntoA,  newPosition);
         },
@@ -218,6 +231,17 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
 
       setState(() {}); // Actualiza el estado para reflejar los cambios en el mapa
     }
+
+  void _updatePolylineDuringDrag(LatLng fin) {
+    final points = [puntoA, fin];
+    final polyline = _polylines.firstWhere((p) => p.polylineId == const PolylineId('mi_polyline'));
+    _polylines
+      ..remove(polyline)
+      ..add(polyline.copyWith(pointsParam: points));
+    makerA = calcularPuntoMedio(puntoA, fin);
+    updateScreenCoordinates();
+    setState(() {});
+  }
 
   Future<Offset> getMarkerScreenPosition(LatLng latLng, GoogleMapController mapController) async {
   // Obtener las coordenadas de pantalla del marcador
@@ -393,14 +417,19 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
   updateScreenCoordinates();
 }
 
+void _onCameraMove(CameraPosition _) {
+  updateScreenCoordinates();
+}
+
   @override
   Widget build(BuildContext context) {
      return Scaffold(
       body: Stack(
       children: [
          GoogleMap(
-          key: _mapKey,
-            mapType: MapType.satellite,
+         key: _mapKey,
+           mapType: MapType.satellite,
+              compassEnabled: false,
               onMapCreated: _onMapCreated,
               zoomControlsEnabled: false,
               mapToolbarEnabled: false,
@@ -412,6 +441,7 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
             polylines: _polylines,
             markers: _markers,
             onCameraIdle: _onCameraIdle,
+            onCameraMove: _onCameraMove,
 
         ),
 

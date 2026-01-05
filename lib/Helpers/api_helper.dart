@@ -6,6 +6,7 @@ import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:http/http.dart' as http;
 import 'package:ruitoque/Models/ronda.dart';
+import 'package:ruitoque/Models/ronda_de_amigos.dart';
 
 class ApiHelper {
 
@@ -324,6 +325,160 @@ static Future<Response> delete(String controller) async {
       return Response(isSuccess: true, result: response.body);
     } catch (e) {
       return Response(isSuccess: false, message: 'Error: $e');
+    }
+  }
+
+  /*──────────────────────────────────────────────────────────────
+   * RONDAS DE AMIGOS
+   *─────────────────────────────────────────────────────────────*/
+
+  /// Obtiene una RondaDeAmigos por ID con todos sus grupos
+  static Future<Response> getRondaDeAmigosById(int id) async {
+    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/$id');
+    try {
+      var response = await http.get(
+        url,
+        headers: {
+          'content-type': 'application/json',
+          'accept': 'application/json',
+        },
+      );
+
+      var body = response.body;
+      if (response.statusCode >= 400) {
+        return Response(isSuccess: false, message: body);
+      }
+
+      var decodedJson = jsonDecode(body);
+      return Response(isSuccess: true, result: RondaDeAmigos.fromJson(decodedJson));
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  /// Obtiene todas las RondasDeAmigos donde el jugador participa
+  static Future<Response> getRondasDeAmigosByPlayer(int playerId) async {
+    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/player/$playerId');
+    try {
+      var response = await http.get(
+        url,
+        headers: {
+          'content-type': 'application/json',
+          'accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 204) {
+        return Response(isSuccess: true, result: <RondaDeAmigos>[]);
+      }
+
+      if (response.statusCode >= 400) {
+        return Response(isSuccess: false, message: response.body);
+      }
+
+      var decodedJson = jsonDecode(response.body) as List;
+      List<RondaDeAmigos> rondasDeAmigos =
+          decodedJson.map((json) => RondaDeAmigos.fromJson(json)).toList();
+      return Response(isSuccess: true, result: rondasDeAmigos);
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  /// Obtiene RondasDeAmigos abiertas (no completadas) donde el jugador participa
+  static Future<Response> getRondasDeAmigosAbiertas(int playerId) async {
+    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/abiertas/player/$playerId');
+    try {
+      var response = await http.get(
+        url,
+        headers: {
+          'content-type': 'application/json',
+          'accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 204) {
+        return Response(isSuccess: true, result: <RondaDeAmigos>[]);
+      }
+
+      if (response.statusCode >= 400) {
+        return Response(isSuccess: false, message: response.body);
+      }
+
+      var decodedJson = jsonDecode(response.body) as List;
+      List<RondaDeAmigos> rondasDeAmigos =
+          decodedJson.map((json) => RondaDeAmigos.fromJson(json)).toList();
+      return Response(isSuccess: true, result: rondasDeAmigos);
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  /// Crea una nueva RondaDeAmigos
+  static Future<Response> createRondaDeAmigos(RondaDeAmigos rondaDeAmigos) async {
+    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos');
+    try {
+      var response = await http.post(
+        url,
+        headers: {
+          'content-type': 'application/json',
+          'accept': 'application/json',
+        },
+        body: jsonEncode(rondaDeAmigos.toJson()),
+      );
+
+      if (response.statusCode >= 400) {
+        return Response(isSuccess: false, message: response.body);
+      }
+
+      var decodedJson = jsonDecode(response.body);
+      return Response(isSuccess: true, result: RondaDeAmigos.fromJson(decodedJson));
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  /// Actualiza una RondaDeAmigos existente
+  static Future<Response> updateRondaDeAmigos(RondaDeAmigos rondaDeAmigos) async {
+    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/${rondaDeAmigos.id}');
+    try {
+      var response = await http.put(
+        url,
+        headers: {
+          'content-type': 'application/json',
+          'accept': 'application/json',
+        },
+        body: jsonEncode(rondaDeAmigos.toJson()),
+      );
+
+      if (response.statusCode >= 400) {
+        return Response(isSuccess: false, message: response.body);
+      }
+
+      return Response(isSuccess: true);
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  /// Elimina una RondaDeAmigos
+  static Future<Response> deleteRondaDeAmigos(int id) async {
+    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/$id');
+    try {
+      var response = await http.delete(
+        url,
+        headers: {
+          'accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode >= 400) {
+        return Response(isSuccess: false, message: response.body);
+      }
+
+      return Response(isSuccess: true);
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
     }
   }
 

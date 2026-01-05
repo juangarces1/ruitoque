@@ -5,6 +5,7 @@ import 'package:ruitoque/Screens/Campos/sekect_edit_campo.dart';
 import 'package:ruitoque/Screens/Jugadores/juagadores_screen.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Screens/Ronda/mis_rondas_screen.dart';
+import 'package:ruitoque/Screens/RondaDeAmigos/mis_rondas_amigos_screen.dart';
 import 'package:ruitoque/Screens/Tarjetas/my_tarjetas_screen.dart';
 import 'package:ruitoque/constans.dart';
 
@@ -37,6 +38,9 @@ class GolfDrawer extends StatelessWidget {
                     }),
                     _drawerItem(Icons.sports_golf, 'Mis Rondas', () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const MisRondasScreen()));
+                    }),
+                    _drawerItem(Icons.groups, 'Ronda de Amigos', () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const MisRondasDeAmigosScreen()));
                     }),
 
                      _drawerItem(Icons.person, 'Jugadores', () {

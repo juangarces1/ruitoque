@@ -20,6 +20,7 @@ import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/Screens/Mapas/Components/mi_mapa_proviider.dart';
 import 'package:ruitoque/Screens/Mapas/mapa_hoyo_screen.dart';
 import 'package:ruitoque/Screens/Mapas/mapa_par3.dart';
+import 'package:ruitoque/Screens/Mapas/mapa_par5.dart';
 import 'package:ruitoque/Screens/Mapas/mi_mapa.dart';
 import 'package:ruitoque/Screens/Ronda/estadistica_hoyo_dialog.dart';
 import 'package:ruitoque/Screens/Ronda/shot_tile.dart';
@@ -52,7 +53,8 @@ class _MiRondaState extends State<MiRonda> {
       _ronda=widget.ronda;
     _ronda.id ==0 ? _goSave() : _goRefresh();
      jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;   
-     isCreator = jugador.id == _ronda.creatorId ? true: false;
+     // Usa tienePermisosEdicion() para soportar RondaDeAmigos (responsableId)
+     isCreator = _ronda.tienePermisosEdicion(jugador.id);
      myTarjeta =  _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);    
       setState(() {
       _ronda.calcularYAsignarPosiciones();
@@ -145,7 +147,7 @@ class _MiRondaState extends State<MiRonda> {
                   // Loader
                   if (showLoader)
                     const Positioned.fill(
-                      child: MyLoader(opacity: 1, text: ''),
+                      child: MyLoader(opacity: 1, text: '.'),
                     ),
                 ],
               ),
@@ -179,39 +181,43 @@ class _MiRondaState extends State<MiRonda> {
   }
    
   goHole(EstadisticaHoyo hoyo) {
-
-    hoyo.hoyo.par == 3 ?
-    Navigator.push(
-     context, 
-     MaterialPageRoute(
-       builder: (context) =>  MiMapaPar3(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo, onDeleteShot: deleteShot, teeSalida: _ronda.tarjetas[0].teeSalida ?? '',)
-     )
-    )  :
-   Navigator.push(
-     context, 
-     MaterialPageRoute(
-       builder: (context) =>  MiMapa(hoyo: hoyo, onAgregarShot: agregarShotAEstadisticaHoyo, onDeleteShot: deleteShot, teeSalida: _ronda.tarjetas[0].teeSalida ?? '',)
-     )
-    );
-//    Navigator.of(context).push(
-//   MaterialPageRoute(
-//     builder: (_) => ChangeNotifierProvider(
-//       create: (_) => MiMapaProvider(
-//         hoyo: hoyo,
-//         teeSalida:  _ronda.tarjetas[0].teeSalida ?? '',
-//         onAgregarShot: agregarShotAEstadisticaHoyo,
-//         onDeleteShot: deleteShot,
-//       ),
-//       child: MapaHoyoScreen(
-//         hoyo: hoyo,
-//          teeSalida:  _ronda.tarjetas[0].teeSalida ?? '',
-//         onAgregarShot: agregarShotAEstadisticaHoyo,
-//         onDeleteShot: deleteShot,
-//       ),
-//     ),
-//   ),
-// );
-
+    if (hoyo.hoyo.par == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MiMapaPar3(
+            hoyo: hoyo,
+            onAgregarShot: agregarShotAEstadisticaHoyo,
+            onDeleteShot: deleteShot,
+            teeSalida: _ronda.tarjetas[0].teeSalida ?? '',
+          ),
+        ),
+      );
+    } else if (hoyo.hoyo.par == 5) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MapaPar5(
+            hoyo: hoyo,
+            teeSalida: _ronda.tarjetas[0].teeSalida ?? '',
+            onAgregarShot: agregarShotAEstadisticaHoyo,
+            onDeleteShot: deleteShot,
+          ),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MiMapa(
+            hoyo: hoyo,
+            onAgregarShot: agregarShotAEstadisticaHoyo,
+            onDeleteShot: deleteShot,
+            teeSalida: _ronda.tarjetas[0].teeSalida ?? '',
+          ),
+        ),
+      );
+    }
   }
 
   void agregarShotAEstadisticaHoyo(int idEstadisticaHoyo, Shot nuevoShot) {
@@ -781,6 +787,11 @@ Widget _actionPill({
       if (mounted) {
         setState(() {
           _ronda = newRonda;
+          _ronda.calcularYAsignarPosiciones();
+          myTarjeta = _ronda.tarjetas.firstWhere(
+            (t) => t.jugadorId == jugador.id,
+            orElse: () => _ronda.tarjetas.first,
+          );
         });
       }
    

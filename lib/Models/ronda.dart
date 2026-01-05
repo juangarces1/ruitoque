@@ -19,8 +19,13 @@ class Ronda {
    int? creatorId;
    int? torneoId;
    List<Skin>? skins = [];
-   StablefordResult? stablefordResult; 
+   StablefordResult? stablefordResult;
    FedeAmigosResult? fedeAmigosResult;
+
+   // Nuevos campos para RondaDeAmigos
+   int? responsableId;              // Quien lleva el score del grupo (diferente de creatorId)
+   int? rondaDeAmigosId;            // FK a RondaDeAmigos (null si es ronda independiente)
+   int? numeroGrupo;                // Número del grupo: 1, 2, 3...
 
   Ronda({
     required this.id,
@@ -35,6 +40,9 @@ class Ronda {
     this.stablefordResult,
     this.fedeAmigosResult,
     this.torneoId,
+    this.responsableId,
+    this.rondaDeAmigosId,
+    this.numeroGrupo,
   });
 
   factory Ronda.fromJson(Map<String, dynamic> json) {
@@ -47,7 +55,10 @@ class Ronda {
       isComplete: json['isComplete'],
       creatorId: json['creatorId'],
       handicapPorcentaje: json['handicapPorcentaje'],
-      torneoId: 1,
+      torneoId: json['torneoId'],
+      responsableId: json['responsableId'],
+      rondaDeAmigosId: json['rondaDeAmigosId'],
+      numeroGrupo: json['numeroGrupo'],
     );
   }
 
@@ -61,7 +72,23 @@ class Ronda {
         'creatorId': creatorId,
         'handicapPorcentaje': handicapPorcentaje,
         'torneoId': torneoId,
+        'responsableId': responsableId,
+        'rondaDeAmigosId': rondaDeAmigosId,
+        'numeroGrupo': numeroGrupo,
       };
+
+  /// Verifica si el jugador tiene permisos para editar scores de todos los jugadores
+  /// Si pertenece a una RondaDeAmigos, usa responsableId
+  /// Si es ronda independiente, usa creatorId
+  bool tienePermisosEdicion(int jugadorId) {
+    if (rondaDeAmigosId != null) {
+      // Pertenece a una RondaDeAmigos, solo el responsable puede editar
+      return jugadorId == responsableId;
+    } else {
+      // Ronda independiente, el creador puede editar
+      return jugadorId == creatorId;
+    }
+  }
 
     void calcularSkins() {     
       SkinsResult resultado = _calcularSkins();

@@ -24,7 +24,7 @@ import 'package:ruitoque/constans.dart';
 class RondaRapida extends StatefulWidget {
   final Ronda ronda;
   final String ruta;
- 
+
   const RondaRapida({super.key, required this.ronda, required this.ruta });
 
   @override
@@ -36,7 +36,7 @@ class _RondaRapidaState extends State<RondaRapida> {
   late Ronda _ronda;
   late Jugador jugador;
   late Tarjeta myTarjeta;
-  bool isCreator = false;  
+  bool isCreator = false;
   get jugadoresSeleccionados => null;
 
   bool mostrarFedeAmigos = false;
@@ -176,12 +176,12 @@ class _RondaRapidaState extends State<RondaRapida> {
   @override
   void initState() {
     super.initState();
-      _ronda=widget.ronda;
-   
-     jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;   
-     isCreator = jugador.id == _ronda.creatorId ? true: false;
-     myTarjeta =  _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);
-     _ronda.calcularYAsignarPosiciones();
+    _ronda = widget.ronda;
+    jugador = Provider.of<JugadorProvider>(context, listen: false).jugador;
+    // Usa tienePermisosEdicion() para soportar RondaDeAmigos (responsableId)
+    isCreator = _ronda.tienePermisosEdicion(jugador.id);
+    myTarjeta = _ronda.tarjetas.firstWhere((t) => t.jugadorId == jugador.id);
+    _ronda.calcularYAsignarPosiciones();
   }  
 
   @override
@@ -536,7 +536,7 @@ Future<void> _removeTarjeta(Tarjeta t) async {
                 overflow: TextOverflow.ellipsis, // corta con '…' si aún se pasa
               ),
               subtitle: Text(
-                'Pts: ${entry.value.toStringAsFixed(2)}    --    \$${_miles.format((entry.value * (1000 * widget.ronda.tarjetas.length)).round())}',  
+                'Pts: ${entry.value.toStringAsFixed(2)}    --    \$${_miles.format((entry.value * (1500 * widget.ronda.tarjetas.length)).round())}',  
                 style: kTextStyleBlancoNuevaFuente20,
               ),
               dense: true, // opcional: baja la altura
