@@ -231,9 +231,11 @@ class _CardJugadorState extends State<CardJugador> {
     Response response = await ApiHelper.updateHandicap(
             jugadorProvider.jugador.id, valorActualizado);
 
-    setState(() {
-      showLoader = false;
-    });
+    if (mounted) {
+      setState(() {
+        showLoader = false;
+      });
+    }
 
     if (!response.isSuccess) {
       if (mounted) {

@@ -41,6 +41,7 @@ class _DetalleRondaDeAmigosScreenState extends State<DetalleRondaDeAmigosScreen>
 
   Future<void> _cargarJugadores() async {
     Response response = await ApiHelper.getPlayers();
+    if (!mounted) return;
     if (response.isSuccess) {
       setState(() {
         todosLosJugadores = response.result;

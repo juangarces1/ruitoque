@@ -37,6 +37,7 @@ class _SelectCampoScreenState extends State<SelectCampoScreen> {
 
     Response response = await ApiHelper.getCampos();
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {
@@ -57,6 +58,7 @@ class _SelectCampoScreenState extends State<SelectCampoScreen> {
 
     Response response = await ApiHelper.getCampo(id.toString());
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {

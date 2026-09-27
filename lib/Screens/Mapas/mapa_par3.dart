@@ -167,6 +167,7 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
       BitmapDescriptor iconoPersonalizado = await BitmapDescriptor.fromAssetImage(
           const ImageConfiguration(), 'assets/newMarker.png');
 
+      if (!mounted) return;
       Marker markerPersonalizado = Marker(
         markerId: const MarkerId('puntoMedio'),
         position: puntoB, // Asegúrate de tener definida esta variable
@@ -349,7 +350,7 @@ class _MiMapaPar3State extends State<MiMapaPar3> {
 
   void _updatePositionList(PositionItemType type, String displayValue) {
     _positionItems.add(PositionItem(type, displayValue));
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   int calculateDistanceInYards(Position position1, Position position2) {
@@ -715,7 +716,7 @@ void _onCameraMove(CameraPosition _) {
   widget.onAgregarShot(widget.hoyo.id, nuevoShot);
  // widget.hoyo.shots = [...?widget.hoyo.shots, nuevoShot];
 
-  setState(() {});
+  if (mounted) setState(() {});
 }
 
  double calcularBearing(LatLng start, LatLng end) {

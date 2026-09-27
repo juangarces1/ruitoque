@@ -67,6 +67,7 @@ class _VerRondaAmigosScreenState extends State<VerRondaAmigosScreen> {
 
     Response response = await ApiHelper.getRondaDeAmigosById(_rondaDeAmigos.id);
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {

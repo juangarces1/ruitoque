@@ -43,6 +43,7 @@ class _CrearGruposScreenState extends State<CrearGruposScreen> {
 
     Response response = await ApiHelper.getPlayers();
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {
@@ -110,6 +111,7 @@ class _CrearGruposScreenState extends State<CrearGruposScreen> {
       titulo: 'Seleccionar Responsable del Grupo ${grupoIndex + 1}',
     );
 
+    if (!mounted) return;
     if (jugador != null) {
       setState(() {
         rondaDeAmigos.rondas[grupoIndex].responsableId = jugador.id;
@@ -134,6 +136,7 @@ class _CrearGruposScreenState extends State<CrearGruposScreen> {
           .toList(),
     );
 
+    if (!mounted) return;
     if (jugador != null) {
       _agregarJugadorAGrupo(grupoIndex, jugador);
     }
@@ -288,6 +291,7 @@ class _CrearGruposScreenState extends State<CrearGruposScreen> {
 
     Response response = await ApiHelper.createRondaDeAmigos(rondaDeAmigos);
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {

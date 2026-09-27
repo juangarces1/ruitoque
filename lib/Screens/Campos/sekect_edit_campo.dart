@@ -78,6 +78,7 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
     
     Response response = await ApiHelper.getCampos();
 
+    if (!mounted) return;
     setState(() {
       showLoader = false;
     });
@@ -119,6 +120,7 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
     
     Response response = await ApiHelper.getCampo(id.toString());
 
+    if (!mounted) return;
     setState(() {
       showLoader = false;
     });

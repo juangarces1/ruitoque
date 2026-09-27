@@ -32,6 +32,7 @@ class _CreateTorneoScreenState extends State<CreateTorneoScreen> {
   Future<void> _fetchCampos() async {
     setState(() => _loading = true);
     final resp = await ApiHelper.getCampos();
+    if (!mounted) return;
     if (resp.isSuccess) {
       setState(() {
         _campos = (resp.result as List).map((j) => Campo.fromJson(j)).toList();
@@ -48,6 +49,7 @@ class _CreateTorneoScreenState extends State<CreateTorneoScreen> {
       firstDate: now.subtract(const Duration(days: 365)),
       lastDate: now.add(const Duration(days: 365)),
     );
+    if (!mounted) return;
     if (picked != null) {
       setState(() {
         if (isStart) {

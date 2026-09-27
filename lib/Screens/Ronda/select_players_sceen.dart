@@ -59,6 +59,7 @@ class SelectPlayersScreenState extends State<SelectPlayersScreen> {
 
     Response response = await ApiHelper.getPlayers();
 
+    if (!mounted) return;
     setState(() {
       showLoader = false;
     });
@@ -239,6 +240,7 @@ void _showCreateJugadorDialog() {
 
                 Response response = await ApiHelper.post('api/Players/', nuevoJugador.toJson());
 
+                if (!mounted) return;
                 if (!response.isSuccess) {
                   mostrarSnackBar(context, response.message);
                   return;

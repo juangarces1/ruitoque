@@ -51,6 +51,7 @@ class _CrearRondaDeAmigosScreenState extends State<CrearRondaDeAmigosScreen> {
 
     Response response = await ApiHelper.getCampos();
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {
@@ -71,6 +72,7 @@ class _CrearRondaDeAmigosScreenState extends State<CrearRondaDeAmigosScreen> {
 
     Response response = await ApiHelper.getCampo(id.toString());
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {
@@ -118,6 +120,7 @@ class _CrearRondaDeAmigosScreenState extends State<CrearRondaDeAmigosScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
+    if (!mounted) return;
     if (picked != null && picked != fechaSeleccionada) {
       setState(() {
         fechaSeleccionada = picked;

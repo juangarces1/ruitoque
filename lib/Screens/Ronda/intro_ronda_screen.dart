@@ -54,6 +54,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
 
   Response response = await ApiHelper.getPlayers();
 
+  if (!mounted) return;
   setState(() {
     showLoader = false;
   });
@@ -132,6 +133,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
     
     Response response = await ApiHelper.getCampos();
 
+    if (!mounted) return;
     setState(() {
       showLoader = false;
     });
@@ -173,6 +175,7 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
     
     Response response = await ApiHelper.getCampo(id.toString());
 
+    if (!mounted) return;
     setState(() {
       showLoader = false;
     });

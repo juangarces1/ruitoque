@@ -679,6 +679,7 @@ Widget _actionPill({
 
   // Si el usuario aceptó, procede con la función _goSave
   if (confirm == true) {
+    if (!mounted) return;
     await _goUpdateRonda();
   }
 }
@@ -690,7 +691,8 @@ Widget _actionPill({
    });  
    
     Response   response = await ApiHelper.getRondaById(_ronda.id);
-    
+
+    if (!mounted) return;
     setState(() {
       showLoader=false;
     });
@@ -738,8 +740,9 @@ Widget _actionPill({
 
   
     
-    Response response = await ApiHelper.post('api/Rondas/', _ronda.toJson());   
+    Response response = await ApiHelper.post('api/Rondas/', _ronda.toJson());
 
+    if (!mounted) return;
     setState(() {
       showLoader=false;
     });
@@ -810,7 +813,8 @@ Widget _actionPill({
     Map<String, dynamic> ronda = _ronda.toJson();
 
     Response response = await ApiHelper.put('api/Rondas/${_ronda.id}', ronda);
-   
+
+    if (!mounted) return;
     setState(() {
         showLoader=false;
       });
@@ -884,6 +888,7 @@ Widget _actionPill({
 
   // Si el usuario aceptó, procede con la función _goSave
   if (confirm == true) {
+    if (!mounted) return;
     await goHome();
   }
 }

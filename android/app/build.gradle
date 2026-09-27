@@ -15,12 +15,12 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '
 
 android {
     namespace "com.example.ruitoque"
-    compileSdk 35
+    compileSdk 36
     ndkVersion flutter.ndkVersion
 
     defaultConfig {
         applicationId "com.example.ruitoque"
-        minSdk 23
+        minSdkVersion flutter.minSdkVersion
         targetSdk 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -47,11 +47,6 @@ android {
             signingConfig signingConfigs.debug
         }
     }
-}
-
-// Refuerza el toolchain a 17 para evitar que algún plugin te baje a 1.8
-kotlin {
-    jvmToolchain(17)
 }
 
 flutter {

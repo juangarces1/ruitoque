@@ -815,7 +815,8 @@ bool _isComplete() {
    });  
    
     Response   response = await ApiHelper.getRondaById(_ronda.id);
-    
+
+    if (!mounted) return;
     setState(() {
       showLoader=false;
     });
@@ -1295,6 +1296,7 @@ Future<void> _handleAddPlayer() async {
   final Tarjeta nueva = _buildTarjetaFromTemplate(jugadorItem);
 
   // 3) Agregar, recalcular y notificar
+  if (!mounted) return;
   setState(() {
     _ronda.tarjetas.add(nueva);
     _ronda.calcularYAsignarPosiciones();

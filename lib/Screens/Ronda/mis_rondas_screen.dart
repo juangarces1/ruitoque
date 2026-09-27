@@ -169,8 +169,10 @@ class _MisRondasScreenState extends State<MisRondasScreen> {
 
   /*───────────────────────────────────────────────*/
   Future<void> _getFirstPage() async {
+    if (!mounted) return;
     setState(() => _showLoader = true);
     await _loadPage(1);
+    if (!mounted) return;
     setState(() => _showLoader = false);
   }
 

@@ -27,6 +27,7 @@ class PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
 
   Future<void> _fetchPlayers() async {
     Response response = await ApiHelper.getPlayers();
+    if (!mounted) return;
     if (response.isSuccess) {
       setState(() {
         _players = response.result;

@@ -1,485 +1,254 @@
 import 'dart:convert';
 
-import 'package:ruitoque/Helpers/constans.dart';
+import 'package:ruitoque/Helpers/supabase_config.dart';
 import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
-import 'package:http/http.dart' as http;
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/ronda_de_amigos.dart';
 
+/// Data access layer.
+///
+/// Originally this talked to a .NET REST API (GolfApi). It now calls
+/// Supabase RPC functions (schema `golf`, wrappers in `public`) that return
+/// the exact same JSON shapes the models expect, so no screen or model
+/// needed to change — only the internals of these methods.
 class ApiHelper {
+  // ─────────────────────────── helpers ───────────────────────────
 
- static Future<Response> updateHandicap(int id, int handicap) async {
-  
-  var url = Uri.parse('${Constans.getAPIUrl()}/api/Players/UpdateHandicap/$id');
+  static Map<String, dynamic> _asMap(dynamic v) =>
+      (v as Map).cast<String, dynamic>();
 
-  try {
-    final response = await http.put(
-      url,
-      headers: <String, String>{
-        'Content-Type': 'application/json', // Especificamos que el contenido es JSON
-        'Accept': 'application/json',
-      },
-      body: json.encode(handicap), // Codificamos el handicap como JSON
-    );
+  /// The legacy .NET API returned raw JSON *strings* in `result`, and several
+  /// screens call `jsonDecode(response.result)`. Supabase RPC returns already
+  /// decoded JSON, so re-encode it to keep that contract intact.
+  static String? _encode(dynamic v) => v == null ? null : jsonEncode(v);
 
-   if (response.statusCode == 200) {
-          return Response(isSuccess: true);
-    } else if (response.statusCode == 404) {
-      // Jugador no encontrado
-        return Response(isSuccess: false, message: 'Jugador No Encontrado', result: response.body);
-    } else {
-      // Otros errores
-     Response(isSuccess: false, message: 'Error al actualizar el handicap: ${response.reasonPhrase}',result: response.body);
-    }
-       return Response(isSuccess: false);
-  } catch (e) {
-    // En caso de error, muestra el error
-     return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+  static List<Map<String, dynamic>> _asList(dynamic v) =>
+      (v as List).map((e) => (e as Map).cast<String, dynamic>()).toList();
+
+  static int? _idFromPath(String path) {
+    final m = RegExp(r'(\d+)\s*$').firstMatch(path.trim());
+    return m != null ? int.tryParse(m.group(1)!) : null;
   }
-}
 
-   static Future<Response> getPlayers() async {
-      var url = Uri.parse('${Constans.getAPIUrl()}/api/Players/GetPlayers');
-      var response = await http.get(url);
+  static String _normalize(String controller) => controller
+      .toLowerCase()
+      .replaceAll('\\', '/')
+      .replaceAll(RegExp(r'^/+'), '');
 
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        List<Jugador> players = data.map((json) => Jugador.fromJson(json)).toList();
-        return Response(isSuccess: true, result: players);
-      } else {
-        return Response(isSuccess: false, message: 'Error fetching players');
-      }
+  // ─────────────────────────── players ───────────────────────────
+
+  static Future<Response> getPlayers() async {
+    try {
+      final data = await supabase.rpc('golf_get_players');
+      final players = _asList(data).map((j) => Jugador.fromJson(j)).toList();
+      return Response(isSuccess: true, result: players);
+    } catch (e) {
+      return Response(isSuccess: false, message: 'Error fetching players: $e');
     }
+  }
 
-  
+  static Future<Response> logIn(String id) async {
+    try {
+      final pin = int.tryParse(id);
+      if (pin == null) {
+        return Response(isSuccess: false, message: 'PIN inválido');
+      }
+      final data = await supabase.rpc('golf_get_player_by_pin', params: {'p_pin': pin});
+      if (data == null) {
+        return Response(isSuccess: false, message: 'PIN no encontrado');
+      }
+      return Response(isSuccess: true, result: Jugador.fromJson(_asMap(data)));
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  static Future<Response> updateHandicap(int id, int handicap) async {
+    try {
+      await supabase.rpc('golf_update_handicap', params: {'p_id': id, 'p_handicap': handicap});
+      return Response(isSuccess: true);
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  static Future<Response> getTarjetasById(String id, {int page = 1, int pageSize = 5}) async {
+    try {
+      final playerId = int.tryParse(id) ?? 0;
+      final data = await supabase.rpc('golf_get_tarjetas_by_player',
+          params: {'p_player': playerId, 'p_page': page, 'p_page_size': pageSize});
+      if (data == null) {
+        return Response(isSuccess: false, message: 'Jugador no encontrado');
+      }
+      return Response(isSuccess: true, result: Jugador.fromJson(_asMap(data)));
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  // ─────────────────────────── campos ────────────────────────────
+
+  static Future<Response> getCampos() async {
+    try {
+      final data = await supabase.rpc('golf_get_campos');
+      final campos = _asList(data).map((j) => Campo.fromJson(j)).toList();
+      return Response(isSuccess: true, result: campos);
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  static Future<Response> getCampo(String id) async {
+    try {
+      final data = await supabase.rpc('golf_get_campo', params: {'p_id': int.tryParse(id) ?? 0});
+      if (data == null) {
+        return Response(isSuccess: false, message: 'Campo no encontrado');
+      }
+      return Response(isSuccess: true, result: Campo.fromJson(_asMap(data)));
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  // ─────────────────────────── rondas ────────────────────────────
 
   static Future<Response> getRondasAbiertas(int id) async {
-  final url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRondasAbiertaByPlayer/$id');
-  final response = await http.get(url);
-
-  if (response.statusCode == 200) {
-    final List<dynamic> data = json.decode(response.body);
-    final List<Ronda> rondas = data.map((json) => Ronda.fromJson(json)).toList();
-    return Response(isSuccess: true, result: rondas);
-  } else if (response.statusCode == 204) {
-    // No Content: simplemente regresa lista vacía, no es error.
-    return Response(isSuccess: true, result: <Ronda>[]);
-  } else {
-    return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas: ${response.statusCode}');
-  }
-}
-
-    
-    static Future<Response> getFinishedRoundsByPlayer({
-  required int playerId,
-  required int page,
-  int pageSize = 5,
-}) async {
-  final base = Constans.getAPIUrl();
-  final uri  = Uri.parse(
-    '$base/api/rondas/GetRondaTerminadasByPlayer/$playerId'
-    '?page=$page&pageSize=$pageSize',
-  );
-
-  try {
-    final resp = await http.get(uri, headers: {'Accept': 'application/json'});
-
-    if (resp.statusCode == 204) {
-      return Response(isSuccess: true, result: <Ronda>[], totalCount: 0);
-    }
-    if (resp.statusCode != 200) {
-      return Response(isSuccess: false, message: 'Error ${resp.statusCode}');
-    }
-
-    final total = int.tryParse(resp.headers['x-total-count'] ?? '') ?? 0;
-    final list  = (jsonDecode(resp.body) as List)
-        .map((e) => Ronda.fromJson(e))
-        .toList();
-
-    return Response(isSuccess: true, result: list, totalCount: total);
-  } catch (e) {
-    return Response(isSuccess: false, message: e.toString());
-  }
-}
-  
- static Future<Response> post(String controller, Map<String, dynamic> request) async {        
-    var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
-    var response = await http.post(
-      url,
-      headers: {
-        'content-type' : 'application/json',
-        'accept' : 'application/json',       
-      },
-      body: jsonEncode(request)
-    );    
-
-    if(response.statusCode >= 400){
-      return Response(isSuccess: false, message: response.body);
-    }     
-     return Response(isSuccess: true, result: response.body, );
-  }
-
- static Future<Response> getCampo(String id) async {  
-     var url = Uri.parse('${Constans.getAPIUrl()}/api/Campos/GetCampo/$id');
-     try {
-        var response = await http.get(
-          url,
-          headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-          },
-        );
-      
-         // Check for 200 OK response
-           var body = response.body;
-            if (response.statusCode >= 400) {
-              return Response(isSuccess: false, message: body);
-            }
-           
-            var decodedJson = jsonDecode(body);
-               return Response(isSuccess: true, result: Campo.fromJson(decodedJson));  
-                       
-          
-            
-
-      } catch (e) {
-        // Catch any other errors, like JSON parsing errors
-       
-        return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-      }
-    
- } 
-
- static Future<Response> logIn(String id) async {  
-     var url = Uri.parse('${Constans.getAPIUrl()}/api/Players/GetPlayerByPin/$id');
-     try {
-        var response = await http.get(
-          url,
-          headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-          },
-        );
-      
-         // Check for 200 OK response
-           var body = response.body;
-            if (response.statusCode >= 400) {
-              return Response(isSuccess: false, message: body);
-            }
-           
-            var decodedJson = jsonDecode(body);
-               return Response(isSuccess: true, result: Jugador.fromJson(decodedJson));  
-                       
-          
-            
-
-      } catch (e) {
-        // Catch any other errors, like JSON parsing errors
-       
-        return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-      }
-    
- } 
-
-static Future<Response> getTarjetasById(
-  String id, {
-  int page = 1,
-  int pageSize = 5,
-}) async {
-  // Construye la URL con query parameters ?page=&pageSize=
-  var url = Uri.parse(
-    '${Constans.getAPIUrl()}/api/Tarjetas/GetTarjetasByPlayer/$id?page=$page&pageSize=$pageSize',
-  );
-
-  try {
-    var response = await http.get(
-      url,
-      headers: {
-        'content-type': 'application/json',
-        'accept': 'application/json',
-      },
-    );
-
-    var body = response.body;
-    if (response.statusCode >= 400) {
-      return Response(isSuccess: false, message: body);
-    }
-
-    var decodedJson = jsonDecode(body);
-
-    return Response(
-      isSuccess: true,
-      result: Jugador.fromJson(decodedJson),
-    );
-
-  } catch (e) {
-    return Response(
-      isSuccess: false,
-      message: "Exception: ${e.toString()}",
-    );
-  }
-}
-
- static Future<Response> put(String controller, Map<String, dynamic> request) async {        
-    var url = Uri.parse('${Constans.getAPIUrl()}/$controller');
-    var response = await http.put(
-      url,
-      headers: {
-        'content-type': 'application/json',
-        'accept': 'application/json',
-      },
-      body: jsonEncode(request),
-    );
-
-    if (response.statusCode >= 400) {
-      return Response(isSuccess: false, message: response.body);
-    }
-    return Response(isSuccess: true, result: response.body);
-  }
-
- static Future<Response> getCampos() async {  
-
-    var url = Uri.parse('${Constans.getAPIUrl()}/api/Campos/GetCampos/');
-     try {
-        var response = await http.get(
-          url,
-          headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-          },
-        );
-      
-        // Check for 200 OK response
-        if (response.statusCode == 200) {
-
-          var decodedJson = jsonDecode(response.body);
-          List<Campo> campos = [];
-          for (var item in decodedJson){
-            campos.add(Campo.fromJson(item));
-          }
-          return Response(isSuccess: true, result: campos);
-        } else if (response.statusCode == 204) {
-          // No content
-          return Response(isSuccess: true, message: '', result: []);
-        } else {
-          // Handle other statuses, maybe something went wrong
-          return Response(isSuccess: false, message: "Error: ${response.body}");
-        }
-      } catch (e) {
-        // Catch any other errors, like JSON parsing errors
-       
-        return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-      }
- }
-
-
-   static Future<Response> getRondaById(int id) async {  
-     var url = Uri.parse('${Constans.getAPIUrl()}/api/Rondas/GetRonda/$id');
-     try {
-        var response = await http.get(
-          url,
-          headers: {
-            'content-type': 'application/json',
-            'accept': 'application/json',
-          },
-        );
-      
-         // Check for 200 OK response
-           var body = response.body;
-            if (response.statusCode >= 400) {
-              return Response(isSuccess: false, message: body);
-            }
-           
-            var decodedJson = jsonDecode(body);
-             
-            
-             
-               return Response(isSuccess: true, result: Ronda.fromJson(decodedJson));  
-                       
-          
-            
-
-      } catch (e) {
-        // Catch any other errors, like JSON parsing errors
-       
-        return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-      }
-    
- } 
- 
-static Future<Response> delete(String controller) async {
-    final url = Uri.parse('${Constans.getAPIUrl()}$controller');
     try {
-      final response = await http.delete(
-        url,
-        headers: {
-          'accept': 'application/json',
-        },
-      );
+      final data = await supabase.rpc('golf_get_rondas_abiertas', params: {'p_player': id});
+      final rondas = _asList(data).map((j) => Ronda.fromJson(j)).toList();
+      return Response(isSuccess: true, result: rondas);
+    } catch (e) {
+      return Response(isSuccess: false, message: 'Error fetching Rondas Abiertas: $e');
+    }
+  }
 
-      if (response.statusCode >= 400) {
-        return Response(isSuccess: false, message: response.body);
+  static Future<Response> getFinishedRoundsByPlayer({
+    required int playerId,
+    required int page,
+    int pageSize = 5,
+  }) async {
+    try {
+      final data = await supabase.rpc('golf_get_finished_rounds',
+          params: {'p_player': playerId, 'p_page': page, 'p_page_size': pageSize});
+      final map = _asMap(data);
+      final total = (map['total'] as num?)?.toInt() ?? 0;
+      final list = _asList(map['items']).map((j) => Ronda.fromJson(j)).toList();
+      return Response(isSuccess: true, result: list, totalCount: total);
+    } catch (e) {
+      return Response(isSuccess: false, message: e.toString());
+    }
+  }
+
+  static Future<Response> getRondaById(int id) async {
+    try {
+      final data = await supabase.rpc('golf_get_ronda', params: {'p_id': id});
+      if (data == null) {
+        return Response(isSuccess: false, message: 'Ronda no encontrada');
       }
-      return Response(isSuccess: true, result: response.body);
+      return Response(isSuccess: true, result: Ronda.fromJson(_asMap(data)));
+    } catch (e) {
+      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+    }
+  }
+
+  // ─────────────── generic verbs (routed to RPCs) ────────────────
+
+  static Future<Response> post(String controller, Map<String, dynamic> request) async {
+    final path = _normalize(controller);
+    try {
+      if (path.startsWith('api/players')) {
+        final data = await supabase.rpc('golf_create_player', params: {'payload': request});
+        return Response(isSuccess: true, result: _encode(data));
+      }
+      if (path.startsWith('api/rondas')) {
+        final data = await supabase.rpc('golf_save_ronda', params: {'payload': request});
+        return Response(isSuccess: true, result: _encode(data));
+      }
+      if (path.startsWith('api/campos')) {
+        return Response(
+            isSuccess: false,
+            message: 'Crear campos aún no está disponible en el nuevo backend.');
+      }
+      return Response(isSuccess: false, message: 'Ruta no soportada: $controller');
+    } catch (e) {
+      return Response(isSuccess: false, message: e.toString());
+    }
+  }
+
+  static Future<Response> put(String controller, Map<String, dynamic> request) async {
+    final path = _normalize(controller);
+    try {
+      if (path.contains('updatehandicap')) {
+        final id = _idFromPath(path) ?? 0;
+        final hcp = (request['handicap'] as num?)?.toInt() ?? 0;
+        await supabase.rpc('golf_update_handicap', params: {'p_id': id, 'p_handicap': hcp});
+        return Response(isSuccess: true);
+      }
+      if (path.startsWith('api/players/')) {
+        final id = _idFromPath(path) ?? 0;
+        final data = await supabase.rpc('golf_update_player', params: {'p_id': id, 'payload': request});
+        return Response(isSuccess: true, result: _encode(data));
+      }
+      if (path.startsWith('api/rondas/')) {
+        final data = await supabase.rpc('golf_save_ronda', params: {'payload': request});
+        return Response(isSuccess: true, result: _encode(data));
+      }
+      if (path.contains('campos')) {
+        return Response(
+            isSuccess: false,
+            message: 'Editar campos aún no está disponible en el nuevo backend.');
+      }
+      return Response(isSuccess: false, message: 'Ruta no soportada: $controller');
+    } catch (e) {
+      return Response(isSuccess: false, message: e.toString());
+    }
+  }
+
+  static Future<Response> delete(String controller) async {
+    final path = _normalize(controller);
+    try {
+      if (path.contains('rondas')) {
+        final id = _idFromPath(path);
+        if (id == null) {
+          return Response(isSuccess: false, message: 'Id de ronda inválido');
+        }
+        await supabase.rpc('golf_delete_ronda', params: {'p_id': id});
+        return Response(isSuccess: true);
+      }
+      return Response(isSuccess: false, message: 'Ruta no soportada: $controller');
     } catch (e) {
       return Response(isSuccess: false, message: 'Error: $e');
     }
   }
 
-  /*──────────────────────────────────────────────────────────────
-   * RONDAS DE AMIGOS
-   *─────────────────────────────────────────────────────────────*/
+  // ──────────────────── RondaDeAmigos (no soportado aún) ────────────────────
+  // El respaldo actual de GolfBd no incluye estas tablas. Se devuelven listas
+  // vacías para que las pantallas no fallen; las escrituras informan que la
+  // función no está disponible todavía.
 
-  /// Obtiene una RondaDeAmigos por ID con todos sus grupos
   static Future<Response> getRondaDeAmigosById(int id) async {
-    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/$id');
-    try {
-      var response = await http.get(
-        url,
-        headers: {
-          'content-type': 'application/json',
-          'accept': 'application/json',
-        },
-      );
-
-      var body = response.body;
-      if (response.statusCode >= 400) {
-        return Response(isSuccess: false, message: body);
-      }
-
-      var decodedJson = jsonDecode(body);
-      return Response(isSuccess: true, result: RondaDeAmigos.fromJson(decodedJson));
-    } catch (e) {
-      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-    }
+    return Response(isSuccess: false, message: 'Rondas de amigos no disponibles aún.');
   }
 
-  /// Obtiene todas las RondasDeAmigos donde el jugador participa
   static Future<Response> getRondasDeAmigosByPlayer(int playerId) async {
-    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/player/$playerId');
-    try {
-      var response = await http.get(
-        url,
-        headers: {
-          'content-type': 'application/json',
-          'accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 204) {
-        return Response(isSuccess: true, result: <RondaDeAmigos>[]);
-      }
-
-      if (response.statusCode >= 400) {
-        return Response(isSuccess: false, message: response.body);
-      }
-
-      var decodedJson = jsonDecode(response.body) as List;
-      List<RondaDeAmigos> rondasDeAmigos =
-          decodedJson.map((json) => RondaDeAmigos.fromJson(json)).toList();
-      return Response(isSuccess: true, result: rondasDeAmigos);
-    } catch (e) {
-      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-    }
+    return Response(isSuccess: true, result: <RondaDeAmigos>[]);
   }
 
-  /// Obtiene RondasDeAmigos abiertas (no completadas) donde el jugador participa
   static Future<Response> getRondasDeAmigosAbiertas(int playerId) async {
-    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/abiertas/player/$playerId');
-    try {
-      var response = await http.get(
-        url,
-        headers: {
-          'content-type': 'application/json',
-          'accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 204) {
-        return Response(isSuccess: true, result: <RondaDeAmigos>[]);
-      }
-
-      if (response.statusCode >= 400) {
-        return Response(isSuccess: false, message: response.body);
-      }
-
-      var decodedJson = jsonDecode(response.body) as List;
-      List<RondaDeAmigos> rondasDeAmigos =
-          decodedJson.map((json) => RondaDeAmigos.fromJson(json)).toList();
-      return Response(isSuccess: true, result: rondasDeAmigos);
-    } catch (e) {
-      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-    }
+    return Response(isSuccess: true, result: <RondaDeAmigos>[]);
   }
 
-  /// Crea una nueva RondaDeAmigos
   static Future<Response> createRondaDeAmigos(RondaDeAmigos rondaDeAmigos) async {
-    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos');
-    try {
-      var response = await http.post(
-        url,
-        headers: {
-          'content-type': 'application/json',
-          'accept': 'application/json',
-        },
-        body: jsonEncode(rondaDeAmigos.toJson()),
-      );
-
-      if (response.statusCode >= 400) {
-        return Response(isSuccess: false, message: response.body);
-      }
-
-      var decodedJson = jsonDecode(response.body);
-      return Response(isSuccess: true, result: RondaDeAmigos.fromJson(decodedJson));
-    } catch (e) {
-      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-    }
+    return Response(isSuccess: false, message: 'Rondas de amigos no disponibles aún.');
   }
 
-  /// Actualiza una RondaDeAmigos existente
   static Future<Response> updateRondaDeAmigos(RondaDeAmigos rondaDeAmigos) async {
-    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/${rondaDeAmigos.id}');
-    try {
-      var response = await http.put(
-        url,
-        headers: {
-          'content-type': 'application/json',
-          'accept': 'application/json',
-        },
-        body: jsonEncode(rondaDeAmigos.toJson()),
-      );
-
-      if (response.statusCode >= 400) {
-        return Response(isSuccess: false, message: response.body);
-      }
-
-      return Response(isSuccess: true);
-    } catch (e) {
-      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-    }
+    return Response(isSuccess: false, message: 'Rondas de amigos no disponibles aún.');
   }
 
-  /// Elimina una RondaDeAmigos
   static Future<Response> deleteRondaDeAmigos(int id) async {
-    var url = Uri.parse('${Constans.getAPIUrl()}/api/rondasdeamigos/$id');
-    try {
-      var response = await http.delete(
-        url,
-        headers: {
-          'accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode >= 400) {
-        return Response(isSuccess: false, message: response.body);
-      }
-
-      return Response(isSuccess: true);
-    } catch (e) {
-      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
-    }
+    return Response(isSuccess: false, message: 'Rondas de amigos no disponibles aún.');
   }
-
- } 
+}

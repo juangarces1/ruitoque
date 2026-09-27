@@ -348,6 +348,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
         response = await ApiHelper.put('api/Campos/UpdateCampo/${nuevoCampo.id}', nuevoCampo.toJson());
     }
 
+    if (!mounted) return;
     setState(() {
       showLoader = false;
     });
@@ -429,6 +430,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                 },
               );
       
+              if (!mounted) return;
               if (confirm == true) {
                  Navigator.pushReplacement(
                       context, 

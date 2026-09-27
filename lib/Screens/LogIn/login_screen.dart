@@ -200,20 +200,15 @@ class _LoginScreenState extends State<LoginScreen> {
        return;
      }
      
-    if (mounted){
-       Provider.of<JugadorProvider>(context, listen: false).setJugador(response.result);
-
-    }
-   
-    
-
-   
+    // Guardar la sesión ANTES de setJugador: este await no debe quedar entre
+    // setJugador (que dispara la navegación automática del Consumer en main.dart
+    // y desmonta esta pantalla) y goHome, o el context quedaría inválido.
     if (_rememberme) {
-     await JugadorPreferences.guardarJugador(response.result, true);
+      await JugadorPreferences.guardarJugador(response.result, true);
     }
 
-    
+    if (!mounted) return;
+    Provider.of<JugadorProvider>(context, listen: false).setJugador(response.result);
     goHome();
-
   }
 }

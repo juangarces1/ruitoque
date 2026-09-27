@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:ruitoque/Models/Providers/cordenada_provider.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/cordenada.dart';
+import 'package:ruitoque/Helpers/supabase_config.dart';
 import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseConfig.initialize();
   runApp(
     MultiProvider(
       providers: [

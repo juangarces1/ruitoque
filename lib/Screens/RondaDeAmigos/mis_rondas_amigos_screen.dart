@@ -86,6 +86,7 @@ class _MisRondasDeAmigosScreenState extends State<MisRondasDeAmigosScreen> {
               context,
               MaterialPageRoute(builder: (_) => const CrearRondaDeAmigosScreen()),
             );
+            if (!mounted) return;
             if (result == true) {
               _cargarRondasDeAmigos();
             }

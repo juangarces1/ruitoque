@@ -142,6 +142,7 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
       pageSize: _pageSize,
     );
 
+    if (!mounted) return;
     setState(() => showLoader = false);
 
     if (!response.isSuccess) {
@@ -188,6 +189,7 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
     final Jugador aux = response.result;
     final newTarjetas = aux.tarjetas ?? [];
 
+    if (!mounted) return;
     if (newTarjetas.isEmpty) {
       // No hay más datos
       setState(() => _isLastPage = true);

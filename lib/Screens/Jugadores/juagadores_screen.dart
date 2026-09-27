@@ -36,6 +36,7 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final Response resp = await ApiHelper.getPlayers();
+    if (!mounted) return;
     setState(() => _loading = false);
 
     if (!resp.isSuccess) {
@@ -85,6 +86,7 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
 
     final resp = await ApiHelper.put("/api/players/${updated.id}", updated.toJson());
 
+    if (!mounted) return;
     if (!resp.isSuccess) {
       Fluttertoast.showToast(
         msg: resp.message,

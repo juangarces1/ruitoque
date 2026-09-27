@@ -309,6 +309,7 @@ class _PlayerCardState extends State<PlayerCard> {
 
   final resp = await ApiHelper.put("/api/players/${jugador.id}", jugador.toJson());
 
+  if (!mounted) return;
   setState(() => showLoader = false);
 
   if (resp.isSuccess) {
