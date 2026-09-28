@@ -88,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
      padding: const EdgeInsets.only(left: 30, right: 30, bottom: 10),
       child: TextField(
         keyboardType: TextInputType.number,
+        obscureText: !_passwordShow,
         
         decoration: InputDecoration(
               border: OutlineInputBorder(
@@ -184,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text('Error'),
-                content:  const Text('Pin Incorrecto'),
+                content: Text(response.message),
                 actions: <Widget>[
                   TextButton(
                     child: const Text('Aceptar'),

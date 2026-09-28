@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:ruitoque/Helpers/supabase_config.dart';
 import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
@@ -57,11 +58,16 @@ class ApiHelper {
       }
       final data = await supabase.rpc('golf_get_player_by_pin', params: {'p_pin': pin});
       if (data == null) {
-        return Response(isSuccess: false, message: 'PIN no encontrado');
+        return Response(isSuccess: false, message: 'PIN incorrecto');
       }
       return Response(isSuccess: true, result: Jugador.fromJson(_asMap(data)));
     } catch (e) {
-      return Response(isSuccess: false, message: "Exception: ${e.toString()}");
+      // Un PIN que no existe devuelve null (arriba); una excepción es de red o del servidor.
+      debugPrint('logIn: $e');
+      return Response(
+        isSuccess: false,
+        message: 'No hay conexión con el servidor. Revisa tu internet e intenta de nuevo.',
+      );
     }
   }
 
