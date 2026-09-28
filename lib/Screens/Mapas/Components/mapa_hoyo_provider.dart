@@ -12,6 +12,7 @@ import 'package:ruitoque/Screens/Mapas/Components/iconos_mapa.dart';
 import 'package:ruitoque/Screens/Mapas/Components/elevacion.dart';
 import 'package:ruitoque/Screens/Mapas/Components/golf_map_style_type.dart';
 import 'package:ruitoque/Screens/Mapas/Components/golf_map_styles.dart';
+import 'package:ruitoque/Screens/Mapas/Components/mi_ubicacion.dart';
 import 'package:ruitoque/Screens/Mapas/Components/ruta_hoyo.dart';
 import 'package:ruitoque/Screens/Mapas/Components/trazo_golpe.dart';
 import 'package:ruitoque/Screens/Mapas/Components/vuelo_hoyo.dart';
@@ -49,6 +50,18 @@ class MapaHoyoProvider extends ChangeNotifier {
   /// Durante la animación el golpe nuevo aún no se dibuja en el historial.
   int? _golpesVisibles;
 
+  /// Mi posición: punto azul, círculo de precisión del GPS y un anillo que late.
+  static const _azul = Color(0xFF1E88E5);
+  static const _tickPulso = Duration(milliseconds: 50);
+  static const _cicloPulso = Duration(milliseconds: 1800);
+  final Set<Circle> circles = {};
+  final Set<Marker> _miPunto = {};
+  BitmapDescriptor? _iconoMiPunto;
+  Timer? _timerPulso;
+
+  /// Distancia del tramo que se está arrastrando, para vibrar al cruzar 100, 150…
+  int? _distanciaArrastre;
+
   /// Marcadores que se arrastran (intermedios u objetivo).
   final Set<Marker> _movibles = {};
 
@@ -58,7 +71,7 @@ class MapaHoyoProvider extends ChangeNotifier {
   final Set<String> _etiquetasEnCurso = {};
   final Map<int, BitmapDescriptor> _ultimoIconoTramo = {};
 
-  Set<Marker> get markers => {..._marcasGolpes, ..._movibles, ..._etiquetas};
+  Set<Marker> get markers => {..._marcasGolpes, ..._miPunto, ..._movibles, ..._etiquetas};
 
   int? dHoyo;
   int? dFrente;
@@ -69,6 +82,11 @@ class MapaHoyoProvider extends ChangeNotifier {
   /// o el desnivel es despreciable. Positivo el desnivel = green más alto que yo.
   int? juegaCentro;
   double? desnivelCentro;
+
+  /// Más lejos que esto del green, las distancias no sirven para jugar (p. ej. desde
+  /// el hoyo anterior) y se muestra "Lejos del hoyo".
+  static const _yardasLejos = 600;
+  bool get lejosDelGreen => (dCentro ?? 0) > _yardasLejos;
 
   /// Alturas del terreno del hoyo; se descargan una vez por hoyo y sesión.
   static FuenteElevacion fuenteElevacion = OpenMeteoElevacion();
@@ -103,6 +121,7 @@ class MapaHoyoProvider extends ChangeNotifier {
     _idVuelo++;
     _posSub?.cancel();
     _trazo.cancelar();
+    _timerPulso?.cancel();
     super.dispose();
   }
 
@@ -265,8 +284,11 @@ class MapaHoyoProvider extends ChangeNotifier {
         await dibujarPuntoPng(relleno: Colors.white, borde: Colors.black54, diametro: 16, pixelRatio: pr);
     _iconoGolpe = BitmapDescriptor.bytes(golpe, imagePixelRatio: pr);
     _iconoBola = BitmapDescriptor.bytes(bola, imagePixelRatio: pr);
+    final yo = await dibujarPuntoPng(relleno: _azul, borde: Colors.white, diametro: 18, pixelRatio: pr);
+    _iconoMiPunto = BitmapDescriptor.bytes(yo, imagePixelRatio: pr);
     if (_disposed) return;
     _reconstruirMarcasGolpes();
+    _reconstruirMiPunto();
     _notificar();
   }
 
@@ -276,35 +298,45 @@ class MapaHoyoProvider extends ChangeNotifier {
     _movibles.clear();
     if (r == null || icono == null || _animandoGolpe) return;
 
-    Marker marcador(String id, LatLng posicion, void Function(LatLng) mover) => Marker(
+    // [indice] es la posición del punto en la ruta; el tramo que se arrastra termina en él.
+    Marker marcador(String id, LatLng posicion, int indice, void Function(LatLng) mover) => Marker(
           markerId: MarkerId(id),
           position: posicion,
           draggable: true,
           icon: icono,
           anchor: const Offset(0.5, 0.5),
           zIndexInt: 2,
-          onDragStart: (_) => cancelarVuelo(),
-          onDrag: (p) => _alArrastrar(mover, p),
+          onDragStart: (_) {
+            cancelarVuelo();
+            _distanciaArrastre = null;
+          },
+          onDrag: (p) => _alArrastrar(mover, p, indice),
           onDragEnd: (p) {
-            _alArrastrar(mover, p);
+            _alArrastrar(mover, p, indice);
             // Solo al soltar: reconstruir marcadores durante el arrastre lo interrumpe.
             _reconstruirMarcadores();
-            HapticFeedback.selectionClick();
+            HapticFeedback.lightImpact();
             _notificar();
           },
         );
 
     if (r.objetivoMovible) {
-      _movibles.add(marcador('objetivo', r.objetivo, r.moverObjetivo));
+      _movibles.add(marcador('objetivo', r.objetivo, r.puntos.length - 1, r.moverObjetivo));
     } else {
       for (var i = 0; i < r.intermedios.length; i++) {
-        _movibles.add(marcador('intermedio_$i', r.intermedios[i], (p) => r.moverIntermedio(i, p)));
+        _movibles.add(marcador('intermedio_$i', r.intermedios[i], i + 1, (p) => r.moverIntermedio(i, p)));
       }
     }
   }
 
-  void _alArrastrar(void Function(LatLng) mover, LatLng posicion) {
+  void _alArrastrar(void Function(LatLng) mover, LatLng posicion, int indice) {
     mover(posicion);
+    final distancia = yardasEntre(ruta!.puntos[indice - 1], posicion);
+    final antes = _distanciaArrastre;
+    _distanciaArrastre = distancia;
+    if (antes != null && marcaCruzada(antes, distancia) != null) {
+      HapticFeedback.selectionClick();
+    }
     _reconstruirPolylines();
     // Los marcadores movibles no se tocan aquí: cambiarlos interrumpe el arrastre.
     _reconstruirEtiquetas();
@@ -369,10 +401,75 @@ class MapaHoyoProvider extends ChangeNotifier {
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 5),
     )
         .listen((pos) {
-      _lastKnownPosition = pos;
-      _recalcularDistanciasGreen(pos);
+      _nuevaPosicion(pos);
       _notificar();
     }, onError: (_) {});
+  }
+
+  void _nuevaPosicion(Position pos) {
+    _lastKnownPosition = pos;
+    _recalcularDistanciasGreen(pos);
+
+    final yo = LatLng(pos.latitude, pos.longitude);
+    circles
+      ..removeWhere((c) => c.circleId.value == 'precision')
+      ..add(Circle(
+        circleId: const CircleId('precision'),
+        center: yo,
+        radius: radioPrecision(pos.accuracy),
+        fillColor: _azul.withOpacity(0.15),
+        strokeColor: _azul.withOpacity(0.35),
+        strokeWidth: 1,
+      ));
+    _reconstruirMiPunto();
+    _timerPulso ??= Timer.periodic(_tickPulso, (t) => _latir(t.tick));
+  }
+
+  void _reconstruirMiPunto() {
+    final pos = _lastKnownPosition;
+    _miPunto.clear();
+    if (pos == null || _iconoMiPunto == null) return;
+    _miPunto.add(Marker(
+      markerId: const MarkerId('yo'),
+      position: LatLng(pos.latitude, pos.longitude),
+      icon: _iconoMiPunto!,
+      anchor: const Offset(0.5, 0.5),
+      zIndexInt: 1,
+      consumeTapEvents: true,
+    ));
+  }
+
+  void _latir(int tick) {
+    final pos = _lastKnownPosition;
+    if (pos == null || _disposed) return;
+    final ms = tick * _tickPulso.inMilliseconds % _cicloPulso.inMilliseconds;
+    final p = pulso(ms / _cicloPulso.inMilliseconds);
+    circles
+      ..removeWhere((c) => c.circleId.value == 'pulso')
+      ..add(Circle(
+        circleId: const CircleId('pulso'),
+        center: LatLng(pos.latitude, pos.longitude),
+        radius: p.radioMetros,
+        fillColor: Colors.transparent,
+        strokeColor: _azul.withOpacity(p.opacidad),
+        strokeWidth: 2,
+      ));
+    _notificar();
+  }
+
+  /// Lleva la cámara a mi posición, manteniendo zoom y orientación.
+  Future<void> centrarEnMi() async {
+    cancelarVuelo();
+    try {
+      if (!await _tienePermiso()) return;
+      final pos = _lastKnownPosition ?? await _geolocator.getCurrentPosition();
+      if (_disposed) return;
+      _nuevaPosicion(pos);
+      _notificar();
+      await _mapController?.animateCamera(CameraUpdate.newLatLng(LatLng(pos.latitude, pos.longitude)));
+    } catch (_) {
+      // Sin posición no hay a dónde ir.
+    }
   }
 
   /// Distancias desde mi posición al frente, centro y fondo del green.
@@ -382,8 +479,7 @@ class MapaHoyoProvider extends ChangeNotifier {
     try {
       if (!await _tienePermiso()) return;
       final pos = _lastKnownPosition ?? await _geolocator.getCurrentPosition();
-      _lastKnownPosition = pos;
-      _recalcularDistanciasGreen(pos);
+      _nuevaPosicion(pos);
     } catch (_) {
       // Sin posición: se mantienen las últimas distancias.
     } finally {
@@ -474,8 +570,7 @@ class MapaHoyoProvider extends ChangeNotifier {
     );
 
     _golpesDados++;
-    _lastKnownPosition = pos;
-    _recalcularDistanciasGreen(pos);
+    _nuevaPosicion(pos);
 
     await _animarGolpe(anterior, actual, golpesPrevios);
     if (_disposed) return;

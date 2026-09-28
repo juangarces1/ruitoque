@@ -55,11 +55,13 @@ class MapaHoyoScreen extends StatelessWidget {
                   compassEnabled: false,
                   zoomControlsEnabled: false,
                   mapToolbarEnabled: false,
-                  myLocationEnabled: true,
+                  // Mi posición la dibuja el provider (punto con pulso y precisión).
+                  myLocationEnabled: false,
                   myLocationButtonEnabled: false,
                   initialCameraPosition: provider.camaraInicial,
                   polylines: provider.polylines,
                   markers: provider.markers,
+                  circles: provider.circles,
                   onMapCreated: provider.setMapController,
                 ),
               ),
@@ -67,6 +69,7 @@ class MapaHoyoScreen extends StatelessWidget {
               _Encabezado(hoyo: hoyo),
               const _BotonRefrescar(),
               const _BotonEstilo(),
+              const _BotonMiUbicacion(),
               _BotonSaltarVuelo(visible: provider.volando),
               if (provider.showLoader) const MyLoader(text: 'Actualizando...', opacity: 0.8),
             ],
@@ -210,6 +213,8 @@ class _Encabezado extends StatelessWidget {
   }
 }
 
+/// Distancias desde mi posición al frente, centro y fondo del green. Abajo a la
+/// izquierda para no tapar el hoyo, con fondo oscuro para leerse a pleno sol.
 class _DistanciasGreen extends StatelessWidget {
   const _DistanciasGreen();
 
@@ -217,56 +222,100 @@ class _DistanciasGreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<MapaHoyoProvider>();
 
-    Widget item(String label, int? valor, {bool destacado = false}) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: destacado ? 20 : 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              '${valor ?? '--'}y',
-              style: TextStyle(
-                fontFamily: 'RobotoCondensed',
-                fontWeight: FontWeight.bold,
-                fontSize: destacado ? 28 : 20,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        );
-
+    // Por encima de la fila del botón GG, que en pantallas angostas quedaría al lado.
     return Positioned(
-      top: MediaQuery.of(context).size.height / 2 - 80,
-      left: 14,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.025),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.12)),
-          boxShadow: const [
-            BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 4)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            item('Fondo', provider.dFondo),
-            const SizedBox(height: 10),
-            item('Centro', provider.dCentro, destacado: true),
-            if (provider.juegaCentro != null)
-              _JuegaComo(yardas: provider.juegaCentro!, desnivel: provider.desnivelCentro!),
-            const SizedBox(height: 10),
-            item('Frente', provider.dFrente),
-          ],
+      left: 12,
+      bottom: 84,
+      child: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 8, 14, 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white24),
+            boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 4))],
+          ),
+          child: provider.lejosDelGreen
+              ? const _LejosDelGreen()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _FilaDistancia(etiqueta: 'FONDO', yardas: provider.dFondo),
+                    _FilaDistancia(etiqueta: 'CENTRO', yardas: provider.dCentro, destacada: true),
+                    if (provider.juegaCentro != null)
+                      _JuegaComo(yardas: provider.juegaCentro!, desnivel: provider.desnivelCentro!),
+                    _FilaDistancia(etiqueta: 'FRENTE', yardas: provider.dFrente),
+                  ],
+                ),
         ),
       ),
+    );
+  }
+}
+
+class _FilaDistancia extends StatelessWidget {
+  final String etiqueta;
+  final int? yardas;
+  final bool destacada;
+
+  const _FilaDistancia({required this.etiqueta, required this.yardas, this.destacada = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        SizedBox(
+          width: 52,
+          child: Text(
+            etiqueta,
+            style: const TextStyle(
+              color: Colors.white60,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+        Text(
+          yardas == null ? '--' : '$yardas',
+          style: TextStyle(
+            fontFamily: 'RobotoCondensed',
+            fontWeight: FontWeight.w700,
+            fontSize: destacada ? 40 : 22,
+            height: 1.1,
+            color: Colors.white,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        Text(
+          'y',
+          style: TextStyle(color: Colors.white70, fontSize: destacada ? 16 : 13, fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+}
+
+class _LejosDelGreen extends StatelessWidget {
+  const _LejosDelGreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.flag_outlined, color: Colors.white70, size: 18),
+        SizedBox(width: 6),
+        Text(
+          'Lejos del hoyo',
+          style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ],
     );
   }
 }
@@ -313,6 +362,29 @@ class _BotonRefrescar extends StatelessWidget {
           elevation: 6,
           onPressed: provider.calcularDistanciasGreen,
           child: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ),
+    );
+  }
+}
+
+class _BotonMiUbicacion extends StatelessWidget {
+  const _BotonMiUbicacion();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<MapaHoyoProvider>();
+    return Positioned(
+      top: 128,
+      right: 12,
+      child: SafeArea(
+        bottom: false,
+        child: FloatingActionButton.small(
+          heroTag: 'MapaMiUbicacion',
+          backgroundColor: Colors.black.withOpacity(0.8),
+          elevation: 6,
+          onPressed: provider.centrarEnMi,
+          child: const Icon(Icons.my_location, color: Colors.white),
         ),
       ),
     );
