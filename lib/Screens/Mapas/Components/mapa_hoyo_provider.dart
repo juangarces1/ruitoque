@@ -9,6 +9,7 @@ import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/Models/hoyo_tee.dart';
 import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/Screens/Mapas/Components/iconos_mapa.dart';
+import 'package:ruitoque/Screens/Mapas/Components/elevacion.dart';
 import 'package:ruitoque/Screens/Mapas/Components/golf_map_style_type.dart';
 import 'package:ruitoque/Screens/Mapas/Components/golf_map_styles.dart';
 import 'package:ruitoque/Screens/Mapas/Components/ruta_hoyo.dart';
@@ -63,6 +64,16 @@ class MapaHoyoProvider extends ChangeNotifier {
   int? dFrente;
   int? dCentro;
   int? dFondo;
+
+  /// Distancia al centro del green ajustada por desnivel; null si no hay alturas
+  /// o el desnivel es despreciable. Positivo el desnivel = green más alto que yo.
+  int? juegaCentro;
+  double? desnivelCentro;
+
+  /// Alturas del terreno del hoyo; se descargan una vez por hoyo y sesión.
+  static FuenteElevacion fuenteElevacion = OpenMeteoElevacion();
+  static final Map<int, MallaElevacion> _mallasPorHoyo = {};
+  MallaElevacion? _malla;
 
   bool showLoader = false;
   bool permissionDeniedForever = false;
@@ -120,6 +131,7 @@ class MapaHoyoProvider extends ChangeNotifier {
     _cargarIcono();
     _cargarIconosGolpes();
     _iniciarStreamPosicion();
+    _cargarElevacion();
     calcularDistanciasGreen();
   }
 
@@ -307,7 +319,7 @@ class MapaHoyoProvider extends ChangeNotifier {
     final tramos = r.tramosYardas;
     final centros = r.centrosTramos;
     for (var i = 0; i < tramos.length; i++) {
-      final texto = '${tramos[i]}y';
+      final texto = _textoTramo(tramos[i], r.puntos[i], r.puntos[i + 1]);
       final icono = _iconosEtiqueta[texto];
       if (icono == null) _generarEtiqueta(texto);
       // Mientras se dibuja el número nuevo se muestra el anterior, sin parpadeo.
@@ -323,6 +335,15 @@ class MapaHoyoProvider extends ChangeNotifier {
         consumeTapEvents: true,
       ));
     }
+  }
+
+  /// "150y", o "150y ↑161" si el desnivel del tramo cambia la distancia que juega.
+  String _textoTramo(int yardas, LatLng desde, LatLng hasta) {
+    final h1 = _malla?.alturaEn(desde);
+    final h2 = _malla?.alturaEn(hasta);
+    final juega = (h1 == null || h2 == null) ? null : juegaComo(yardas, h2 - h1);
+    if (juega == null) return '${yardas}y';
+    return '${yardas}y ${juega > yardas ? '↑' : '↓'}$juega';
   }
 
   Future<void> _generarEtiqueta(String texto) async {
@@ -377,6 +398,36 @@ class MapaHoyoProvider extends ChangeNotifier {
     dFrente = a(hoyo.hoyo.frenteGreen);
     dCentro = a(hoyo.hoyo.centroGreen);
     dFondo = a(hoyo.hoyo.fondoGreen);
+
+    final hYo = _malla?.alturaEn(yo);
+    final hGreen = _green == null ? null : _malla?.alturaEn(_green!);
+    desnivelCentro = (hYo == null || hGreen == null) ? null : hGreen - hYo;
+    juegaCentro = (desnivelCentro == null || dCentro == null) ? null : juegaComo(dCentro!, desnivelCentro!);
+  }
+
+  Future<void> _cargarElevacion() async {
+    final id = hoyo.hoyo.id;
+    try {
+      _malla = _mallasPorHoyo[id] ??= await MallaElevacion.cargar([
+        for (final c in [
+          hoyo.hoyo.centroHoyo,
+          hoyo.hoyo.frenteGreen,
+          hoyo.hoyo.centroGreen,
+          hoyo.hoyo.fondoGreen,
+          tee?.cordenada,
+        ])
+          if (c != null) _latLng(c)!,
+        for (final s in hoyo.shots ?? <Shot>[]) LatLng(s.latitud, s.longitud),
+      ], fuenteElevacion);
+    } catch (e) {
+      // Sin alturas simplemente no se muestra el "juega como".
+      debugPrint('Elevación no disponible: $e');
+      return;
+    }
+    if (_disposed) return;
+    if (_lastKnownPosition != null) _recalcularDistanciasGreen(_lastKnownPosition!);
+    _reconstruirEtiquetas();
+    _notificar();
   }
 
   Future<bool> _tienePermiso() async {

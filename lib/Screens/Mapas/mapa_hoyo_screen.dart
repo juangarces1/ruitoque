@@ -6,6 +6,7 @@ import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/Screens/Mapas/Components/golf_map_style_type.dart';
 import 'package:ruitoque/Screens/Mapas/Components/mapa_hoyo_provider.dart';
+import 'package:ruitoque/Screens/Mapas/Components/trazo_golpe.dart';
 import 'package:ruitoque/constans.dart';
 
 /// Mapa de un hoyo para cualquier par (3, 4 o 5).
@@ -259,11 +260,38 @@ class _DistanciasGreen extends StatelessWidget {
             item('Fondo', provider.dFondo),
             const SizedBox(height: 10),
             item('Centro', provider.dCentro, destacado: true),
+            if (provider.juegaCentro != null)
+              _JuegaComo(yardas: provider.juegaCentro!, desnivel: provider.desnivelCentro!),
             const SizedBox(height: 10),
             item('Frente', provider.dFrente),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// "↑ juega 162y · +11 m": la distancia ajustada por el desnivel hasta el green.
+class _JuegaComo extends StatelessWidget {
+  final int yardas;
+  final double desnivel;
+
+  const _JuegaComo({required this.yardas, required this.desnivel});
+
+  @override
+  Widget build(BuildContext context) {
+    final sube = desnivel > 0;
+    const estilo = TextStyle(color: colorGolpes, fontWeight: FontWeight.bold, fontSize: 14);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(sube ? Icons.arrow_upward : Icons.arrow_downward, color: colorGolpes, size: 16),
+        Text('juega ${yardas}y', style: estilo),
+        Text(
+          '  ${sube ? '+' : '−'}${desnivel.abs().round()} m',
+          style: estilo.copyWith(fontWeight: FontWeight.w500, fontSize: 12),
+        ),
+      ],
     );
   }
 }
