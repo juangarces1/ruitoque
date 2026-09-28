@@ -1,210 +1,116 @@
-import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
 import 'package:ruitoque/Models/shot.dart';
-import 'package:ruitoque/Screens/Mapas/Components/mi_mapa_proviider.dart';
-import 'package:ruitoque/constans.dart'; // ajusta ruta real
+import 'package:ruitoque/Screens/Mapas/Components/golf_map_style_type.dart';
+import 'package:ruitoque/Screens/Mapas/Components/mapa_hoyo_provider.dart';
+import 'package:ruitoque/constans.dart';
 
-class MapaHoyoScreen extends StatefulWidget {
+/// Mapa de un hoyo para cualquier par (3, 4 o 5).
+class MapaHoyoScreen extends StatelessWidget {
   final EstadisticaHoyo hoyo;
   final String teeSalida;
   final Function(int, Shot) onAgregarShot;
   final Function(int, Shot) onDeleteShot;
 
   const MapaHoyoScreen({
-    Key? key,
+    super.key,
     required this.hoyo,
     required this.teeSalida,
     required this.onAgregarShot,
     required this.onDeleteShot,
-  }) : super(key: key);
-
-  @override
-  State<MapaHoyoScreen> createState() => _MapaHoyoScreenState();
-}
-
-class _MapaHoyoScreenState extends State<MapaHoyoScreen> {
-  // para hacer el fit una vez el mapa esté listo
-  final Completer<void> _fitDone = Completer<void>();
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => MiMapaProvider(
-        hoyo: widget.hoyo,
-        teeSalida: widget.teeSalida,
-        onAgregarShot: widget.onAgregarShot,
-        onDeleteShot: widget.onDeleteShot,
+      key: ValueKey('mapa_hoyo_${hoyo.id}'),
+      create: (_) => MapaHoyoProvider(
+        hoyo: hoyo,
+        teeSalida: teeSalida,
+        onAgregarShot: onAgregarShot,
+        onDeleteShot: onDeleteShot,
       ),
-      child: Consumer<MiMapaProvider>(
-        builder: (context, prov, _) {
-          // Cámara inicial segura
-          final initialTarget = prov.tee == null
-              ? const LatLng(0, 0)
-              : LatLng(prov.tee!.cordenada.latitud, prov.tee!.cordenada.longitud);
+      builder: (context, _) {
+        final provider = context.watch<MapaHoyoProvider>();
+        if (provider.ruta == null) return _DatosIncompletos(hoyo: hoyo);
 
-          return Scaffold(
-            backgroundColor: Colors.black,
-            appBar: AppBar(
-              title: const Text('Mapa del hoyo', style: kTextStyleBlancoNuevaFuente20,),
-              backgroundColor: Colors.black,
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => prov.mostrarModalDeDistancias(context),
-              label: const Text('Golpes'),
-              icon: const Icon(Icons.golf_course),
-            ),
-            body: Stack(
-              children: [
-                // Mapa
-                GoogleMap(
+        return Scaffold(
+          body: Stack(
+            children: [
+              // Tocar el mapa detiene el recorrido aéreo. Listener no compite con los
+              // gestos del mapa, así que el toque igual lo mueve.
+              Listener(
+                onPointerDown: (_) => provider.cancelarVuelo(),
+                child: GoogleMap(
+                  // Recrear el mapa al cambiar de estilo garantiza que se aplique.
+                  key: ValueKey(provider.currentStyle),
                   mapType: MapType.satellite,
-                  initialCameraPosition: CameraPosition(target: initialTarget, zoom: 16),
-                  onMapCreated: (c) async {
-                    prov.setMapController(c);
-                    // Auto-fit después de un frame para asegurar que el mapa está render
-                    WidgetsBinding.instance.addPostFrameCallback((_) async {
-                      await Future.delayed(const Duration(milliseconds: 100));
-                      await prov.fitCameraToBounds(padding: 80);
-                      if (!_fitDone.isCompleted) _fitDone.complete();
-                    });
-                  },
-                  markers: prov.markers,
-                  polylines: prov.polylines,
-                  myLocationButtonEnabled: true,
-                  myLocationEnabled: true,
-                  compassEnabled: true,
-                  mapToolbarEnabled: false,
-                  zoomControlsEnabled: false,
+                  style: provider.estiloMapa,
                   buildingsEnabled: false,
-                  onCameraIdle: () => prov.onCameraIdle(), // bajo consumo
-                  onLongPress: (latLng) {
-                    // Atajo para registrar golpe si te interesa
-                    // prov.grabarGolpe();
-                  },
+                  trafficEnabled: false,
+                  compassEnabled: false,
+                  zoomControlsEnabled: false,
+                  mapToolbarEnabled: false,
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: false,
+                  initialCameraPosition: provider.camaraInicial,
+                  polylines: provider.polylines,
+                  markers: provider.markers,
+                  onMapCreated: provider.setMapController,
                 ),
-
-                // Chip de modo (arriba)
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.25),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          child: Text(
-                            prov.modoTexto,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Badges de distancia segmento A–medio y medio–B (solo en modo planificación)
-                if (prov.isEnterScreen) ...[
-                  _DistanceBadge(
-                    offset: prov.offsetAMedio,
-                    text: prov.dSalidaMedio == null ? '--' : '${prov.dSalidaMedio} yds',
-                  ),
-                  _DistanceBadge(
-                    offset: prov.offsetMedioB,
-                    text: prov.dMedioGreen == null ? '--' : '${prov.dMedioGreen} yds',
-                  ),
-                ] else ...[
-                  // En modo siguiente golpe, solo un badge en makerA (A–B)
-                  _DistanceBadge(
-                    offset: prov.offsetAMedio,
-                    text: prov.dSalidaMedio == null ? '--' : '${prov.dSalidaMedio} yds',
-                  ),
-                ],
-
-                // Tarjeta inferior con distancias frente/centro/fondo (compacta)
-                Positioned(
-                  left: 12,
-                  right: 12,
-                  bottom: 16,
-                  child: _DistanciasGreenCard(
-                    frente: prov.dfrente,
-                    centro: prov.dCentro,
-                    fondo: prov.dAtras,
-                    hoyo: prov.dHoyo,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+              const _DistanciasGreen(),
+              _Encabezado(hoyo: hoyo),
+              const _BotonRefrescar(),
+              const _BotonEstilo(),
+              _BotonSaltarVuelo(visible: provider.volando),
+              if (provider.showLoader) const MyLoader(text: 'Actualizando...', opacity: 0.8),
+            ],
+          ),
+          floatingActionButton: const _BotonGrabarGolpe(),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        );
+      },
     );
   }
 }
 
-/// Badge flotante con buen contraste y sombra
-class _DistanceBadge extends StatelessWidget {
-  final Offset offset;
-  final String text;
+class _BotonSaltarVuelo extends StatelessWidget {
+  final bool visible;
 
-  const _DistanceBadge({
-    Key? key,
-    required this.offset,
-    required this.text,
-  }) : super(key: key);
+  const _BotonSaltarVuelo({required this.visible});
 
   @override
   Widget build(BuildContext context) {
-    // Evita dibujar fuera de pantalla cuando aún no hay coordenadas
-    if (offset == const Offset(0, 0)) {
-      return const SizedBox.shrink();
-    }
     return Positioned(
-      left: offset.dx - 38, // centra aprox el chip respecto al punto
-      top: offset.dy - 28,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.45),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 6),
+      bottom: 90,
+      right: 16,
+      child: SafeArea(
+        child: AnimatedOpacity(
+          opacity: visible ? 1 : 0,
+          duration: const Duration(milliseconds: 250),
+          child: IgnorePointer(
+            ignoring: !visible,
+            child: Material(
+              color: Colors.black.withOpacity(0.6),
+              shape: const StadiumBorder(side: BorderSide(color: Colors.white24)),
+              child: InkWell(
+                customBorder: const StadiumBorder(),
+                onTap: () => context.read<MapaHoyoProvider>().cancelarVuelo(irAVistaGeneral: true),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Saltar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      SizedBox(width: 4),
+                      Icon(Icons.skip_next, color: Colors.white, size: 18),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontFeatures: [FontFeature.tabularFigures()], // números más legibles
               ),
             ),
           ),
@@ -214,88 +120,329 @@ class _DistanceBadge extends StatelessWidget {
   }
 }
 
-/// Card compacta con distancias al green (frente, centro, fondo) + hoyo/tee
-class _DistanciasGreenCard extends StatelessWidget {
-  final int? frente;
-  final int? centro;
-  final int? fondo;
-  final int? hoyo;
+class _DatosIncompletos extends StatelessWidget {
+  final EstadisticaHoyo hoyo;
 
-  const _DistanciasGreenCard({
-    Key? key,
-    required this.frente,
-    required this.centro,
-    required this.fondo,
-    required this.hoyo,
-  }) : super(key: key);
+  const _DatosIncompletos({required this.hoyo});
 
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
-    final labelStyle = TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12);
-
-    Widget item(String label, int? value) {
-      final v = value == null ? '--' : '$value';
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: labelStyle),
-          const SizedBox(height: 2),
-          Text('$v yds', style: textStyle),
-        ],
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.45),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+    return Scaffold(
+      appBar: AppBar(title: Text(hoyo.hoyo.nombre)),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Este hoyo no tiene configuradas las coordenadas del tee seleccionado o del green.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(child: item('Frente', frente)),
-          const SizedBox(width: 8),
-          Expanded(child: item('Centro', centro)),
-          const SizedBox(width: 8),
-          Expanded(child: item('Fondo', fondo)),
-          const SizedBox(width: 12),
-          _ChipMini(label: 'Hoyo', value: hoyo == null ? '--' : '$hoyo'),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _ChipMini extends StatelessWidget {
-  final String label;
-  final String value;
+class _Encabezado extends StatelessWidget {
+  final EstadisticaHoyo hoyo;
 
-  const _ChipMini({Key? key, required this.label, required this.value}) : super(key: key);
+  const _Encabezado({required this.hoyo});
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white24),
+    final dHoyo = context.select<MapaHoyoProvider, int?>((p) => p.dHoyo);
+    return Positioned(
+      top: 12,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black54, blurRadius: 6, offset: Offset(0, 2)),
+                    ],
+                  ),
+                  child: const Icon(Icons.arrow_back, size: 22, color: Colors.black),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.55),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.12)),
+                    ),
+                    child: Text(
+                      '${hoyo.hoyo.nombre} | Par ${hoyo.hoyo.par} | ${dHoyo ?? '--'}y',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'RobotoCondensed',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    );
+  }
+}
+
+class _DistanciasGreen extends StatelessWidget {
+  const _DistanciasGreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<MapaHoyoProvider>();
+
+    Widget item(String label, int? valor, {bool destacado = false}) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: destacado ? 20 : 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              '${valor ?? '--'}y',
+              style: TextStyle(
+                fontFamily: 'RobotoCondensed',
+                fontWeight: FontWeight.bold,
+                fontSize: destacado ? 28 : 20,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        );
+
+    return Positioned(
+      top: MediaQuery.of(context).size.height / 2 - 80,
+      left: 14,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.025),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.12)),
+          boxShadow: const [
+            BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            item('Fondo', provider.dFondo),
+            const SizedBox(height: 10),
+            item('Centro', provider.dCentro, destacado: true),
+            const SizedBox(height: 10),
+            item('Frente', provider.dFrente),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BotonRefrescar extends StatelessWidget {
+  const _BotonRefrescar();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<MapaHoyoProvider>();
+    return Positioned(
+      top: 12,
+      right: 12,
+      child: SafeArea(
+        bottom: false,
+        child: FloatingActionButton.small(
+          heroTag: 'MapaRefrescar',
+          backgroundColor: Colors.black.withOpacity(0.8),
+          elevation: 6,
+          onPressed: provider.calcularDistanciasGreen,
+          child: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ),
+    );
+  }
+}
+
+class _BotonGrabarGolpe extends StatelessWidget {
+  const _BotonGrabarGolpe();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<MapaHoyoProvider>();
+    return GestureDetector(
+      onLongPress: () => provider.mostrarGolpes(context),
+      child: FloatingActionButton(
+        heroTag: 'MapaGrabarGolpe',
+        onPressed: provider.grabarGolpe,
+        backgroundColor: kPcontrastMoradoColor,
+        elevation: 8,
+        child: const Text(
+          'GG',
+          style: TextStyle(
+            fontFamily: 'RobotoCondensed',
+            fontWeight: FontWeight.bold,
+            fontSize: 26,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BotonEstilo extends StatelessWidget {
+  const _BotonEstilo();
+
+  static const _opciones = [
+    (GolfMapStyleType.minimalist, '🎯', 'Minimalista', 'Vista limpia, solo lo esencial'),
+    (GolfMapStyleType.ultraClean, '✨', 'Ultra Limpio', 'Solo césped y agua'),
+    (GolfMapStyleType.professional, '🏌️', 'Profesional', 'Con caminos de golf cart'),
+    (GolfMapStyleType.night, '🌙', 'Modo Nocturno', 'Para rondas al atardecer'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<MapaHoyoProvider>();
+    return Positioned(
+      top: 70,
+      right: 12,
+      child: SafeArea(
+        bottom: false,
+        child: FloatingActionButton.small(
+          heroTag: 'MapaEstilo',
+          backgroundColor: Colors.black.withOpacity(0.8),
+          elevation: 6,
+          onPressed: () => _mostrarSelector(context, provider),
+          child: const Icon(Icons.layers, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  void _mostrarSelector(BuildContext context, MapaHoyoProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Estilo del Mapa', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            for (final (estilo, icono, titulo, subtitulo) in _opciones) ...[
+              _OpcionEstilo(
+                icono: icono,
+                titulo: titulo,
+                subtitulo: subtitulo,
+                seleccionado: provider.currentStyle == estilo,
+                onTap: () {
+                  provider.cambiarEstilo(estilo);
+                  Navigator.pop(sheetContext);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OpcionEstilo extends StatelessWidget {
+  final String icono;
+  final String titulo;
+  final String subtitulo;
+  final bool seleccionado;
+  final VoidCallback onTap;
+
+  const _OpcionEstilo({
+    required this.icono,
+    required this.titulo,
+    required this.subtitulo,
+    required this.seleccionado,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: seleccionado ? Colors.green.withOpacity(0.1) : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: seleccionado ? Colors.green : Colors.grey[300]!,
+            width: seleccionado ? 2 : 1,
+          ),
+        ),
         child: Row(
           children: [
-            Text(label, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
-            const SizedBox(width: 6),
-            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            Text(icono, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titulo,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: seleccionado ? Colors.green[700] : Colors.black87,
+                    ),
+                  ),
+                  Text(subtitulo, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                ],
+              ),
+            ),
+            if (seleccionado) Icon(Icons.check_circle, color: Colors.green[600], size: 24),
           ],
         ),
       ),

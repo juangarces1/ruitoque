@@ -17,11 +17,7 @@ import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/shot.dart';
 import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Screens/Home/my_home_pag.dart';
-import 'package:ruitoque/Screens/Mapas/Components/mi_mapa_proviider.dart';
 import 'package:ruitoque/Screens/Mapas/mapa_hoyo_screen.dart';
-import 'package:ruitoque/Screens/Mapas/mapa_par3.dart';
-import 'package:ruitoque/Screens/Mapas/mapa_par5.dart';
-import 'package:ruitoque/Screens/Mapas/mi_mapa.dart';
 import 'package:ruitoque/Screens/Ronda/estadistica_hoyo_dialog.dart';
 import 'package:ruitoque/Screens/Ronda/shot_tile.dart';
 import 'package:ruitoque/constans.dart';
@@ -181,43 +177,17 @@ class _MiRondaState extends State<MiRonda> {
   }
    
   goHole(EstadisticaHoyo hoyo) {
-    if (hoyo.hoyo.par == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MiMapaPar3(
-            hoyo: hoyo,
-            onAgregarShot: agregarShotAEstadisticaHoyo,
-            onDeleteShot: deleteShot,
-            teeSalida: _ronda.tarjetas[0].teeSalida ?? '',
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapaHoyoScreen(
+          hoyo: hoyo,
+          onAgregarShot: agregarShotAEstadisticaHoyo,
+          onDeleteShot: deleteShot,
+          teeSalida: _ronda.tarjetas[0].teeSalida ?? '',
         ),
-      );
-    } else if (hoyo.hoyo.par == 5) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MapaPar5(
-            hoyo: hoyo,
-            teeSalida: _ronda.tarjetas[0].teeSalida ?? '',
-            onAgregarShot: agregarShotAEstadisticaHoyo,
-            onDeleteShot: deleteShot,
-          ),
-        ),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MiMapa(
-            hoyo: hoyo,
-            onAgregarShot: agregarShotAEstadisticaHoyo,
-            onDeleteShot: deleteShot,
-            teeSalida: _ronda.tarjetas[0].teeSalida ?? '',
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   void agregarShotAEstadisticaHoyo(int idEstadisticaHoyo, Shot nuevoShot) {
