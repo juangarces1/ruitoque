@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/jugador.dart';
@@ -112,21 +113,14 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+      top: false,
       child: Scaffold(
         backgroundColor: const Color(0xFF121212),
-        appBar: AppBar(
-           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          backgroundColor: kPprimaryColor,
-          title: const Text('Jugadores', style: TextStyle(color: Colors.white)),
+        appBar: MyCustomAppBar(
+          title: 'Jugadores',
           actions: [
-            IconButton(
-              onPressed: _load,
-              icon: const Icon(Icons.refresh, color: Colors.white),
-              tooltip: 'Refrescar',
-            ),
+            BotonBarra(icono: Icons.refresh_rounded, onTap: _load, tooltip: 'Refrescar'),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(56),

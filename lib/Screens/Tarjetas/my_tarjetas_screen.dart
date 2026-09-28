@@ -42,7 +42,11 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+      top: false,
       child: Scaffold(
+        // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+        extendBodyBehindAppBar: true,
         appBar: MyCustomAppBar(
           title: 'Mis Tarjetas',
           elevation: 3.0,
@@ -68,7 +72,9 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
                 decoration: const BoxDecoration(
                   gradient: kPrimaryGradientColor,
                 ),
-                child: Padding(
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: getProportionateScreenWidth(3),
                     vertical: getProportionateScreenHeight(5),
@@ -116,6 +122,7 @@ class _MyTarjetasScreenState extends State<MyTarjetasScreen> {
                       },
                     ),
                   ),
+                ),
                 ),
               ),
       ),

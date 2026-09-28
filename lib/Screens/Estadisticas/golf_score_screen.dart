@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Models/tarjeta.dart';
 import 'package:ruitoque/Screens/Estadisticas/Components/arc_indicator.dart';
 
@@ -10,7 +11,14 @@ class GolfScoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+      top: false,
       child: Scaffold(
+        appBar: MyCustomAppBar(
+          title: 'Estadísticas',
+          subtitle: tarjeta.campoNombre,
+          actions: const [LogoAppBar()],
+        ),
         body: Container(
           padding: const EdgeInsets.all(20),
           child: Column(

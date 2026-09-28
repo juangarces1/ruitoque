@@ -6,6 +6,7 @@ import 'package:ruitoque/Models/cordenada.dart';
 import 'package:ruitoque/Helpers/supabase_config.dart';
 import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
+import 'package:ruitoque/Theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,12 +34,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Ruitoque App',
-      theme: ThemeData(
-        useMaterial3: true,
-        fontFamily: 'RobotoCondensed',
-        textTheme: Theme.of(context).textTheme.apply(fontFamily: 'RobotoCondensed'),
-        
-      ),
+      theme: AppTheme.claro(),
       home: Consumer<JugadorProvider>(
         builder: (context, jugadorProvider, child) {
           // Si el jugador tiene un nombre, se redirige a la pantalla principal

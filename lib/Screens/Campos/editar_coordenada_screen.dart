@@ -46,6 +46,8 @@ class EditarCoordenadaScreenState extends State<EditarCoordenadaScreen> {
   Widget build(BuildContext context) {
     var cordenadaProvider = Provider.of<CordenadaProvider>(context);
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
      
       appBar:  PreferredSize(
                     preferredSize: const Size.fromHeight(60),
@@ -56,17 +58,7 @@ class EditarCoordenadaScreenState extends State<EditarCoordenadaScreen> {
                           elevation: 4.5,
                           shadowColor: Colors.red,
                           foreColor: Colors.white,
-                          actions: [ 
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                                child: Image.asset(
-                                    'assets/LogoGolf.png',
-                                    width: 30,
-                                    height: 30,
-                                    fit: BoxFit.cover,
-                                  ), // Ícono de perfil de usuario
-                              ),
-                          ],
+                          actions: const [LogoAppBar()],
                         
                         ),
               
@@ -75,7 +67,9 @@ class EditarCoordenadaScreenState extends State<EditarCoordenadaScreen> {
         decoration: const BoxDecoration(
           gradient: kFondoGradient
         ),
-        child: Column(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
           children: [
             Expanded(
               child: GoogleMap(
@@ -149,6 +143,7 @@ class EditarCoordenadaScreenState extends State<EditarCoordenadaScreen> {
             ),
             
           ],
+        ),
         ),
       ),
     );

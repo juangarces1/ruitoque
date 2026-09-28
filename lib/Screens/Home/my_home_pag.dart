@@ -71,6 +71,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return Scaffold(
       drawer: GolfDrawer(jugador: jugador),
+      // El fondo de montañas sigue detrás de la barra (se ve en sus esquinas redondeadas);
+      // el SafeArea del contenido ya descuenta el alto de la barra.
+      extendBodyBehindAppBar: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: MyCustomAppBar(
@@ -80,12 +83,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           automaticallyImplyLeading: true,
           shadowColor: Colors.black54,
           elevation: 4.0,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Image.asset('assets/LogoGolf.png', width: 30, height: 30),
-            ),
-          ],
+          actions: const [LogoAppBar()],
         ),
       ),
       body: Stack(

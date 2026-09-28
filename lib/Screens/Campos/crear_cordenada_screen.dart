@@ -71,17 +71,7 @@ class CrearCordenadaScreenState extends State<CrearCordenadaScreen> {
            elevation: 4.5,
           shadowColor: Colors.red,
           foreColor: Colors.white,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Image.asset(
-                'assets/LogoGolf.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ],
+          actions: const [LogoAppBar()],
         ),
       ),
       body: Form(

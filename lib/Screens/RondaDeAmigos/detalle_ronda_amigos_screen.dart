@@ -89,6 +89,8 @@ class _DetalleRondaDeAmigosScreenState extends State<DetalleRondaDeAmigosScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
       appBar: MyCustomAppBar(
         title: rondaDeAmigos.nombre,
         automaticallyImplyLeading: true,
@@ -96,32 +98,28 @@ class _DetalleRondaDeAmigosScreenState extends State<DetalleRondaDeAmigosScreen>
         elevation: 4.0,
         shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
+        subtitle: rondaDeAmigos.campo?.nombre,
         actions: [
           if (_esCreadorDelEvento())
-            IconButton(
-              icon: const Icon(Icons.settings, color: Colors.white),
-              onPressed: () {
+            BotonBarra(
+              icono: Icons.settings_rounded,
+              onTap: () {
                 // TODO: Opciones de administrador
               },
+              tooltip: 'Opciones',
             ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/LogoGolf.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
+          const SizedBox(width: 6),
+          const LogoAppBar(),
         ],
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
-        child: showLoader
+        child: SafeArea(
+          bottom: false,
+          child: showLoader
             ? const Center(child: MyLoader(opacity: 0.8, text: 'Cargando...'))
             : _buildBody(),
+        ),
       ),
     );
   }

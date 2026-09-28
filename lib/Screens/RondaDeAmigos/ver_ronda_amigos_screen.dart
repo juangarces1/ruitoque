@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Components/tarjeta_fondo_oscuro.dart';
@@ -104,6 +105,8 @@ class _VerRondaAmigosScreenState extends State<VerRondaAmigosScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
+        // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+        top: false,
         child: Container(
           decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
           child: Column(
@@ -159,72 +162,19 @@ class _VerRondaAmigosScreenState extends State<VerRondaAmigosScreen> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      decoration: BoxDecoration(
-        color: kPprimaryColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return EncabezadoMarca(
+      title: _rondaDeAmigos.nombre,
+      subtitle: _rondaDeAmigos.campo?.nombre,
+      leading: BotonBarra(
+        icono: Icons.arrow_back_rounded,
+        onTap: () => Navigator.of(context).pop(),
+        tooltip: 'Atrás',
       ),
-      child: Row(
-        children: [
-          // Botón Atrás
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-
-          // Título
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _rondaDeAmigos.nombre,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  _rondaDeAmigos.campo?.nombre ?? '',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          // Botón Refrescar
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _goRefresh,
-          ),
-
-          // Logo
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/LogoGolf.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ],
-      ),
+      actions: [
+        BotonBarra(icono: Icons.refresh_rounded, onTap: _goRefresh, tooltip: 'Actualizar'),
+        const SizedBox(width: 6),
+        const LogoAppBar(),
+      ],
     );
   }
 

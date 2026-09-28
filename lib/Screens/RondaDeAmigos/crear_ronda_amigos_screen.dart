@@ -131,6 +131,8 @@ class _CrearRondaDeAmigosScreenState extends State<CrearRondaDeAmigosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
       appBar: MyCustomAppBar(
         title: 'Crear Ronda de Amigos',
         automaticallyImplyLeading: true,
@@ -138,26 +140,17 @@ class _CrearRondaDeAmigosScreenState extends State<CrearRondaDeAmigosScreen> {
         elevation: 4.0,
         shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/LogoGolf.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ],
+        actions: const [LogoAppBar()],
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
-        child: Center(
+        child: SafeArea(
+          bottom: false,
+          child: Center(
           child: showLoader
               ? const MyLoader(opacity: 0.8, text: 'Cargando...')
               : _getContent(),
+        ),
         ),
       ),
     );

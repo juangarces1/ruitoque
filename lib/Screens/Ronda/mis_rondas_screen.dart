@@ -52,7 +52,11 @@ class _MisRondasScreenState extends State<MisRondasScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+      top: false,
       child: Scaffold(
+        // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+        extendBodyBehindAppBar: true,
         appBar: MyCustomAppBar(
           title: 'Mis Rondas',
           elevation: 4,
@@ -60,28 +64,15 @@ class _MisRondasScreenState extends State<MisRondasScreen> {
           automaticallyImplyLeading: true,
           foreColor: Colors.white,
           backgroundColor: kPprimaryColor,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/LogoGolf.png',
-                  width: 30,
-                  height: 30,
-
-
-                  
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ],
+          actions: const [LogoAppBar()],
         ),
         body: _showLoader
             ? const MyLoader(opacity: 1, text: 'Cargando...')
             : Container(
                 decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
-                child: Padding(
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: getProportionateScreenWidth(3),
                     vertical: getProportionateScreenHeight(5),
@@ -160,6 +151,7 @@ class _MisRondasScreenState extends State<MisRondasScreen> {
                       );
                     },
                   ),
+                ),
                 ),
               ),
       ),

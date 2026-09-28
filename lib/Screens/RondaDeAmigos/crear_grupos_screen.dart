@@ -333,6 +333,8 @@ class _CrearGruposScreenState extends State<CrearGruposScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
       appBar: MyCustomAppBar(
         title: 'Crear Grupos',
         automaticallyImplyLeading: true,
@@ -340,25 +342,16 @@ class _CrearGruposScreenState extends State<CrearGruposScreen> {
         elevation: 4.0,
         shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/LogoGolf.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ],
+        actions: const [LogoAppBar()],
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
-        child: showLoader
+        child: SafeArea(
+          bottom: false,
+          child: showLoader
             ? const Center(child: MyLoader(opacity: 0.8, text: 'Cargando...'))
             : _buildBody(),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _agregarGrupo,

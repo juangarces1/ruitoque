@@ -51,6 +51,8 @@ class AddEditTeePageState extends State<AddEditTeePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.black,
       appBar: MyCustomAppBar(
         title: widget.tee == null ? 'Agregar Tee' : 'Editar Tees',
@@ -66,7 +68,9 @@ class AddEditTeePageState extends State<AddEditTeePage> {
         decoration: const BoxDecoration(
           gradient: kFondoGradient
         ),
-        child: Form(
+        child: SafeArea(
+          bottom: false,
+          child: Form(
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(16.0),
@@ -107,6 +111,7 @@ class AddEditTeePageState extends State<AddEditTeePage> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

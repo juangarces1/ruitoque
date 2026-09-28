@@ -50,7 +50,11 @@ class _MisRondasDeAmigosScreenState extends State<MisRondasDeAmigosScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+      top: false,
       child: Scaffold(
+        // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+        extendBodyBehindAppBar: true,
         appBar: MyCustomAppBar(
           title: 'Mis Rondas de Amigos',
           elevation: 4,
@@ -58,27 +62,18 @@ class _MisRondasDeAmigosScreenState extends State<MisRondasDeAmigosScreen> {
           automaticallyImplyLeading: true,
           foreColor: Colors.white,
           backgroundColor: kPprimaryColor,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/LogoGolf.png',
-                  width: 30,
-                  height: 30,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ],
+          actions: const [LogoAppBar()],
         ),
         body: Container(
           decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
-          child: _showLoader
+          child: SafeArea(
+            bottom: false,
+            child: _showLoader
               ? const Center(child: MyLoader(opacity: 0.8, text: 'Cargando...'))
               : _rondasDeAmigos.isEmpty
                   ? _buildEmptyState()
                   : _buildList(),
+          ),
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {

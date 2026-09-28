@@ -45,6 +45,8 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.black38,
       appBar:MyCustomAppBar(
         title: widget.hoyoTee == null ? "Agregar Tee" : "Editar Tee",
@@ -53,22 +55,16 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
        elevation: 4.5,
           shadowColor: Colors.red,
         foreColor: Colors.white,
-         actions: [ Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ClipOval(child:  Image.asset(
-                  'assets/LogoGolf.png',
-                  width: 30,
-                  height: 30,
-                  fit: BoxFit.cover,
-                ),), // Ícono de perfil de usuario
-            ),],
+         actions: const [LogoAppBar()],
       ),
       
       body: Container(
         decoration: const BoxDecoration(
           gradient: kFondoGradient
         ),
-        child: SingleChildScrollView(
+        child: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -135,6 +131,7 @@ class AddHoyoTeesPageState extends State<AddHoyoTeesPage> {
              
             ],
           ),
+        ),
         ),
       ),
     );

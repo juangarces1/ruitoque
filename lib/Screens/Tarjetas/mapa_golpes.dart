@@ -239,6 +239,8 @@ class MapaGolpesState extends State<MapaGolpes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // El mapa sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
       appBar: MyCustomAppBar(
         title: widget.estadisticaHoyo.hoyo.nombre,
         automaticallyImplyLeading: true,
@@ -246,14 +248,7 @@ class MapaGolpesState extends State<MapaGolpes> {
         elevation: 4.0,
         shadowColor: const Color.fromARGB(255, 2, 44, 68),
         foreColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ClipOval(
-              child: Image.asset('assets/LogoGolf.png', width: 30, height: 30, fit: BoxFit.cover),
-            ),
-          ),
-        ],
+        actions: const [LogoAppBar()],
       ),
       body: Stack(
         children: [
@@ -263,6 +258,8 @@ class MapaGolpesState extends State<MapaGolpes> {
             mapToolbarEnabled: false,
             compassEnabled: false,
             initialCameraPosition: _vistaGeneral,
+            // Centra el mapa y su logo en la parte visible, bajo la barra.
+            padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
             polylines: _polylines,
             markers: _markers,
             onMapCreated: _alCrearMapa,

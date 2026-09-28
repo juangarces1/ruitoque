@@ -14,6 +14,8 @@ class TarjetaStatsWidget extends StatelessWidget {
     const TextStyle valueStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
     final Color iconColor = Theme.of(context).primaryColor;
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
      
      appBar: MyCustomAppBar(
           title: 'Estadísticas de la Tarjeta',
@@ -39,7 +41,9 @@ class TarjetaStatsWidget extends StatelessWidget {
       decoration: const BoxDecoration(
         gradient: kPrimaryGradientColor
       ),
-      child: Card(
+      child: SafeArea(
+        bottom: false,
+        child: Card(
         margin: const EdgeInsets.all(16.0),
         elevation: 6,
         color: const Color.fromARGB(255, 226, 225, 225),
@@ -188,6 +192,7 @@ class TarjetaStatsWidget extends StatelessWidget {
             ),
           ),
         ),
+      ),
     )
     );
   }

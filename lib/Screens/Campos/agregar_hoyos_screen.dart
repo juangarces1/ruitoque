@@ -74,6 +74,8 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
   Widget build(BuildContext context) {
     CordenadaProvider cordenadaProvider = Provider.of<CordenadaProvider>(context);
     return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.black54,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
@@ -84,24 +86,16 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
           elevation: 8.0,
           shadowColor: const Color.fromARGB(255, 38, 38, 75),
           foreColor: Colors.white,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Image.asset(
-                'assets/LogoGolf.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ],
+          actions: const [LogoAppBar()],
         ),
       ),
       body: Container(
          decoration: const BoxDecoration(
           gradient: kFondoGradient
         ),
-        child: SingleChildScrollView(
+        child: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
           child: Column(
             children: [
               Padding(
@@ -356,6 +350,7 @@ class _AgregarHoyosScreenState extends State<AgregarHoyosScreen> {
                       const SizedBox(height: 30,)
             ],
           ),
+        ),
         ),
       ),
     );

@@ -224,6 +224,8 @@ class _RondaRapidaState extends State<RondaRapida> {
         ),
       backgroundColor: Colors.transparent,   // para que se vea tu gradiente
       body: SafeArea(
+        // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+        top: false,
         child: Container(
           decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
           child: Column(

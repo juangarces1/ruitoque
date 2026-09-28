@@ -60,6 +60,8 @@ class _MiRondaState extends State<MiRonda> {
   @override
   Widget build(BuildContext context) { 
     return SafeArea(
+      // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+      top: false,
       child: Container(
         decoration: const BoxDecoration(
           gradient: kPrimaryGradientColor,

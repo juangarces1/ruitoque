@@ -50,7 +50,9 @@ class AddCourseScreenState extends State<AddCourseScreen> {
 
   @override
  Widget build(BuildContext context) {
-    return Scaffold(     
+    return Scaffold(
+      // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+      extendBodyBehindAppBar: true,     
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: MyCustomAppBar(
@@ -60,17 +62,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
           elevation: 4.5,
           shadowColor: Colors.red,
           foreColor: Colors.white,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Image.asset(
-                'assets/LogoGolf.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ],
+          actions: const [LogoAppBar()],
         ),
       ),
       body: Container(
@@ -78,7 +70,9 @@ class AddCourseScreenState extends State<AddCourseScreen> {
           gradient: kFondoGradient
 
         ),
-        child: Stack(
+        child: SafeArea(
+          bottom: false,
+          child: Stack(
           children: [
             SingleChildScrollView(
               child: Padding(
@@ -229,6 +223,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
           
           ],
         
+        ),
         ),
       ),
     );

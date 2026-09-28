@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/my_loader.dart';
@@ -132,7 +133,7 @@ class _DatosIncompletos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(hoyo.hoyo.nombre)),
+      appBar: MyCustomAppBar(title: hoyo.hoyo.nombre),
       body: const Center(
         child: Padding(
           padding: EdgeInsets.all(24),

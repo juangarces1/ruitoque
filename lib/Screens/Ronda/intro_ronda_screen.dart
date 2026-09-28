@@ -94,7 +94,11 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      // La barra de la app cubre la barra de estado; aquí solo se protege abajo.
+      top: false,
       child: Scaffold(
+        // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
+        extendBodyBehindAppBar: true,
         appBar: MyCustomAppBar(
         title: 'Iniciar Ronda',
         automaticallyImplyLeading: true,   
@@ -102,22 +106,17 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
          elevation: 4.5,
           shadowColor: Colors.red,
         foreColor: Colors.white,
-         actions: [ Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ClipOval(child:  Image.asset(
-                  'assets/LogoGolf.png',
-                  width: 30,
-                  height: 30,
-                  fit: BoxFit.cover,
-                ),), // Ícono de perfil de usuario
-            ),],
+         actions: const [LogoAppBar()],
       ),
          body: Container(
          decoration: const BoxDecoration(
           gradient: kFondoGradient
          ),
-          child: Center(
+          child: SafeArea(
+            bottom: false,
+            child: Center(
             child: showLoader ? const MyLoader(opacity: 0.8, text: 'Cargando...',) : _getContent(),
+          ),
           ),
         ), 
 
