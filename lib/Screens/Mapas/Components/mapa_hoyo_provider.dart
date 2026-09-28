@@ -12,6 +12,7 @@ import 'package:ruitoque/Screens/Mapas/Components/iconos_mapa.dart';
 import 'package:ruitoque/Screens/Mapas/Components/golf_map_style_type.dart';
 import 'package:ruitoque/Screens/Mapas/Components/golf_map_styles.dart';
 import 'package:ruitoque/Screens/Mapas/Components/ruta_hoyo.dart';
+import 'package:ruitoque/Screens/Mapas/Components/trazo_golpe.dart';
 import 'package:ruitoque/Screens/Mapas/Components/vuelo_hoyo.dart';
 
 /// Estado del mapa de un hoyo, para cualquier par (ver [RutaHoyo]).
@@ -42,7 +43,7 @@ class MapaHoyoProvider extends ChangeNotifier {
   BitmapDescriptor? _iconoGolpe;
   BitmapDescriptor? _iconoBola;
   bool _animandoGolpe = false;
-  Timer? _timerGolpe;
+  final TrazoGolpe _trazo = TrazoGolpe();
 
   /// Durante la animación el golpe nuevo aún no se dibuja en el historial.
   int? _golpesVisibles;
@@ -90,7 +91,7 @@ class MapaHoyoProvider extends ChangeNotifier {
     _disposed = true;
     _idVuelo++;
     _posSub?.cancel();
-    _timerGolpe?.cancel();
+    _trazo.cancelar();
     super.dispose();
   }
 
@@ -197,8 +198,6 @@ class MapaHoyoProvider extends ChangeNotifier {
 
   // ---------------- Ruta y marcadores ----------------
 
-  static const _colorGolpes = Color(0xFFFFC107);
-
   List<LatLng> get _puntosGolpes {
     final shots = hoyo.shots ?? <Shot>[];
     return [
@@ -215,7 +214,7 @@ class MapaHoyoProvider extends ChangeNotifier {
         polylineId: const PolylineId('golpes'),
         points: golpes,
         width: 3,
-        color: _colorGolpes,
+        color: colorGolpes,
         startCap: Cap.roundCap,
         endCap: Cap.roundCap,
       ));
@@ -249,7 +248,7 @@ class MapaHoyoProvider extends ChangeNotifier {
   Future<void> _cargarIconosGolpes() async {
     final pr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
     final golpe =
-        await dibujarPuntoPng(relleno: Colors.white, borde: _colorGolpes, diametro: 12, pixelRatio: pr);
+        await dibujarPuntoPng(relleno: Colors.white, borde: colorGolpes, diametro: 12, pixelRatio: pr);
     final bola =
         await dibujarPuntoPng(relleno: Colors.white, borde: Colors.black54, diametro: 16, pixelRatio: pr);
     _iconoGolpe = BitmapDescriptor.bytes(golpe, imagePixelRatio: pr);
@@ -457,20 +456,14 @@ class MapaHoyoProvider extends ChangeNotifier {
     if (_disposed) return;
 
     HapticFeedback.lightImpact();
-    const vuelo = Duration(milliseconds: 1200);
-    final reloj = Stopwatch()..start();
-    final terminado = Completer<void>();
-    _timerGolpe = Timer.periodic(const Duration(milliseconds: 33), (timer) {
-      final t = (reloj.elapsedMilliseconds / vuelo.inMilliseconds).clamp(0.0, 1.0);
-      final bola = interpolar(desde, hasta, Curves.easeOutCubic.transform(t));
-
+    await _trazo.animar(desde, hasta, (bola) {
       polylines
         ..removeWhere((p) => p.polylineId.value == 'golpe_animado')
         ..add(Polyline(
           polylineId: const PolylineId('golpe_animado'),
           points: [desde, bola],
           width: 4,
-          color: _colorGolpes,
+          color: colorGolpes,
           startCap: Cap.roundCap,
         ));
       _marcasGolpes.removeWhere((m) => m.markerId.value == 'bola');
@@ -484,13 +477,8 @@ class MapaHoyoProvider extends ChangeNotifier {
         ));
       }
       _notificar();
-
-      if (t >= 1) {
-        timer.cancel();
-        terminado.complete();
-      }
     });
-    await terminado.future;
+    if (_disposed) return;
     await Future.delayed(const Duration(milliseconds: 400));
 
     // El golpe nuevo pasa al historial del hoyo.
