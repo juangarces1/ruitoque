@@ -91,4 +91,30 @@ void main() {
     // El título queda debajo de la barra de estado, no detrás de ella.
     expect(tester.getRect(find.text('Ronda')).top, greaterThan(30));
   });
+
+  testWidgets('con drawer, el menú tiene prioridad aunque se pueda volver', (tester) async {
+    await montar(
+      tester,
+      Builder(
+        builder: (context) => Scaffold(
+          body: TextButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const Scaffold(
+                  drawer: Drawer(child: Text('Menú lateral')),
+                  appBar: MyCustomAppBar(title: 'Inicio'),
+                ),
+              ),
+            ),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+  });
 }

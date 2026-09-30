@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
+import 'package:ruitoque/Components/botones.dart';
+import 'package:ruitoque/constans.dart';
 
 /// Vitrina de los componentes con el tema de la app, para revisarlos en el teléfono
-/// antes de migrar las pantallas. Solo se muestra en modo debug (ver GolfDrawer).
+/// antes de migrar las pantallas. Solo se muestra en modo debug (ver PerfilScreen).
 class CatalogoScreen extends StatelessWidget {
   const CatalogoScreen({super.key});
 
@@ -13,10 +15,6 @@ class CatalogoScreen extends StatelessWidget {
         title: 'Catálogo',
         subtitle: 'Componentes de la app',
         actions: [LogoAppBar()],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
@@ -30,21 +28,88 @@ class CatalogoScreen extends StatelessWidget {
             child: const Text('Ver pantalla de ejemplo'),
           ),
           const _Seccion('Botones'),
+          const _Nota('Mantén presionado para ver cómo se hunde y cuadra las esquinas.'),
+          BotonApp(texto: 'Iniciar ronda', icono: Icons.golf_course, expandido: true, onPressed: () {}),
+          const SizedBox(height: 12),
+          BotonApp(
+            texto: 'Guardar (simula 1,5 s)',
+            icono: Icons.save_rounded,
+            expandido: true,
+            onPressed: () => Future.delayed(const Duration(milliseconds: 1500)),
+          ),
+          const SizedBox(height: 12),
+          BotonApp(
+            texto: 'Guardar con error',
+            variante: VarianteBoton.tonal,
+            expandido: true,
+            onPressed: () async {
+              await Future.delayed(const Duration(seconds: 1));
+              throw Exception('Simulación de error');
+            },
+          ),
+          const SizedBox(height: 12),
           Wrap(
-            spacing: 12,
+            spacing: 8,
             runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              ElevatedButton(onPressed: () {}, child: const Text('Guardar')),
-              FilledButton(onPressed: () {}, child: const Text('Filled')),
-              OutlinedButton(onPressed: () {}, child: const Text('Cancelar')),
-              TextButton(onPressed: () {}, child: const Text('Ver más')),
-              const ElevatedButton(onPressed: null, child: Text('Deshabilitado')),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.golf_course),
-                label: const Text('Iniciar ronda'),
-              ),
+              BotonApp(texto: 'Tonal', variante: VarianteBoton.tonal, onPressed: () {}),
+              BotonApp(texto: 'Texto', variante: VarianteBoton.texto, onPressed: () {}),
+              BotonApp(texto: 'Eliminar', icono: Icons.delete_outline, variante: VarianteBoton.peligro, onPressed: () {}),
+              const BotonApp(texto: 'Deshabilitado', onPressed: null),
             ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: BotonApp(texto: 'Cancelar', variante: VarianteBoton.tonal, compacto: true, expandido: true, onPressed: () {}),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: BotonApp(texto: 'Aceptar', compacto: true, expandido: true, onPressed: () {})),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const _Nota('Sobre fondos oscuros, fotos o el mapa:'),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(gradient: kPrimaryGradientColor, borderRadius: BorderRadius.circular(20)),
+            child: Column(
+              children: [
+                BotonApp(texto: 'Continuar', expandido: true, onPressed: () {}),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: BotonApp(
+                        texto: 'Tarjetas',
+                        icono: Icons.scoreboard_outlined,
+                        variante: VarianteBoton.cristal,
+                        expandido: true,
+                        onPressed: () {},
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: BotonApp(
+                        texto: 'Mapa',
+                        icono: Icons.map_outlined,
+                        variante: VarianteBoton.cristal,
+                        expandido: true,
+                        onPressed: () {},
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          BotonApp(
+            texto: 'Ver acción fija abajo',
+            variante: VarianteBoton.tonal,
+            expandido: true,
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _EjemploAccionInferior())),
           ),
           const _Seccion('Diálogos y avisos'),
           Wrap(
@@ -178,6 +243,53 @@ class _EjemploAppBar extends StatelessWidget {
             leading: const Icon(Icons.scoreboard_outlined),
             title: Text('Tarjeta ${i + 1}'),
             subtitle: const Text('Los Sueños Marriot · 25 jul 2026'),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Nota extends StatelessWidget {
+  final String texto;
+
+  const _Nota(this.texto);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(texto, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    );
+  }
+}
+
+/// Como quedaría el inicio: fondo oscuro y "Jugar" fijo abajo en la zona del pulgar.
+class _EjemploAccionInferior extends StatelessWidget {
+  const _EjemploAccionInferior();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: const MyCustomAppBar(title: 'Golf Colombia', actions: [LogoAppBar()]),
+      body: Container(
+        decoration: const BoxDecoration(gradient: kFondoGradient),
+        child: const SafeArea(
+          bottom: false,
+          child: Center(
+            child: Text('Contenido de la pantalla', style: TextStyle(color: Colors.white70, fontSize: 16)),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        color: kPverdeBienOscuto,
+        child: BarraAccionInferior(
+          child: BotonApp(
+            texto: 'Jugar',
+            icono: Icons.sports_golf,
+            expandido: true,
+            onPressed: () => Future.delayed(const Duration(seconds: 1)),
           ),
         ),
       ),

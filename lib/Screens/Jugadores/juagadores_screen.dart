@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ruitoque/Components/avatar_perfil.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
@@ -121,6 +122,8 @@ class _JugadoresScreenState extends State<JugadoresScreen> {
           title: 'Jugadores',
           actions: [
             BotonBarra(icono: Icons.refresh_rounded, onTap: _load, tooltip: 'Refrescar'),
+            const SizedBox(width: 6),
+            const AvatarPerfil(),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(56),

@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:ruitoque/Components/avatar_perfil.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_item_campo.dart';
@@ -47,13 +48,21 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
         // El fondo sigue detrás de la barra (se ve en sus esquinas redondeadas).
         extendBodyBehindAppBar: true,
         appBar: MyCustomAppBar(
-        title: 'Editar Campo',
+        title: 'Campos',
         automaticallyImplyLeading: true,   
         backgroundColor: kPprimaryColor,
        elevation: 4.5,
           shadowColor: Colors.red,
         foreColor: Colors.white,
-         actions: const [LogoAppBar()],
+         actions: [
+           BotonBarra(
+             icono: Icons.add_rounded,
+             tooltip: 'Agregar campo',
+             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddCourseScreen())),
+           ),
+           const SizedBox(width: 6),
+           const AvatarPerfil(),
+         ],
       ),
          body: Container(
           color: const Color.fromARGB(255, 176, 184, 200),

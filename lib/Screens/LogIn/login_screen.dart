@@ -3,10 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/default_button.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
-import 'package:ruitoque/Models/Preferences/jugadorpreferences.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/response.dart';
-import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/constans.dart';
 import 'package:ruitoque/sizeconfig.dart';
 
@@ -134,15 +132,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  goHome(){
-     Navigator.pushReplacement(
-      context, 
-      MaterialPageRoute(
-        builder: (context) =>  const MyHomePage()
-      )
-    );
-  }
-
    bool _validateFields() {
     bool isValid = true;
 
@@ -201,15 +190,11 @@ class _LoginScreenState extends State<LoginScreen> {
        return;
      }
      
-    // Guardar la sesión ANTES de setJugador: este await no debe quedar entre
-    // setJugador (que dispara la navegación automática del Consumer en main.dart
-    // y desmonta esta pantalla) y goHome, o el context quedaría inválido.
-    if (_rememberme) {
-      await JugadorPreferences.guardarJugador(response.result, true);
-    }
-
     if (!mounted) return;
-    Provider.of<JugadorProvider>(context, listen: false).setJugador(response.result);
-    goHome();
+    // No se navega desde aquí: main.dart muestra el inicio en cuanto hay jugador.
+    // (Navegar además dejaba el inicio abierto dos veces.) Solo se recuerda la
+    // sesión si el usuario marcó "Recuérdame".
+    await Provider.of<JugadorProvider>(context, listen: false)
+        .setJugador(response.result, isRemembered: _rememberme);
   }
 }

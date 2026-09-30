@@ -13,7 +13,6 @@ import 'package:ruitoque/Screens/Campos/Components/tees_list.dart';
 import 'package:ruitoque/Screens/Campos/add_edit_teepage.dart';
 import 'package:ruitoque/Screens/Campos/agregar_hoyos_screen.dart';
 import 'package:ruitoque/Screens/Campos/crear_cordenada_screen.dart';
-import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/constans.dart';
 
 class AddCourseScreen extends StatefulWidget {
@@ -427,12 +426,8 @@ class AddCourseScreenState extends State<AddCourseScreen> {
       
               if (!mounted) return;
               if (confirm == true) {
-                 Navigator.pushReplacement(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (context) => const MyHomePage(),
-                      ),                   
-                    );
+                // Vuelve al inicio que ya está abierto (abrir otro lo duplicaba).
+                Navigator.of(context).popUntil((ruta) => ruta.isFirst);
               }
             },
              style: ElevatedButton.styleFrom(

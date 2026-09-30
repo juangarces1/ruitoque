@@ -48,12 +48,13 @@ class MyCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final puedeVolver = automaticallyImplyLeading && Navigator.canPop(context);
-    final tieneMenu = !puedeVolver && automaticallyImplyLeading && (Scaffold.maybeOf(context)?.hasDrawer ?? false);
-    final Widget? inicio = puedeVolver
-        ? BotonBarra(icono: Icons.arrow_back_rounded, onTap: () => Navigator.of(context).maybePop())
-        : tieneMenu
-            ? BotonBarra(icono: Icons.menu_rounded, onTap: () => Scaffold.of(context).openDrawer())
+    // Como en AppBar de Flutter: si la pantalla tiene menú lateral, el menú tiene prioridad.
+    final tieneMenu = automaticallyImplyLeading && (Scaffold.maybeOf(context)?.hasDrawer ?? false);
+    final puedeVolver = !tieneMenu && automaticallyImplyLeading && Navigator.canPop(context);
+    final Widget? inicio = tieneMenu
+        ? BotonBarra(icono: Icons.menu_rounded, onTap: () => Scaffold.of(context).openDrawer())
+        : puedeVolver
+            ? BotonBarra(icono: Icons.arrow_back_rounded, onTap: () => Navigator.of(context).maybePop())
             : null;
 
     return AppBar(

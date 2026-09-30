@@ -4,7 +4,7 @@ import 'package:ruitoque/Models/Providers/cordenada_provider.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/cordenada.dart';
 import 'package:ruitoque/Helpers/supabase_config.dart';
-import 'package:ruitoque/Screens/Home/my_home_pag.dart';
+import 'package:ruitoque/Screens/Shell/shell_screen.dart';
 import 'package:ruitoque/Screens/LogIn/login_screen.dart';
 import 'package:ruitoque/Theme/app_theme.dart';
 
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
       home: Consumer<JugadorProvider>(
         builder: (context, jugadorProvider, child) {
           // Si el jugador tiene un nombre, se redirige a la pantalla principal
-          return jugadorProvider.jugador.nombre.isNotEmpty ? const MyHomePage() : const LoginScreen();
+          return jugadorProvider.jugador.nombre.isNotEmpty ? const ShellScreen() : const LoginScreen();
         },
       ),
     );

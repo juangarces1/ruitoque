@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
+import 'package:ruitoque/Components/avatar_perfil.dart';
 import 'package:ruitoque/Components/card_jugador.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
@@ -9,11 +10,7 @@ import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Screens/Home/Components/card_join.dart';
-import 'package:ruitoque/Screens/Home/Components/golf_drawer.dart';
 import 'package:ruitoque/Screens/Home/Components/ronda_card.dart';
-import 'package:ruitoque/Screens/Ronda/select_screen.dart';
-import 'package:ruitoque/constans.dart';
-import 'package:ruitoque/sizeconfig.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -66,11 +63,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    final double posJugar = SizeConfig.screenWidth / 2 - 40;
 
     return Scaffold(
-      drawer: GolfDrawer(jugador: jugador),
       // El fondo de montañas sigue detrás de la barra (se ve en sus esquinas redondeadas);
       // el SafeArea del contenido ya descuenta el alto de la barra.
       extendBodyBehindAppBar: true,
@@ -83,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           automaticallyImplyLeading: true,
           shadowColor: Colors.black54,
           elevation: 4.0,
-          actions: const [LogoAppBar()],
+          actions: const [AvatarPerfil()],
         ),
       ),
       body: Stack(
@@ -198,38 +192,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               opacity: _fadeCtrl,
               child: const Center(child: MyLoader(text: 'Cargando...', opacity: 1)),
             ),
-          // Botón Jugar con ripple y sombra suave (misma lógica que ya tienes)
-          Positioned(
-            bottom: 10,
-            left: posJugar,
-            child: Material(
-              color: kPcontrastMoradoColor,
-              borderRadius: BorderRadius.circular(40),
-              elevation: 4,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(40),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SelectCampoScreen()),
-                ),
-                child: const SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: Center(
-                    child: Text(
-                      'Jugar',
-                      style: TextStyle(
-                        fontSize: 23,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

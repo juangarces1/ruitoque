@@ -18,7 +18,6 @@ import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/tarjeta.dart';
-import 'package:ruitoque/Screens/Home/my_home_pag.dart';
 import 'package:ruitoque/constans.dart';
 
 class RondaRapida extends StatefulWidget {
@@ -870,10 +869,7 @@ bool _isComplete() {
       Navigator.of(context).pop();
     } else {
       // Fallback por si esta pantalla es la raíz por algún motivo
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MyHomePage()),
-      );
+      Navigator.of(context).popUntil((ruta) => ruta.isFirst);
     }
   }
 }

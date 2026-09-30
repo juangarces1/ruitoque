@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ruitoque/Components/avatar_perfil.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/my_loader.dart';
@@ -62,7 +63,7 @@ class _MisRondasDeAmigosScreenState extends State<MisRondasDeAmigosScreen> {
           automaticallyImplyLeading: true,
           foreColor: Colors.white,
           backgroundColor: kPprimaryColor,
-          actions: const [LogoAppBar()],
+          actions: const [AvatarPerfil()],
         ),
         body: Container(
           decoration: const BoxDecoration(gradient: kPrimaryGradientColor),
