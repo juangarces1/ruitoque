@@ -4,7 +4,7 @@ import 'package:ruitoque/Components/avatar_perfil.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_item_campo.dart';
-import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/botones.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
@@ -12,6 +12,7 @@ import 'package:ruitoque/Models/campo.dart';
 import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Screens/Campos/add_course_screen.dart';
+import 'package:ruitoque/Screens/Campos/buscar_campo_osm_screen.dart';
 import 'package:ruitoque/constans.dart';
 
 class SelectEditCampo extends StatefulWidget {
@@ -56,9 +57,15 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
         foreColor: Colors.white,
          actions: [
            BotonBarra(
+             icono: Icons.travel_explore_rounded,
+             tooltip: 'Buscar campo en OpenStreetMap',
+             onTap: _abrirBuscador,
+           ),
+           const SizedBox(width: 6),
+           BotonBarra(
              icono: Icons.add_rounded,
              tooltip: 'Agregar campo',
-             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddCourseScreen())),
+             onTap: () => _abrirEditor(null),
            ),
            const SizedBox(width: 6),
            const AvatarPerfil(),
@@ -240,15 +247,16 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
             
             const SizedBox(height: 5),
             Center(
-              child: DefaultButton(
-                text: const Text(
-                  'Editar Campo',
-                  style: kTextStyleBlancoNuevaFuente20,
-                  textAlign: TextAlign.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: BotonApp(
+                  texto: 'Editar Campo',
+                  icono: Icons.edit_rounded,
+                  expandido: true,
+                  onPressed: () {
+                    goEditCampo();
+                  },
                 ),
-                press: () => goEditCampo(),
-                gradient: kPrimaryGradientColor,
-                color: kPprimaryColor,
               ),
             ),
             const SizedBox(height: 5),
@@ -269,14 +277,31 @@ class _SelectEditCampoState extends State<SelectEditCampo> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
   
+  /// Abre el editor (campo nuevo si [campo] es null) y, si se guardó algo,
+  /// recarga la lista para no seguir mostrando la copia vieja.
+  Future<void> _abrirEditor(Campo? campo) async {
+    final guardado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => AddCourseScreen(campo: campo)),
+    );
+    if (guardado == true && mounted) {
+      setState(() => campoSeleccionado = null);
+      await getCampos();
+    }
+  }
+
+  /// Busca un campo en OpenStreetMap; si se guardó, recarga la lista.
+  Future<void> _abrirBuscador() async {
+    final guardado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const BuscarCampoOsmScreen()),
+    );
+    if (guardado == true && mounted) await getCampos();
+  }
+
 goEditCampo() {
   if (campoSeleccionado != null) {
-      Navigator.push(
-           context, 
-          MaterialPageRoute(
-            builder: (context) => AddCourseScreen(campo: campoSeleccionado),
-          ),          
-        );
+      _abrirEditor(campoSeleccionado);
     } else {
       mostrarSnackBar(context, 'Por favor, seleccione un campo antes de editar.');
     }

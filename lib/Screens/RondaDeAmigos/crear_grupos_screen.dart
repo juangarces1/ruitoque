@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
-import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/botones.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/estadisticahoyo.dart';
@@ -379,15 +379,13 @@ class _CrearGruposScreenState extends State<CrearGruposScreen> {
         if (rondaDeAmigos.rondas.isNotEmpty)
           Padding(
             padding: const EdgeInsets.all(16),
-            child: DefaultButton(
-              text: const Text(
-                'Crear Ronda de Amigos',
-                style: kTextStyleBlancoNuevaFuente20,
-                textAlign: TextAlign.center,
-              ),
-              press: _guardarRondaDeAmigos,
-              gradient: kPrimaryGradientColor,
-              color: kPsecondaryColor,
+            child: BotonApp(
+              texto: 'Crear Ronda de Amigos',
+              icono: Icons.check_circle_outline_rounded,
+              expandido: true,
+              onPressed: () {
+                _guardarRondaDeAmigos();
+              },
             ),
           ),
       ],

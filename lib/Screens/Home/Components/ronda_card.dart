@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/botones.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Screens/Ronda/mi_ronda_screen.dart';
 import 'package:ruitoque/constans.dart';
@@ -121,12 +121,12 @@ class RondaCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Center(
-                        child: DefaultButton(
-                          text: const Text('Continuar', style: kTextStyleBlancoNuevaFuente20),
-                          gradient: kGradientHome,
-                          press: () => goRonda(ronda, context),
-                          color: kAzulBanderaColombia,
-                        ),
+                        child: BotonApp(
+                        texto: 'Continuar',
+                        icono: Icons.play_arrow_rounded,
+                        expandido: true,
+                        onPressed: () => goRonda(ronda, context),
+                      ),
                       ),
                     ],
                   ),

@@ -18,7 +18,11 @@ import 'package:ruitoque/constans.dart';
 class AddCourseScreen extends StatefulWidget {
   final Campo? campo; // El campo existente que se pasará si estamos editando
 
-  const AddCourseScreen({Key? key, this.campo}) : super(key: key);
+  /// Campo sin guardar (p. ej. importado de OpenStreetMap): llena el formulario
+  /// pero se guarda como campo nuevo.
+  final Campo? borrador;
+
+  const AddCourseScreen({Key? key, this.campo, this.borrador}) : super(key: key);
 
   @override
   AddCourseScreenState createState() => AddCourseScreenState();
@@ -44,6 +48,11 @@ class AddCourseScreenState extends State<AddCourseScreen> {
       _ubicacionController.text = widget.campo!.ubicacion;
       _hoyos.addAll(widget.campo!.hoyos);
       _tees.addAll(widget.campo!.tees);    
+    } else if (widget.borrador != null) {
+      _nombreController.text = widget.borrador!.nombre;
+      _ubicacionController.text = widget.borrador!.ubicacion;
+      _hoyos.addAll(widget.borrador!.hoyos);
+      _tees.addAll(widget.borrador!.tees);
     }
   }
 
@@ -83,16 +92,16 @@ class AddCourseScreenState extends State<AddCourseScreen> {
                     children: <Widget>[
                       const SizedBox(height: 15), // Espacio superior
                     
-                     TextFormField(
-                        controller: _idController,
-                        decoration:  buildInputDecoration('Id'),
-                        style: const TextStyle(color: Colors.white),
-                        cursorColor: Colors.white,
-                        keyboardType: TextInputType.number,
-                        validator: (value) => value == null || value.isEmpty ? 'Por favor ingresa el ID' : null,
-                        enabled: widget.campo == null, // Deshabilitar ID en edición
-                      ),
-                      const SizedBox(height: 10), // Espaciado entre campos
+                      // El id lo asigna el servidor al crear; solo se muestra al editar.
+                      if (widget.campo != null) ...[
+                        TextFormField(
+                          controller: _idController,
+                          decoration: buildInputDecoration('Id'),
+                          style: const TextStyle(color: Colors.white),
+                          enabled: false,
+                        ),
+                        const SizedBox(height: 10), // Espaciado entre campos
+                      ],
                       TextFormField(
                         controller: _nombreController,
                         decoration:  buildInputDecoration('Nombre'),
@@ -316,12 +325,13 @@ class AddCourseScreenState extends State<AddCourseScreen> {
   }
 
   Future<void> _goSave() async {
+    if (!(_formKey.currentState?.validate() ?? true)) return;
     setState(() {
       showLoader = true;
     });
 
     var nuevoCampo = Campo(
-      id: int.parse(_idController.text),
+      id: int.tryParse(_idController.text) ?? 0,
       nombre: _nombreController.text,
       ubicacion: _ubicacionController.text,
       hoyos: _hoyos,
@@ -373,7 +383,7 @@ class AddCourseScreenState extends State<AddCourseScreen> {
     }
 
     if (mounted) {
-      showDialog(
+      await showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -390,6 +400,9 @@ class AddCourseScreenState extends State<AddCourseScreen> {
           );
         },
       );
+      // Se sale del editor: lo que queda en pantalla aún tiene ids en 0 y
+      // volver a guardar crearía el campo otra vez. `true` = hubo cambios.
+      if (mounted) Navigator.of(context).pop(true);
     }
   }
 

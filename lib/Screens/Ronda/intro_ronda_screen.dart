@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_item_campo.dart';
-import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/botones.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
@@ -354,15 +354,17 @@ class _IntroRondaScreenState extends State<IntroRondaScreen> {
             ),
             const SizedBox(height: 5),
             Center(
-              child: DefaultButton(
-                text: const Text(
-                  'Iniciar Ronda',
-                  style: kTextStyleBlancoNuevaFuente20,
-                  textAlign: TextAlign.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                // La pantalla muestra su propio loader; el botón solo dispara la acción.
+                child: BotonApp(
+                  texto: 'Iniciar Ronda',
+                  icono: Icons.golf_course_rounded,
+                  expandido: true,
+                  onPressed: () {
+                    goRonda();
+                  },
                 ),
-                press: () => goRonda(),
-                gradient: kPrimaryGradientColor,
-                color: kPsecondaryColor,
               ),
             ),
             const SizedBox(height: 5),

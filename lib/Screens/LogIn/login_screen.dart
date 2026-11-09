@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:ruitoque/Components/default_button.dart';
-import 'package:ruitoque/Components/my_loader.dart';
+import 'package:ruitoque/Components/botones.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
 import 'package:ruitoque/Models/response.dart';
@@ -24,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberme = true;
   bool _passwordShow = false;
 
-  bool _showLoader = false;
 
   @override
   Widget build(BuildContext context) {
@@ -63,18 +61,20 @@ class _LoginScreenState extends State<LoginScreen> {
                      _showRememberme(),
                       const SizedBox(height: 40.0),
                    
-                       DefaultButton(
-                          text: const Text('Ingresar', style: kTextStyleBlancoNuevaFuente20, textAlign: TextAlign.center ,),
-                          press: () => goLogIn(),
-                          gradient: kSecondaryGradient,
-                          color: kPOcre,
-                          
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        // El botón muestra la carga mientras se valida el PIN.
+                        child: BotonApp(
+                          texto: 'Ingresar',
+                          icono: Icons.login_rounded,
+                          expandido: true,
+                          onPressed: goLogIn,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-              _showLoader ? const MyLoader(opacity: 1, text: 'Cargando..',) : Container(),
             ],
           ),
         ),
@@ -149,23 +149,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return isValid;
   }
 
-  Future<void> goLogIn() async {
-   if(!_validateFields()) {
-      return;
-    }
+  /// Devuelve si se pudo ingresar (el botón muestra ✓ solo en ese caso).
+  Future<bool> goLogIn() async {
+    FocusScope.of(context).unfocus();
+    if (!_validateFields()) return false;
 
-     setState(() {
-      _showLoader = true;
-    });
-     
-
-  
-    
     Response response = await ApiHelper.logIn(_password);
-
-    setState(() {
-      _showLoader = false;
-    });
+    if (!mounted) return false;
 
     if (!response.isSuccess) {
         if (mounted) {       
@@ -187,14 +177,15 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           );
         }  
-       return;
+       return false;
      }
      
-    if (!mounted) return;
+    if (!mounted) return false;
     // No se navega desde aquí: main.dart muestra el inicio en cuanto hay jugador.
     // (Navegar además dejaba el inicio abierto dos veces.) Solo se recuerda la
     // sesión si el usuario marcó "Recuérdame".
     await Provider.of<JugadorProvider>(context, listen: false)
         .setJugador(response.result, isRemembered: _rememberme);
+    return true;
   }
 }

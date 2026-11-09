@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
 import 'package:ruitoque/Components/card_item_campo.dart';
-import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/botones.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/campo.dart';
@@ -234,15 +234,11 @@ class _SelectCampoScreenState extends State<SelectCampoScreen> {
                 onChanged: (v) => setState(() => handicapPorcentaje = v),
               ),
             const SizedBox(height: 20),
-            DefaultButton(
-              text: const Text(
-                'Siguiente',
-                style: kTextStyleBlancoNuevaFuente20,
-                textAlign: TextAlign.center,
-              ),
-              press: _validarYContinuar,
-              gradient: kPrimaryGradientColor,
-              color: kPsecondaryColor,
+            BotonApp(
+              texto: 'Siguiente',
+              icono: Icons.arrow_forward_rounded,
+              expandido: true,
+              onPressed: _validarYContinuar,
             ),
           ],
         ),

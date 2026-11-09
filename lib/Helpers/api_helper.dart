@@ -7,6 +7,7 @@ import 'package:ruitoque/Models/jugador.dart';
 import 'package:ruitoque/Models/response.dart';
 import 'package:ruitoque/Models/ronda.dart';
 import 'package:ruitoque/Models/ronda_de_amigos.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
 /// Data access layer.
 ///
@@ -173,11 +174,13 @@ class ApiHelper {
         return Response(isSuccess: true, result: _encode(data));
       }
       if (path.startsWith('api/campos')) {
-        return Response(
-            isSuccess: false,
-            message: 'Crear campos aún no está disponible en el nuevo backend.');
+        final data = await supabase.rpc('golf_create_campo', params: {'payload': request});
+        return Response(isSuccess: true, message: 'Campo creado.', result: _encode(data));
       }
       return Response(isSuccess: false, message: 'Ruta no soportada: $controller');
+    } on PostgrestException catch (e) {
+      // Los avisos del servidor ("El campo necesita un nombre.") llegan aquí.
+      return Response(isSuccess: false, message: e.message);
     } catch (e) {
       return Response(isSuccess: false, message: e.toString());
     }
@@ -202,11 +205,17 @@ class ApiHelper {
         return Response(isSuccess: true, result: _encode(data));
       }
       if (path.contains('campos')) {
-        return Response(
-            isSuccess: false,
-            message: 'Editar campos aún no está disponible en el nuevo backend.');
+        final id = _idFromPath(path);
+        if (id == null) {
+          return Response(isSuccess: false, message: 'Id de campo inválido');
+        }
+        final data = await supabase.rpc('golf_update_campo', params: {'p_id': id, 'payload': request});
+        return Response(isSuccess: true, message: 'Campo actualizado.', result: _encode(data));
       }
       return Response(isSuccess: false, message: 'Ruta no soportada: $controller');
+    } on PostgrestException catch (e) {
+      // Los avisos del servidor ("El campo necesita un nombre.") llegan aquí.
+      return Response(isSuccess: false, message: e.message);
     } catch (e) {
       return Response(isSuccess: false, message: e.toString());
     }

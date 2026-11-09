@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ruitoque/Components/app_bar_custom.dart';
-import 'package:ruitoque/Components/default_button.dart';
+import 'package:ruitoque/Components/botones.dart';
 import 'package:ruitoque/Components/my_loader.dart';
 import 'package:ruitoque/Helpers/api_helper.dart';
 import 'package:ruitoque/Models/Providers/jugadorprovider.dart';
@@ -401,25 +401,28 @@ void _showCreateJugadorDialog() {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                DefaultButton(
-                  text: const Text(
-                    'Iniciar Ronda',
-                    style: kTextStyleBlancoNuevaFuente20,
-                    textAlign: TextAlign.center,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: BotonApp(
+                    texto: 'Iniciar Ronda',
+                    icono: Icons.golf_course_rounded,
+                    expandido: true,
+                    onPressed: () {
+                      goRonda();
+                    },
                   ),
-                  press: () => goRonda(),
-                  gradient: kPrimaryGradientColor,
-                  color: kPsecondaryColor,
                 ),
-                  DefaultButton(
-                  text: const Text(
-                    'Totalizar',
-                    style: kTextStyleBlancoNuevaFuente20,
-                    textAlign: TextAlign.center,
+                  Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: BotonApp(
+                    texto: 'Totalizar',
+                    icono: Icons.functions_rounded,
+                    variante: VarianteBoton.cristal,
+                    expandido: true,
+                    onPressed: () {
+                      goRondaRapida();
+                    },
                   ),
-                  press: () => goRondaRapida(),
-                  gradient: kSecondaryGradient,
-                  color: kPsecondaryColor,
                 ),
               ],
             ),

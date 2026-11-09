@@ -26,10 +26,12 @@ enum VarianteBoton {
 
 /// Botón de la app. Cápsula que se hunde y cuadra sus esquinas al presionarla,
 /// con vibración. Si [onPressed] devuelve un Future, muestra carga mientras dura
-/// y un ✓ al terminar bien; mientras carga ignora toques repetidos.
+/// y un ✓ al terminar bien; mientras carga ignora toques repetidos. Si el Future
+/// devuelve `false` (la acción no se completó, p. ej. PIN incorrecto) o lanza un
+/// error, vuelve a su estado normal sin ✓.
 class BotonApp extends StatefulWidget {
   final String texto;
-  final FutureOr<void> Function()? onPressed;
+  final FutureOr<Object?> Function()? onPressed;
   final VarianteBoton variante;
   final IconData? icono;
 
@@ -88,8 +90,9 @@ class _BotonAppState extends State<BotonApp> {
     if (resultado is! Future) return;
 
     setState(() => _estado = _Estado.cargando);
+    final Object? valor;
     try {
-      await resultado;
+      valor = await resultado;
     } catch (e) {
       // Quien llama muestra el error; el botón solo vuelve a su estado normal.
       debugPrint('BotonApp "${widget.texto}": $e');
@@ -97,6 +100,10 @@ class _BotonAppState extends State<BotonApp> {
       return;
     }
     if (!mounted) return;
+    if (valor == false) {
+      setState(() => _estado = _Estado.normal);
+      return;
+    }
     setState(() => _estado = _Estado.listo);
     await Future.delayed(_duracionListo);
     if (mounted) setState(() => _estado = _Estado.normal);

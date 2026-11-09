@@ -132,4 +132,20 @@ void main() {
     await tester.pumpWidget(_app(BotonApp(texto: 'Tonal', variante: VarianteBoton.tonal, onPressed: () {})));
     expect(tester.widget<AnimatedContainer>(find.byType(AnimatedContainer)).foregroundDecoration, isNull);
   });
+
+  testWidgets('si la acción devuelve false (p. ej. PIN incorrecto) no muestra ✓', (tester) async {
+    await tester.pumpWidget(_app(BotonApp(
+      texto: 'Ingresar',
+      onPressed: () async {
+        await Future.delayed(const Duration(milliseconds: 200));
+        return false;
+      },
+    )));
+    await tester.tap(find.text('Ingresar'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byIcon(Icons.check_rounded), findsNothing);
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
 }
